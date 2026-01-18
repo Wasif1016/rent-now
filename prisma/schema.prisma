@@ -1,0 +1,232 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Seed configuration
+// Run with: bun run db:seed
+
+datasource db {
+  provider = "postgresql"
+  // Note: In Prisma 7, url is configured in prisma.config.ts, not here
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum VendorVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum InquiryStatus {
+  PENDING
+  CONTACTED
+  CLOSED
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  CNG
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model Country {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  code      String   @unique // ISO country code (e.g., "PK" for Pakistan)
+  isActive  Boolean? @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  // Relations
+  cities City[]
+}
+
+model City {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  province  String?  // Optional: keep for backward compatibility
+  countryId String
+  isActive  Boolean? @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  // Relations
+  country        Country       @relation(fields: [countryId], references: [id])
+  vendorCities   VendorCity[]
+  vehicleCities  VehicleCity[]
+}
+
+model VehicleBrand {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  logo      String?  // Cloudinary URL
+  isActive  Boolean? @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vehicleModels VehicleModel[]
+}
+
+model VehicleType {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  icon        String?
+  description String?
+  isActive    Boolean? @default(true)
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vehicleModels VehicleModel[]
+  vehicles      Vehicle[]
+}
+
+model VehicleModel {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String
+  vehicleBrandId String
+  vehicleTypeId String
+  isActive      Boolean? @default(true)
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vehicleBrand VehicleBrand @relation(fields: [vehicleBrandId], references: [id])
+  vehicleType VehicleType   @relation(fields: [vehicleTypeId], references: [id])
+  vehicles     Vehicle[]
+}
+
+model Vendor {
+  id                String                 @id @default(uuid())
+  name              String
+  slug              String                 @unique
+  email             String?                @unique
+  phone             String?
+  address           String?
+  supabaseUserId    String?                @unique // For Supabase auth integration
+  description       String?                // Vendor bio
+  logo              String?                // Cloudinary URL
+  verificationStatus VendorVerificationStatus? @default(PENDING)
+  verifiedAt        DateTime?
+  isActive          Boolean?                @default(true)
+  images            Json?                  // Additional images (array of Cloudinary URLs)
+  documents         Json?                  // Verification documents
+  metadata          Json?                  // Additional metadata
+  createdAt         DateTime?              @default(now())
+  updatedAt         DateTime?              @default(now()) @updatedAt
+
+  // Relations
+  vendorCities VendorCity[]
+  vehicles     Vehicle[]
+  inquiries    Inquiry[]
+}
+
+model VendorCity {
+  id        String   @id @default(uuid())
+  vendorId  String
+  cityId    String
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  city   City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorId, cityId])
+  @@index([vendorId])
+  @@index([cityId])
+}
+
+model Vehicle {
+  id            String   @id @default(uuid())
+  vendorId      String
+  vehicleTypeId String
+  vehicleModelId String?
+  title         String   // Display title
+  slug          String   @unique // For SEO URLs
+  description   String?  // Full description
+  year          Int?     // Manufacturing year
+  mileage       Int?     // KM driven
+  fuelType      FuelType?
+  transmission  Transmission?
+  features      Json?    // Array of features (AC, GPS, Bluetooth, etc.)
+  color         String?
+  seats         Int?     // Number of seats
+  images        Json?    // Array of Cloudinary URLs
+  views         Int      @default(0) // View counter for analytics
+  featured      Boolean  @default(false) // Premium listing flag
+  isAvailable   Boolean? @default(true)
+  isVerified    Boolean? @default(false)
+  metadata      Json?    // Additional metadata
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vendor       Vendor        @relation(fields: [vendorId], references: [id])
+  vehicleType  VehicleType   @relation(fields: [vehicleTypeId], references: [id])
+  vehicleModel VehicleModel? @relation(fields: [vehicleModelId], references: [id])
+  vehicleCities VehicleCity[]
+  inquiries    Inquiry[]
+}
+
+model VehicleCity {
+  id          String   @id @default(uuid())
+  vehicleId   String
+  cityId      String
+  pricePerDay Int      // City-specific pricing
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  city    City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, cityId])
+  @@index([vehicleId])
+  @@index([cityId])
+  @@index([cityId, pricePerDay]) // For filtering by city and price range
+}
+
+model Inquiry {
+  id        String        @id @default(uuid())
+  vehicleId String
+  vendorId  String
+  userName  String
+  userPhone String
+  userEmail String?
+  message   String?       // Inquiry message
+  status    InquiryStatus? @default(PENDING)
+  createdAt DateTime?     @default(now())
+  updatedAt DateTime?     @default(now()) @updatedAt
+
+  // Relations
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@index([vehicleId])
+  @@index([vendorId])
+  @@index([status])
+}
