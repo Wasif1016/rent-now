@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { cache } from 'react'
 
 const globalForPrisma = globalThis as unknown as {
@@ -12,9 +14,21 @@ const globalForPrisma = globalThis as unknown as {
  * - Uses React.cache() for per-request deduplication
  * - Prevents multiple instances in development
  * - Properly handles connection pooling
+ * - Uses Prisma 7 adapter pattern
  */
 const prismaClientSingleton = () => {
+  const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL
+  
+  if (!connectionString) {
+    throw new Error('DATABASE_URL or DIRECT_URL environment variable is required')
+  }
+
+  // Use adapter for Prisma 7
+  const pool = new Pool({ connectionString })
+  const adapter = new PrismaPg(pool)
+
   return new PrismaClient({
+    adapter,
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'error', 'warn']

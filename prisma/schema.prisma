@@ -70,9 +70,27 @@ model City {
   updatedAt DateTime? @default(now()) @updatedAt
 
   // Relations
-  country        Country       @relation(fields: [countryId], references: [id])
-  vendorCities   VendorCity[]
-  vehicleCities  VehicleCity[]
+  country Country @relation(fields: [countryId], references: [id])
+  towns   Town[]
+  vehicles Vehicle[]
+}
+
+model Town {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String
+  cityId    String
+  isActive  Boolean? @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  // Relations
+  city     City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  vehicles Vehicle[]
+
+  @@unique([slug, cityId])
+  @@index([cityId])
+  @@index([slug])
 }
 
 model VehicleBrand {
@@ -88,35 +106,21 @@ model VehicleBrand {
   vehicleModels VehicleModel[]
 }
 
-model VehicleType {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  icon        String?
-  description String?
-  isActive    Boolean? @default(true)
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @default(now()) @updatedAt
-
-  // Relations
-  vehicleModels VehicleModel[]
-  vehicles      Vehicle[]
-}
-
 model VehicleModel {
   id            String   @id @default(uuid())
   name          String
   slug          String
   vehicleBrandId String
-  vehicleTypeId String
   isActive      Boolean? @default(true)
   createdAt     DateTime? @default(now())
   updatedAt     DateTime? @default(now()) @updatedAt
 
   // Relations
   vehicleBrand VehicleBrand @relation(fields: [vehicleBrandId], references: [id])
-  vehicleType VehicleType   @relation(fields: [vehicleTypeId], references: [id])
   vehicles     Vehicle[]
+
+  @@unique([slug, vehicleBrandId])
+  @@index([vehicleBrandId])
 }
 
 model Vendor {
@@ -139,32 +143,16 @@ model Vendor {
   updatedAt         DateTime?              @default(now()) @updatedAt
 
   // Relations
-  vendorCities VendorCity[]
   vehicles     Vehicle[]
   inquiries    Inquiry[]
-}
-
-model VendorCity {
-  id        String   @id @default(uuid())
-  vendorId  String
-  cityId    String
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @default(now()) @updatedAt
-
-  // Relations
-  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  city   City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  @@unique([vendorId, cityId])
-  @@index([vendorId])
-  @@index([cityId])
 }
 
 model Vehicle {
   id            String   @id @default(uuid())
   vendorId      String
-  vehicleTypeId String
   vehicleModelId String?
+  cityId        String   // Required: vehicle location (city)
+  townId        String?  // Optional: specific town within city
   title         String   // Display title
   slug          String   @unique // For SEO URLs
   description   String?  // Full description
@@ -186,28 +174,15 @@ model Vehicle {
 
   // Relations
   vendor       Vendor        @relation(fields: [vendorId], references: [id])
-  vehicleType  VehicleType   @relation(fields: [vehicleTypeId], references: [id])
   vehicleModel VehicleModel? @relation(fields: [vehicleModelId], references: [id])
-  vehicleCities VehicleCity[]
+  city         City          @relation(fields: [cityId], references: [id])
+  town         Town?         @relation(fields: [townId], references: [id])
   inquiries    Inquiry[]
-}
 
-model VehicleCity {
-  id          String   @id @default(uuid())
-  vehicleId   String
-  cityId      String
-  pricePerDay Int      // City-specific pricing
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @default(now()) @updatedAt
-
-  // Relations
-  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  city    City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  @@unique([vehicleId, cityId])
-  @@index([vehicleId])
   @@index([cityId])
-  @@index([cityId, pricePerDay]) // For filtering by city and price range
+  @@index([townId])
+  @@index([cityId, townId])
+  @@index([isAvailable])
 }
 
 model Inquiry {
