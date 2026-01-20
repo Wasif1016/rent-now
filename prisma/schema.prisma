@@ -42,6 +42,13 @@ enum Transmission {
   AUTOMATIC
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -93,6 +100,20 @@ model Town {
   @@index([slug])
 }
 
+model VehicleType {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  icon        String?  // Optional icon URL
+  description String?  // Optional description
+  isActive    Boolean? @default(true)
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vehicles Vehicle[]
+}
+
 model VehicleBrand {
   id        String   @id @default(uuid())
   name      String
@@ -111,6 +132,14 @@ model VehicleModel {
   name          String
   slug          String
   vehicleBrandId String
+  capacity      Int?     // Passenger capacity
+  image         String?  // Predefined vehicle image path
+  bodyType      String?  // HatchBack, Sedan, SUV, Van
+  doors         Int?     // Number of doors
+  largeBags     Int?     // Number of large bags
+  defaultColor  String?  // Default color (usually White)
+  defaultTransmission Transmission? // Default transmission
+  isPredefined  Boolean? @default(false) // Mark as predefined vehicle
   isActive      Boolean? @default(true)
   createdAt     DateTime? @default(now())
   updatedAt     DateTime? @default(now()) @updatedAt
@@ -121,6 +150,7 @@ model VehicleModel {
 
   @@unique([slug, vehicleBrandId])
   @@index([vehicleBrandId])
+  @@index([isPredefined])
 }
 
 model Vendor {
@@ -129,6 +159,8 @@ model Vendor {
   slug              String                 @unique
   email             String?                @unique
   phone             String?
+  personName        String?                // Contact person name (admin-only)
+  whatsappPhone     String?                // WhatsApp number for bookings (admin-only)
   address           String?
   supabaseUserId    String?                @unique // For Supabase auth integration
   description       String?                // Vendor bio
@@ -145,12 +177,14 @@ model Vendor {
   // Relations
   vehicles     Vehicle[]
   inquiries    Inquiry[]
+  bookings     Booking[]
 }
 
 model Vehicle {
   id            String   @id @default(uuid())
   vendorId      String
   vehicleModelId String?
+  vehicleTypeId String?  // Optional: vehicle type (Cars, Hiace, Vans, etc.)
   cityId        String   // Required: vehicle location (city)
   townId        String?  // Optional: specific town within city
   title         String   // Display title
@@ -168,6 +202,11 @@ model Vehicle {
   featured      Boolean  @default(false) // Premium listing flag
   isAvailable   Boolean? @default(true)
   isVerified    Boolean? @default(false)
+  // Pricing fields (optional)
+  priceWithDriver   Int?  // Price per day with driver
+  priceSelfDrive    Int?  // Price per day self-drive
+  priceWithinCity   Int?  // Price for within city
+  priceOutOfCity    Int?  // Price for out of city
   metadata      Json?    // Additional metadata
   createdAt     DateTime? @default(now())
   updatedAt     DateTime? @default(now()) @updatedAt
@@ -175,14 +214,17 @@ model Vehicle {
   // Relations
   vendor       Vendor        @relation(fields: [vendorId], references: [id])
   vehicleModel VehicleModel? @relation(fields: [vehicleModelId], references: [id])
+  vehicleType  VehicleType?  @relation(fields: [vehicleTypeId], references: [id])
   city         City          @relation(fields: [cityId], references: [id])
   town         Town?         @relation(fields: [townId], references: [id])
   inquiries    Inquiry[]
+  bookings     Booking[]
 
   @@index([cityId])
   @@index([townId])
   @@index([cityId, townId])
   @@index([isAvailable])
+  @@index([vehicleTypeId])
 }
 
 model Inquiry {
@@ -204,4 +246,30 @@ model Inquiry {
   @@index([vehicleId])
   @@index([vendorId])
   @@index([status])
+}
+
+model Booking {
+  id                String        @id @default(uuid())
+  vehicleId         String
+  vendorId          String
+  userName          String
+  userPhone         String
+  userEmail         String?
+  bookingDate       DateTime?    // Requested booking date
+  message           String?       // Additional message from user
+  status            BookingStatus @default(PENDING)
+  totalAmount       Int?          // Total booking amount
+  commissionAmount  Int?          // 20% commission amount
+  whatsappMessageSent Boolean     @default(false)
+  createdAt         DateTime?     @default(now())
+  updatedAt         DateTime?     @default(now()) @updatedAt
+
+  // Relations
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@index([vehicleId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([createdAt])
 }

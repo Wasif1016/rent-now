@@ -179,7 +179,36 @@ async function main() {
   }
 
   // ============================================
-  // 3. VEHICLE BRANDS
+  // 3. VEHICLE TYPES
+  // ============================================
+  console.log('\n🚙 Creating vehicle types...')
+  const vehicleTypes = [
+    { name: 'Cars', slug: 'cars', description: 'Sedan, Corolla, Civic and more' },
+    { name: 'Hiace', slug: 'hiace', description: 'Toyota Hiace vans for group travel' },
+    { name: 'Vans', slug: 'vans', description: 'Passenger and cargo vans' },
+    { name: 'Coaster', slug: 'coaster', description: 'Toyota Coaster buses' },
+    { name: 'Buses', slug: 'buses', description: 'Large buses for group travel' },
+    { name: 'Wedding Cars', slug: 'wedding-cars', description: 'Luxury cars for weddings' },
+  ]
+
+  const vehicleTypeRecords = []
+  for (const vehicleType of vehicleTypes) {
+    const vehicleTypeRecord = await prisma.vehicleType.upsert({
+      where: { slug: vehicleType.slug },
+      update: {},
+      create: {
+        name: vehicleType.name,
+        slug: vehicleType.slug,
+        description: vehicleType.description,
+        isActive: true,
+      },
+    })
+    vehicleTypeRecords.push(vehicleTypeRecord)
+    console.log(`  ✅ ${vehicleType.name}`)
+  }
+
+  // ============================================
+  // 4. VEHICLE BRANDS
   // ============================================
   console.log('\n🚗 Creating vehicle brands...')
   const brands = [
@@ -215,7 +244,7 @@ async function main() {
   }
 
   // ============================================
-  // 4. VEHICLE MODELS
+  // 5. VEHICLE MODELS
   // ============================================
   console.log('\n🚘 Creating vehicle models...')
   const models = [
@@ -283,11 +312,24 @@ async function main() {
     })
 
     if (!modelRecord) {
+      // Set capacity for popular Pakistani vehicles
+      let capacity: number | null = null
+      if (model.name === 'Alto' || model.name === 'Mehran' || model.name === 'Cultus' || model.name === 'Vitz' || model.name === 'Mira' || model.name === 'Picanto') {
+        capacity = 4
+      } else if (model.name === 'Wagon R' || model.name === 'Swift' || model.name === 'City' || model.name === 'Civic' || model.name === 'Corolla' || model.name === 'Sunny' || model.name === 'Elantra' || model.name === 'Accent') {
+        capacity = 5
+      } else if (model.name === 'Bolan' || model.name === 'CR-V' || model.name === 'X-Trail' || model.name === 'Land Cruiser') {
+        capacity = 7
+      } else {
+        capacity = 5 // Default
+      }
+
       modelRecord = await prisma.vehicleModel.create({
         data: {
           name: model.name,
           slug: modelSlug,
           vehicleBrandId: brand.id,
+          capacity,
           isActive: true,
         },
       })
@@ -297,7 +339,89 @@ async function main() {
   }
 
   // ============================================
-  // 5. CREATE SUPABASE AUTH USERS & VENDORS
+  // 5b. PREDEFINED VEHICLES (Quick Listing)
+  // ============================================
+  console.log('\n🚗 Creating predefined vehicles for quick listing...')
+  const predefinedVehicles = [
+    { name: 'Wagon R', brand: 'suzuki', bodyType: 'HatchBack', color: 'White', doors: 4, largeBags: 1, passengers: 4, transmission: 'MANUAL', image: '/rental-cars-images/Suzuki-Wagon R.png' },
+    { name: 'Cultus', brand: 'suzuki', bodyType: 'HatchBack', color: 'White', doors: 4, largeBags: 1, passengers: 4, transmission: 'MANUAL', image: '/rental-cars-images/Suzuki-cultus.png' },
+    { name: 'City', brand: 'honda', bodyType: 'Sedan', color: 'White', doors: 4, largeBags: 2, passengers: 4, transmission: 'MANUAL', image: '/rental-cars-images/Honda-city.png' },
+    { name: 'Alto', brand: 'suzuki', bodyType: 'HatchBack', color: 'White', doors: 4, largeBags: 1, passengers: 4, transmission: 'MANUAL', image: '/rental-cars-images/suzuki-alto.png' },
+    { name: 'Corolla', brand: 'toyota', bodyType: 'Sedan', color: 'White', doors: 4, largeBags: 2, passengers: 4, transmission: 'MANUAL', image: '/rental-cars-images/toyota-corolla.png' },
+    { name: 'Yaris', brand: 'toyota', bodyType: 'Sedan', color: 'White', doors: 4, largeBags: 2, passengers: 4, transmission: 'AUTOMATIC', image: '/rental-cars-images/toyota-yaris.png' },
+    { name: 'BR-V', brand: 'honda', bodyType: 'SUV', color: 'White', doors: 4, largeBags: 4, passengers: 7, transmission: 'AUTOMATIC', image: '/rental-cars-images/honda-br-v.png' },
+    { name: 'Civic', brand: 'honda', bodyType: 'Sedan', color: 'White', doors: 4, largeBags: 2, passengers: 4, transmission: 'AUTOMATIC', image: '/rental-cars-images/honda-civic.png' },
+    { name: 'Hiace', brand: 'toyota', bodyType: 'Van', color: 'White', doors: 4, largeBags: 4, passengers: 10, transmission: 'AUTOMATIC', image: '/rental-cars-images/toyota-hiace.png' },
+    { name: 'Coaster', brand: 'toyota', bodyType: 'Van', color: 'White', doors: 4, largeBags: 5, passengers: 29, transmission: 'MANUAL', image: '/rental-cars-images/toyota-coaster.jpg' },
+    { name: 'Fortuner', brand: 'toyota', bodyType: 'SUV', color: 'White', doors: 4, largeBags: 4, passengers: 7, transmission: 'AUTOMATIC', image: '/rental-cars-images/toyota-furtuner.png' },
+    { name: 'Prado', brand: 'toyota', bodyType: 'SUV', color: 'White', doors: 4, largeBags: 4, passengers: 7, transmission: 'AUTOMATIC', image: '/rental-cars-images/toyota-prado.png' },
+    { name: 'Land Cruiser', brand: 'toyota', bodyType: 'SUV', color: 'White', doors: 4, largeBags: 4, passengers: 7, transmission: 'AUTOMATIC', image: '/rental-cars-images/toyota-land-cruiser.png' },
+  ]
+
+  const predefinedModelRecords = []
+  for (const vehicle of predefinedVehicles) {
+    const brand = brandRecords.find(b => b.slug === vehicle.brand)
+    if (!brand) continue
+
+    const modelSlug = `${vehicle.brand}-${vehicle.name.toLowerCase().replace(/\s+/g, '-')}`
+    
+    // Find or create the model
+    let modelRecord = await prisma.vehicleModel.findFirst({
+      where: {
+        slug: modelSlug,
+        vehicleBrandId: brand.id,
+      },
+      include: {
+        vehicleBrand: true,
+      },
+    })
+
+    if (!modelRecord) {
+      modelRecord = await prisma.vehicleModel.create({
+        data: {
+          name: vehicle.name,
+          slug: modelSlug,
+          vehicleBrandId: brand.id,
+          capacity: vehicle.passengers,
+          image: vehicle.image,
+          bodyType: vehicle.bodyType,
+          doors: vehicle.doors,
+          largeBags: vehicle.largeBags,
+          defaultColor: vehicle.color,
+          defaultTransmission: vehicle.transmission as any,
+          isPredefined: true,
+          isActive: true,
+        },
+        include: {
+          vehicleBrand: true,
+        },
+      })
+    } else {
+      // Update existing model with predefined details
+      modelRecord = await prisma.vehicleModel.update({
+        where: { id: modelRecord.id },
+        data: {
+          capacity: vehicle.passengers,
+          image: vehicle.image,
+          bodyType: vehicle.bodyType,
+          doors: vehicle.doors,
+          largeBags: vehicle.largeBags,
+          defaultColor: vehicle.color,
+          defaultTransmission: vehicle.transmission as any,
+          isPredefined: true,
+        },
+        include: {
+          vehicleBrand: true,
+        },
+      })
+    }
+
+    predefinedModelRecords.push(modelRecord)
+    console.log(`  ✅ ${brand.name} ${vehicle.name} (Predefined)`)
+  }
+
+  // ============================================
+  // 6. CREATE SUPABASE AUTH USERS & VENDORS
   // ============================================
   console.log('\n👤 Creating vendors with Supabase auth accounts...')
   
@@ -355,112 +479,102 @@ async function main() {
 
   const vendorRecords = []
   for (const vendorData of vendors) {
-    // Create Supabase auth user
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: vendorData.email,
-      password: vendorData.password,
-      email_confirm: true,
+    // Check if vendor already exists
+    let vendor = await prisma.vendor.findUnique({
+      where: { email: vendorData.email },
     })
 
-    if (authError) {
-      console.error(`  ⚠️  Error creating auth user for ${vendorData.email}:`, authError.message)
-      continue
+    if (!vendor) {
+      // Create Supabase auth user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: vendorData.email,
+        password: vendorData.password,
+        email_confirm: true,
+      })
+
+      if (authError) {
+        console.error(`  ⚠️  Error creating auth user for ${vendorData.email}:`, authError.message)
+        continue
+      }
+
+      // Create vendor in database
+      vendor = await prisma.vendor.create({
+        data: {
+          name: vendorData.name,
+          slug: vendorData.name.toLowerCase().replace(/\s+/g, '-'),
+          email: vendorData.email,
+          phone: vendorData.phone,
+          personName: `Manager ${vendorData.name}`, // Placeholder person name
+          whatsappPhone: vendorData.phone, // Use same phone for WhatsApp
+          description: vendorData.description,
+          supabaseUserId: authData.user.id,
+          verificationStatus: 'VERIFIED',
+          verifiedAt: new Date(),
+          isActive: true,
+        },
+      })
+      console.log(`  ✅ Created ${vendorData.name} (${vendorData.email})`)
+    } else {
+      console.log(`  ✅ Found existing ${vendorData.name} (${vendorData.email})`)
     }
 
-    // Create vendor in database
-    const vendor = await prisma.vendor.create({
-      data: {
-        name: vendorData.name,
-        slug: vendorData.name.toLowerCase().replace(/\s+/g, '-'),
-        email: vendorData.email,
-        phone: vendorData.phone,
-        description: vendorData.description,
-        supabaseUserId: authData.user.id,
-        verificationStatus: 'VERIFIED',
-        verifiedAt: new Date(),
-        isActive: true,
-      },
-    })
-
     vendorRecords.push(vendor)
-    console.log(`  ✅ ${vendorData.name} (${vendorData.email})`)
   }
 
   // ============================================
-  // 6. CREATE VEHICLES WITH LOCATION
+  // 7. ASSIGN PREDEFINED VEHICLES TO VENDORS
   // ============================================
-  console.log('\n🚗 Creating vehicles...')
+  console.log('\n🚗 Cleaning up old vehicles...')
+  // Delete all existing vehicles to start fresh
+  await prisma.vehicle.deleteMany({})
+  console.log('  ✅ Removed all existing vehicles')
 
-  const vehicles = [
-    // Premium Car Rentals (vendor 0) - Luxury & Premium
-    { vendor: 0, model: 'toyota-corolla', title: 'Toyota Corolla 2023', year: 2023, mileage: 15000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Power Steering'], color: 'White', citySlug: 'karachi', townSlug: 'karachi-clifton' },
-    { vendor: 0, model: 'honda-civic', title: 'Honda Civic 2024', year: 2024, mileage: 5000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats'], color: 'Silver', citySlug: 'lahore', townSlug: 'lahore-gulberg' },
-    { vendor: 0, model: 'mercedes-benz-c-class', title: 'Mercedes-Benz C-Class 2023', year: 2023, mileage: 12000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound'], color: 'Black', citySlug: 'islamabad', townSlug: 'islamabad-f-7' },
-    { vendor: 0, model: 'bmw-3-series', title: 'BMW 3 Series 2024', year: 2024, mileage: 8000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound', 'Heated Seats'], color: 'Blue', citySlug: 'islamabad', townSlug: 'islamabad-e-11' },
-    { vendor: 0, model: 'audi-a4', title: 'Audi A4 2023', year: 2023, mileage: 14000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound'], color: 'Black', citySlug: 'karachi', townSlug: 'karachi-defence' },
-    { vendor: 0, model: 'toyota-camry', title: 'Toyota Camry 2023', year: 2023, mileage: 18000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Leather Seats'], color: 'Silver', citySlug: 'lahore', townSlug: 'lahore-bahria-town' },
+  console.log('\n🚗 Assigning predefined vehicles to vendors...')
+
+  // Distribution: Assign 13 predefined vehicles across 7 vendors and multiple cities
+  const vehicleAssignments = [
+    // Premium Car Rentals (vendor 0) - Premium vehicles
+    { vendorIndex: 0, modelSlug: 'toyota-corolla', citySlug: 'karachi', townSlug: 'karachi-clifton', priceWithDriver: 8000, priceSelfDrive: 5000 },
+    { vendorIndex: 0, modelSlug: 'honda-civic', citySlug: 'lahore', townSlug: 'lahore-gulberg', priceWithDriver: 9000, priceSelfDrive: 5500 },
+    { vendorIndex: 0, modelSlug: 'toyota-fortuner', citySlug: 'islamabad', townSlug: 'islamabad-f-7', priceWithDriver: 15000, priceSelfDrive: 10000 },
     
-    // City Wheels (vendor 1) - Budget & Economy
-    { vendor: 1, model: 'suzuki-mehran', title: 'Suzuki Mehran 2022', year: 2022, mileage: 30000, fuelType: 'CNG', transmission: 'MANUAL', seats: 5, features: ['AC', 'Power Steering'], color: 'White', citySlug: 'karachi', townSlug: 'karachi-dha' },
-    { vendor: 1, model: 'suzuki-swift', title: 'Suzuki Swift 2023', year: 2023, mileage: 20000, fuelType: 'PETROL', transmission: 'MANUAL', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'Red', citySlug: 'lahore', townSlug: 'lahore-model-town' },
-    { vendor: 1, model: 'suzuki-cultus', title: 'Suzuki Cultus 2023', year: 2023, mileage: 22000, fuelType: 'PETROL', transmission: 'MANUAL', seats: 5, features: ['AC', 'Power Steering', 'Bluetooth'], color: 'Blue', citySlug: 'islamabad', townSlug: 'islamabad-g-11' },
-    { vendor: 1, model: 'suzuki-alto', title: 'Suzuki Alto 2022', year: 2022, mileage: 28000, fuelType: 'CNG', transmission: 'MANUAL', seats: 5, features: ['AC', 'Power Steering'], color: 'White', citySlug: 'rawalpindi', townSlug: 'rawalpindi-chaklala' },
-    { vendor: 1, model: 'toyota-vitz', title: 'Toyota Vitz 2023', year: 2023, mileage: 15000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'Silver', citySlug: 'faisalabad', townSlug: 'faisalabad-d-ground' },
-    { vendor: 1, model: 'honda-city', title: 'Honda City 2023', year: 2023, mileage: 16000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera'], color: 'White', citySlug: 'multan', townSlug: 'multan-cantt' },
+    // City Wheels (vendor 1) - Budget vehicles
+    { vendorIndex: 1, modelSlug: 'suzuki-wagon-r', citySlug: 'karachi', townSlug: 'karachi-dha', priceWithDriver: 5000, priceSelfDrive: 3000 },
+    { vendorIndex: 1, modelSlug: 'suzuki-cultus', citySlug: 'lahore', townSlug: 'lahore-model-town', priceWithDriver: 5500, priceSelfDrive: 3200 },
+    { vendorIndex: 1, modelSlug: 'suzuki-alto', citySlug: 'islamabad', townSlug: 'islamabad-g-11', priceWithDriver: 4500, priceSelfDrive: 2800 },
     
-    // Elite Motors (vendor 2) - Luxury Collection
-    { vendor: 2, model: 'toyota-land-cruiser', title: 'Toyota Land Cruiser 2023', year: 2023, mileage: 25000, fuelType: 'DIESEL', transmission: 'AUTOMATIC', seats: 7, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', '4WD', 'Premium Sound'], color: 'Black', citySlug: 'lahore', townSlug: 'lahore-dha-phase-5' },
-    { vendor: 2, model: 'mercedes-benz-e-class', title: 'Mercedes-Benz E-Class 2024', year: 2024, mileage: 6000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound', 'Heated Seats'], color: 'Black', citySlug: 'islamabad', townSlug: 'islamabad-f-8' },
-    { vendor: 2, model: 'bmw-5-series', title: 'BMW 5 Series 2023', year: 2023, mileage: 10000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound', 'Heated Seats'], color: 'White', citySlug: 'karachi', townSlug: 'karachi-gulshan-e-iqbal' },
-    { vendor: 2, model: 'audi-a6', title: 'Audi A6 2023', year: 2023, mileage: 11000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound'], color: 'Silver', citySlug: 'lahore', townSlug: 'lahore-johar-town' },
-    { vendor: 2, model: 'honda-accord', title: 'Honda Accord 2023', year: 2023, mileage: 13000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats'], color: 'Black', citySlug: 'islamabad', townSlug: 'islamabad-dha-phase-2' },
+    // Elite Motors (vendor 2) - Luxury SUVs
+    { vendorIndex: 2, modelSlug: 'toyota-land-cruiser', citySlug: 'lahore', townSlug: 'lahore-dha-phase-5', priceWithDriver: 20000, priceSelfDrive: 12000 },
+    { vendorIndex: 2, modelSlug: 'toyota-prado', citySlug: 'islamabad', townSlug: 'islamabad-f-8', priceWithDriver: 18000, priceSelfDrive: 11000 },
     
-    // Budget Rent A Car (vendor 3) - Economy Focus
-    { vendor: 3, model: 'suzuki-mehran', title: 'Suzuki Mehran 2021', year: 2021, mileage: 45000, fuelType: 'CNG', transmission: 'MANUAL', seats: 5, features: ['AC', 'Power Steering'], color: 'White', citySlug: 'karachi', townSlug: 'karachi-gulistan-e-johar' },
-    { vendor: 3, model: 'suzuki-wagon-r', title: 'Suzuki Wagon R 2022', year: 2022, mileage: 35000, fuelType: 'CNG', transmission: 'MANUAL', seats: 5, features: ['AC', 'Power Steering'], color: 'Silver', citySlug: 'lahore', townSlug: 'lahore-wapda-town' },
-    { vendor: 3, model: 'daihatsu-mira', title: 'Daihatsu Mira 2022', year: 2022, mileage: 32000, fuelType: 'CNG', transmission: 'MANUAL', seats: 5, features: ['AC', 'Power Steering'], color: 'White', citySlug: 'islamabad', townSlug: 'islamabad-i-8' },
-    { vendor: 3, model: 'suzuki-bolan', title: 'Suzuki Bolan 2021', year: 2021, mileage: 50000, fuelType: 'CNG', transmission: 'MANUAL', seats: 7, features: ['AC'], color: 'White', citySlug: 'rawalpindi', townSlug: 'rawalpindi-cantt' },
-    { vendor: 3, model: 'toyota-corolla', title: 'Toyota Corolla 2022', year: 2022, mileage: 28000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'Silver', citySlug: 'faisalabad', townSlug: 'faisalabad-satiana-road' },
+    // Budget Rent A Car (vendor 3) - Economy
+    { vendorIndex: 3, modelSlug: 'honda-city', citySlug: 'rawalpindi', townSlug: 'rawalpindi-chaklala', priceWithDriver: 7000, priceSelfDrive: 4500 },
     
-    // Express Car Hire (vendor 4) - Mid-Range
-    { vendor: 4, model: 'toyota-corolla', title: 'Toyota Corolla 2024', year: 2024, mileage: 8000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Power Steering'], color: 'White', citySlug: 'karachi', townSlug: 'karachi-pechs' },
-    { vendor: 4, model: 'honda-civic', title: 'Honda Civic 2023', year: 2023, mileage: 17000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera'], color: 'Silver', citySlug: 'lahore', townSlug: 'lahore-ferozepur-road' },
-    { vendor: 4, model: 'hyundai-elantra', title: 'Hyundai Elantra 2023', year: 2023, mileage: 19000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera'], color: 'White', citySlug: 'islamabad', townSlug: 'islamabad-blue-area' },
-    { vendor: 4, model: 'nissan-sunny', title: 'Nissan Sunny 2023', year: 2023, mileage: 21000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'Silver', citySlug: 'rawalpindi', townSlug: 'rawalpindi-dha-phase-1' },
-    { vendor: 4, model: 'kia-sportage', title: 'Kia Sportage 2023', year: 2023, mileage: 15000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Sunroof'], color: 'Black', citySlug: 'multan', townSlug: 'multan-gulgasht' },
-    { vendor: 4, model: 'hyundai-tucson', title: 'Hyundai Tucson 2023', year: 2023, mileage: 14000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Sunroof'], color: 'White', citySlug: 'peshawar', townSlug: 'peshawar-hayatabad' },
+    // Express Car Hire (vendor 4) - Mid-range
+    { vendorIndex: 4, modelSlug: 'toyota-yaris', citySlug: 'karachi', townSlug: 'karachi-pechs', priceWithDriver: 7500, priceSelfDrive: 4800 },
+    { vendorIndex: 4, modelSlug: 'honda-br-v', citySlug: 'lahore', townSlug: 'lahore-ferozepur-road', priceWithDriver: 12000, priceSelfDrive: 8000 },
     
-    // Royal Fleet (vendor 5) - Premium & Luxury
-    { vendor: 5, model: 'toyota-land-cruiser', title: 'Toyota Land Cruiser 2024', year: 2024, mileage: 5000, fuelType: 'DIESEL', transmission: 'AUTOMATIC', seats: 7, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', '4WD', 'Premium Sound'], color: 'White', citySlug: 'islamabad', townSlug: 'islamabad-f-7' },
-    { vendor: 5, model: 'mercedes-benz-c-class', title: 'Mercedes-Benz C-Class 2024', year: 2024, mileage: 4000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound'], color: 'Black', citySlug: 'karachi', townSlug: 'karachi-clifton' },
-    { vendor: 5, model: 'bmw-3-series', title: 'BMW 3 Series 2023', year: 2023, mileage: 12000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Sunroof', 'Leather Seats', 'Premium Sound'], color: 'Blue', citySlug: 'lahore', townSlug: 'lahore-gulberg' },
-    { vendor: 5, model: 'honda-cr-v', title: 'Honda CR-V 2023', year: 2023, mileage: 16000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Sunroof'], color: 'Silver', citySlug: 'rawalpindi', townSlug: 'rawalpindi-bahria-town' },
-    { vendor: 5, model: 'nissan-x-trail', title: 'Nissan X-Trail 2023', year: 2023, mileage: 18000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 7, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera', 'Sunroof'], color: 'White', citySlug: 'quetta', townSlug: 'quetta-cantt' },
-    
-    // Quick Drive (vendor 6) - Variety
-    { vendor: 6, model: 'suzuki-swift', title: 'Suzuki Swift 2024', year: 2024, mileage: 3000, fuelType: 'PETROL', transmission: 'MANUAL', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'Red', citySlug: 'gujranwala', townSlug: 'gujranwala-cantt' },
-    { vendor: 6, model: 'toyota-corolla', title: 'Toyota Corolla 2023', year: 2023, mileage: 20000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera'], color: 'White', citySlug: 'sialkot', townSlug: 'sialkot-cantt' },
-    { vendor: 6, model: 'honda-city', title: 'Honda City 2023', year: 2023, mileage: 22000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera'], color: 'Silver', citySlug: 'sargodha', townSlug: 'sargodha-cantt' },
-    { vendor: 6, model: 'hyundai-accent', title: 'Hyundai Accent 2022', year: 2022, mileage: 30000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'White', citySlug: 'bahawalpur', townSlug: 'bahawalpur-cantt' },
-    { vendor: 6, model: 'kia-picanto', title: 'Kia Picanto 2023', year: 2023, mileage: 15000, fuelType: 'PETROL', transmission: 'MANUAL', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Power Steering'], color: 'Red', citySlug: 'peshawar', townSlug: 'peshawar-university-town' },
-    { vendor: 6, model: 'volkswagen-golf', title: 'Volkswagen Golf 2023', year: 2023, mileage: 13000, fuelType: 'PETROL', transmission: 'AUTOMATIC', seats: 5, features: ['AC', 'GPS', 'Bluetooth', 'Reverse Camera'], color: 'Black', citySlug: 'multan', townSlug: 'multan-bosan-road' },
+    // Royal Fleet (vendor 5) - Premium & Vans
+    { vendorIndex: 5, modelSlug: 'toyota-hiace', citySlug: 'islamabad', townSlug: 'islamabad-f-7', priceWithDriver: 14000, priceSelfDrive: 9000 },
+    { vendorIndex: 5, modelSlug: 'toyota-coaster', citySlug: 'karachi', townSlug: 'karachi-clifton', priceWithDriver: 25000, priceSelfDrive: null },
   ]
 
-  let vehicleIndex = 0
-  for (const vehicleData of vehicles) {
-    const vendor = vendorRecords[vehicleData.vendor]
-    const model = modelRecords.find(m => m.slug === vehicleData.model)
-    const city = cityRecords.find(c => c.slug === vehicleData.citySlug)
-    const town = townRecords.find(t => t.slug === vehicleData.townSlug)
+  let vehicleCount = 0
+  for (const assignment of vehicleAssignments) {
+    const vendor = vendorRecords[assignment.vendorIndex]
+    const model = predefinedModelRecords.find(m => m.slug === assignment.modelSlug)
+    const city = cityRecords.find(c => c.slug === assignment.citySlug)
+    const town = townRecords.find(t => t.slug === assignment.townSlug)
     
     if (!vendor || !model || !city) {
-      console.log(`  ⚠️  Skipping vehicle: ${vehicleData.title} (vendor, model, or city not found)`)
+      console.log(`  ⚠️  Skipping vehicle assignment: ${assignment.modelSlug} (vendor, model, or city not found)`)
       continue
     }
 
-    // Generate unique slug by including vendor slug and index
-    const baseSlug = vehicleData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    const uniqueSlug = `${baseSlug}-${vendor.slug}-${vehicleIndex}`
+    // Generate title from model
+    const title = `${model.vehicleBrand.name} ${model.name}`
+    const baseSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    const uniqueSlug = `${baseSlug}-${vendor.slug}-${vehicleCount}`
 
     const vehicle = await prisma.vehicle.create({
       data: {
@@ -468,29 +582,21 @@ async function main() {
         vehicleModelId: model.id,
         cityId: city.id,
         townId: town?.id || null,
-        title: vehicleData.title,
+        title: title,
         slug: uniqueSlug,
-        description: `Well-maintained ${vehicleData.title} available for rent. ${vehicleData.features.join(', ')}.`,
-        year: vehicleData.year,
-        mileage: vehicleData.mileage,
-        fuelType: vehicleData.fuelType as any,
-        transmission: vehicleData.transmission as any,
-        seats: vehicleData.seats,
-        features: vehicleData.features,
-        color: vehicleData.color,
-        images: [
-          `https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop`,
-          `https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop`,
-        ],
+        transmission: model.defaultTransmission as any,
+        seats: model.capacity || 5,
+        color: model.defaultColor || 'White',
+        images: model.image ? [model.image] : [],
+        priceWithDriver: assignment.priceWithDriver,
+        priceSelfDrive: assignment.priceSelfDrive,
         isAvailable: true,
         isVerified: true,
-        featured: vehicleData.vendor === 0, // Premium Car Rentals vehicles are featured
       },
     })
 
-    vehicleIndex++
-    const locationText = town ? `${town.name}, ${city.name}` : city.name
-    console.log(`  ✅ ${vehicleData.title} - ${locationText}`)
+    vehicleCount++
+    console.log(`  ✅ ${title} → ${vendor.name} (${city.name})`)
   }
 
   console.log('\n🎉 Seed completed successfully!')
@@ -499,8 +605,9 @@ async function main() {
   console.log(`   - ${townRecords.length} towns`)
   console.log(`   - ${brandRecords.length} vehicle brands`)
   console.log(`   - ${modelRecords.length} vehicle models`)
+  console.log(`   - ${predefinedModelRecords.length} predefined vehicles`)
   console.log(`   - ${vendorRecords.length} vendors`)
-  console.log(`   - ${vehicles.length} vehicles`)
+  console.log(`   - ${vehicleCount} vehicle listings`)
   console.log(`\n🔐 Vendor Login Credentials:`)
   vendors.forEach((v, i) => {
     console.log(`   ${i + 1}. ${v.email} / ${v.password}`)

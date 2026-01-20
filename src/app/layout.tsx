@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Oranienbaum, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
+import { MainHeader } from "@/components/layout/main-header";
+import { AuthProvider } from "@/contexts/auth-context";
 
 
 const oranienbaum = Oranienbaum({
@@ -31,7 +33,10 @@ export default function RootLayout({
       <body
         className={`${schibsted_grotesk.variable} ${oranienbaum.variable} antialiased font-sans`}
       >
-        {children}
+        <AuthProvider>
+          <MainHeader />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

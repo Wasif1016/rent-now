@@ -1,0 +1,121 @@
+import { getBookings } from '@/lib/data'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { CheckCircle2, XCircle, Clock } from 'lucide-react'
+
+// TODO: Get vendorId from authenticated session
+const VENDOR_ID = 'temp-vendor-id' // Replace with actual auth
+
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function VendorBookingsPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const page = parseInt(params.page as string) || 1
+  const status = params.status as string | undefined
+
+  const { bookings, total, totalPages } = await getBookings({
+    vendorId: VENDOR_ID,
+    status,
+    page,
+    limit: 20,
+  })
+
+  const statusColors: Record<string, string> = {
+    PENDING: 'text-yellow-600',
+    CONFIRMED: 'text-green-600',
+    CANCELLED: 'text-red-600',
+    COMPLETED: 'text-blue-600',
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-8">
+      <div className="container mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">My Bookings</h1>
+          <Link href="/vendor">
+            <Button variant="outline">Back to Dashboard</Button>
+          </Link>
+        </div>
+
+        {/* Status Filters */}
+        <div className="flex gap-2 mb-6">
+          <Link href="/vendor/bookings">
+            <Button variant={!status ? 'default' : 'outline'}>All</Button>
+          </Link>
+          <Link href="/vendor/bookings?status=PENDING">
+            <Button variant={status === 'PENDING' ? 'default' : 'outline'}>Pending</Button>
+          </Link>
+          <Link href="/vendor/bookings?status=CONFIRMED">
+            <Button variant={status === 'CONFIRMED' ? 'default' : 'outline'}>Confirmed</Button>
+          </Link>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Bookings ({total})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {bookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold">{booking.vehicle.title}</h3>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[booking.status]}`}>
+                        {booking.status}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
+                      <div>
+                        <p className="font-medium">Customer</p>
+                        <p>{booking.userName}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Phone</p>
+                        <p>{booking.userPhone}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Date</p>
+                        <p>
+                          {booking.bookingDate
+                            ? new Date(booking.bookingDate).toLocaleDateString()
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-6">
+                {page > 1 && (
+                  <Link href={`/vendor/bookings?page=${page - 1}${status ? `&status=${status}` : ''}`}>
+                    <Button variant="outline">Previous</Button>
+                  </Link>
+                )}
+                <span className="flex items-center px-4">
+                  Page {page} of {totalPages}
+                </span>
+                {page < totalPages && (
+                  <Link href={`/vendor/bookings?page=${page + 1}${status ? `&status=${status}` : ''}`}>
+                    <Button variant="outline">Next</Button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getCityBySlug, searchVehicles, getAllCitiesForStatic, getTownsByCity, getVehicleBrandsWithVehicles } from '@/lib/data'
+import { getCityBySlug, searchVehicles, getAllCitiesForStatic, getTownsByCity, getVehicleBrandsWithVehicles, getVehicleFilters } from '@/lib/data'
 import { generateCityPageMetadata, generateBreadcrumbs, generateStructuredData } from '@/lib/seo'
 import { VehicleGrid } from '@/components/search/vehicle-grid'
 import { SearchResultsHeader } from '@/components/search/search-results-header'
@@ -49,16 +49,19 @@ export default async function CityPage({ params, searchParams }: PageProps) {
   const page = parseInt(resolvedSearchParams.page as string) || 1
   const townSlug = resolvedSearchParams.town as string | undefined
   const brandSlug = resolvedSearchParams.brand as string | undefined
+  const vehicleSlug = resolvedSearchParams.vehicle as string | undefined
+  const vehicleTypeSlug = resolvedSearchParams.vehicleType as string | undefined
   const fuelType = resolvedSearchParams.fuelType as string | undefined
   const transmission = resolvedSearchParams.transmission as string | undefined
 
-  // Fetch towns and brands for filters
-  const [towns, brands] = await Promise.all([
+  // Fetch towns, brands, and vehicle filters for dropdowns
+  const [towns, brands, vehicleFilters] = await Promise.all([
     getTownsByCity(city.id),
     getVehicleBrandsWithVehicles(),
+    getVehicleFilters(),
   ])
 
-  // Filter towns and brands to only show those with available vehicles
+  // Filter towns to only show those with available vehicles
   const townsWithVehicles = towns.filter(t => t._count.vehicles > 0)
 
   // Search vehicles
@@ -66,6 +69,8 @@ export default async function CityPage({ params, searchParams }: PageProps) {
     citySlug,
     townSlug,
     brandSlug,
+    vehicleSlug,
+    vehicleTypeSlug,
     fuelType,
     transmission,
     page,
@@ -95,10 +100,17 @@ export default async function CityPage({ params, searchParams }: PageProps) {
                 citySlug={citySlug}
                 townSlug={townSlug}
                 brandSlug={brandSlug}
+                vehicleSlug={vehicleSlug}
                 fuelType={fuelType}
                 transmission={transmission}
                 towns={townsWithVehicles.map(t => ({ id: t.id, name: t.name, slug: t.slug }))}
                 brands={brands.map(b => ({ id: b.id, name: b.name, slug: b.slug }))}
+                vehicleModels={vehicleFilters.map(vm => ({ 
+                  id: vm.id, 
+                  name: `${vm.brand.name} ${vm.name}`, 
+                  slug: vm.slug,
+                  brandSlug: vm.brand.slug,
+                }))}
               />
             </Suspense>
           </aside>

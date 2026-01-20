@@ -30,6 +30,7 @@ interface VehicleCardProps {
     }
     vehicleModel?: {
       name: string
+      capacity?: number | null
       vehicleBrand: {
         name: string
       }
@@ -87,6 +88,12 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
 
           <div className="flex flex-wrap gap-2 mb-3 text-xs text-muted-foreground">
+            {(vehicle.vehicleModel?.capacity || vehicle.seats) && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {vehicle.vehicleModel?.capacity || vehicle.seats} Passengers
+              </span>
+            )}
             {vehicle.year && (
               <span className="flex items-center gap-1">
                 <Gauge className="h-3 w-3" />
@@ -95,12 +102,6 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             )}
             {vehicle.mileage && (
               <span>{vehicle.mileage.toLocaleString()} km</span>
-            )}
-            {vehicle.seats && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {vehicle.seats}
-              </span>
             )}
             {vehicle.fuelType && (
               <span className="flex items-center gap-1">
@@ -119,7 +120,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
 
           <div className="mt-auto rounded">
-            <Button variant="default" className="w-full">View Details</Button>
+            <Button variant="default" className="w-full">Book Now</Button>
           </div>
         </div>
       </Card>

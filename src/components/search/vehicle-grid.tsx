@@ -18,6 +18,7 @@ interface Vehicle {
   }
   vehicleModel?: {
     name: string
+    capacity?: number | null
     vehicleBrand: {
       name: string
     }

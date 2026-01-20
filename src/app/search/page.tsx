@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCityBySlug, searchVehicles, getTownsByCity, getVehicleBrandsWithVehicles } from '@/lib/data'
+import { getCityBySlug, searchVehicles, getTownsByCity, getVehicleBrandsWithVehicles, getVehicleFilters } from '@/lib/data'
 import { VehicleGrid } from '@/components/search/vehicle-grid'
 import { SearchResultsHeader } from '@/components/search/search-results-header'
 import { EmptyState } from '@/components/search/empty-state'
@@ -37,32 +37,40 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const page = parseInt(params.page as string) || 1
   const townSlug = params.town as string | undefined
   const brandSlug = params.brand as string | undefined
+  const vehicleSlug = params.vehicle as string | undefined
   const fuelType = params.fuelType as string | undefined
   const transmission = params.transmission as string | undefined
 
-  // Fetch towns and brands for filters (if city is selected)
+  // Fetch towns, brands, and vehicle models for filters (if city is selected)
   let towns: Array<{ id: string; name: string; slug: string }> = []
   let brands: Array<{ id: string; name: string; slug: string }> = []
+  let vehicleModels: Array<{ id: string; name: string; slug: string; brandSlug: string }> = []
+  
+  const [brandsData, vehicleFilters] = await Promise.all([
+    getVehicleBrandsWithVehicles(),
+    getVehicleFilters(),
+  ])
+  brands = brandsData.map(b => ({ id: b.id, name: b.name, slug: b.slug }))
+  vehicleModels = vehicleFilters.map(vm => ({ 
+    id: vm.id, 
+    name: `${vm.brand.name} ${vm.name}`, 
+    slug: vm.slug,
+    brandSlug: vm.brand.slug,
+  }))
   
   if (citySlug) {
     const city = await getCityBySlug(citySlug)
     if (city) {
-      const [townsData, brandsData] = await Promise.all([
-        getTownsByCity(city.id),
-        getVehicleBrandsWithVehicles(),
-      ])
+      const townsData = await getTownsByCity(city.id)
       towns = townsData.filter(t => t._count.vehicles > 0).map(t => ({ id: t.id, name: t.name, slug: t.slug }))
-      brands = brandsData.map(b => ({ id: b.id, name: b.name, slug: b.slug }))
     }
-  } else {
-    const brandsData = await getVehicleBrandsWithVehicles()
-    brands = brandsData.map(b => ({ id: b.id, name: b.name, slug: b.slug }))
   }
 
   const { vehicles, total, totalPages } = await searchVehicles({
     citySlug,
     townSlug,
     brandSlug,
+    vehicleSlug,
     fuelType,
     transmission,
     page,
@@ -79,10 +87,12 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 citySlug={citySlug}
                 townSlug={townSlug}
                 brandSlug={brandSlug}
+                vehicleSlug={vehicleSlug}
                 fuelType={fuelType}
                 transmission={transmission}
                 towns={towns}
                 brands={brands}
+                vehicleModels={vehicleModels}
               />
             </Suspense>
           </aside>

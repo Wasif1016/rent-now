@@ -18,37 +18,49 @@ interface SearchFiltersProps {
   citySlug?: string
   townSlug?: string
   brandSlug?: string
+  vehicleSlug?: string
   fuelType?: string
   transmission?: string
   towns?: Array<{ id: string; name: string; slug: string }>
   brands?: Array<{ id: string; name: string; slug: string }>
+  vehicleModels?: Array<{ id: string; name: string; slug: string; brandSlug: string }>
 }
 
 export function SearchFilters({
   citySlug,
   townSlug: initialTownSlug,
   brandSlug: initialBrandSlug,
+  vehicleSlug: initialVehicleSlug,
   fuelType: initialFuelType,
   transmission: initialTransmission,
   towns = [],
   brands = [],
+  vehicleModels = [],
 }: SearchFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [townSlug, setTownSlug] = useState(initialTownSlug || '')
   const [brandSlug, setBrandSlug] = useState(initialBrandSlug || '')
+  const [vehicleSlug, setVehicleSlug] = useState(initialVehicleSlug || '')
   const [fuelType, setFuelType] = useState(initialFuelType || '')
   const [transmission, setTransmission] = useState(initialTransmission || '')
 
   useEffect(() => {
     setTownSlug(initialTownSlug || '')
     setBrandSlug(initialBrandSlug || '')
+    setVehicleSlug(initialVehicleSlug || '')
     setFuelType(initialFuelType || '')
     setTransmission(initialTransmission || '')
-  }, [initialTownSlug, initialBrandSlug, initialFuelType, initialTransmission])
+  }, [initialTownSlug, initialBrandSlug, initialVehicleSlug, initialFuelType, initialTransmission])
 
   const selectedTown = towns.find(t => t.slug === townSlug)
   const selectedBrand = brands.find(b => b.slug === brandSlug)
+  const selectedVehicle = vehicleModels.find(v => v.slug === vehicleSlug)
+  
+  // Filter vehicle models by selected brand
+  const filteredVehicleModels = brandSlug
+    ? vehicleModels.filter(vm => vm.brandSlug === brandSlug)
+    : vehicleModels
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -63,6 +75,12 @@ export function SearchFilters({
       params.set('brand', brandSlug)
     } else {
       params.delete('brand')
+    }
+
+    if (vehicleSlug) {
+      params.set('vehicle', vehicleSlug)
+    } else {
+      params.delete('vehicle')
     }
 
     if (fuelType) {
@@ -85,18 +103,20 @@ export function SearchFilters({
   const clearFilters = () => {
     setTownSlug('')
     setBrandSlug('')
+    setVehicleSlug('')
     setFuelType('')
     setTransmission('')
     const params = new URLSearchParams(searchParams.toString())
     params.delete('town')
     params.delete('brand')
+    params.delete('vehicle')
     params.delete('fuelType')
     params.delete('transmission')
     params.delete('page')
     router.push(`?${params.toString()}`)
   }
 
-  const hasActiveFilters = townSlug || brandSlug || fuelType || transmission
+  const hasActiveFilters = townSlug || brandSlug || vehicleSlug || fuelType || transmission
 
   return (
     <Card>
@@ -189,7 +209,10 @@ export function SearchFilters({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) max-h-[300px] overflow-y-auto">
                 <DropdownMenuItem
-                  onClick={() => setBrandSlug('')}
+                  onClick={() => {
+                    setBrandSlug('')
+                    setVehicleSlug('') // Reset vehicle when brand changes
+                  }}
                   className="cursor-pointer"
                 >
                   {!brandSlug ? (
@@ -202,7 +225,10 @@ export function SearchFilters({
                 {brands.map((brand) => (
                   <DropdownMenuItem
                     key={brand.id}
-                    onClick={() => setBrandSlug(brand.slug)}
+                    onClick={() => {
+                      setBrandSlug(brand.slug)
+                      setVehicleSlug('') // Reset vehicle when brand changes
+                    }}
                     className="cursor-pointer"
                   >
                     {brandSlug === brand.slug ? (
@@ -211,6 +237,56 @@ export function SearchFilters({
                       <Image src={'/icons/unchecked-checkbox.svg'} alt={brand.name} width={16} height={16} className="h-4 w-4 mr-2" />
                     )}
                     <span>{brand.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+
+        {/* Vehicle Model Filter */}
+        {vehicleModels.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="vehicle" className="text-sm font-semibold">
+              Vehicle Model
+            </Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background text-foreground"
+                  disabled={!brandSlug && brands.length > 0}
+                >
+                  <span className="truncate">
+                    {selectedVehicle ? selectedVehicle.name : 'All models'}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) max-h-[300px] overflow-y-auto">
+                <DropdownMenuItem
+                  onClick={() => setVehicleSlug('')}
+                  className="cursor-pointer"
+                >
+                  {!vehicleSlug ? (
+                    <Image src={'/icons/checked-checkbox.svg'} alt="All models" width={16} height={16} className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Image src={'/icons/unchecked-checkbox.svg'} alt="All models" width={16} height={16} className="h-4 w-4 mr-2" />
+                  )}
+                  <span>All models</span>
+                </DropdownMenuItem>
+                {filteredVehicleModels.map((vehicle) => (
+                  <DropdownMenuItem
+                    key={vehicle.id}
+                    onClick={() => setVehicleSlug(vehicle.slug)}
+                    className="cursor-pointer"
+                  >
+                    {vehicleSlug === vehicle.slug ? (
+                      <Image src={'/icons/checked-checkbox.svg'} alt={vehicle.name} width={16} height={16} className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Image src={'/icons/unchecked-checkbox.svg'} alt={vehicle.name} width={16} height={16} className="h-4 w-4 mr-2" />
+                    )}
+                    <span>{vehicle.name}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -307,6 +383,7 @@ export function SearchFilters({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
 
         <Button onClick={applyFilters} className="w-full" size="sm">
           Apply Filters

@@ -13,6 +13,14 @@ const config: Config = {
         serif: ["var(--font-oranienbaum)", "ui-serif", "serif"],
         mono: ["var(--font-schibsted_grotesk)", "ui-monospace", "monospace"],
       },
+      colors: {
+        navy: {
+          DEFAULT: '#1a2332',
+          light: '#2a3441',
+        },
+        'soft-gray': '#f5f5f5',
+        'green-accent': '#10b981',
+      },
     },
   },
   plugins: [],

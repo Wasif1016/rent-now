@@ -13,14 +13,19 @@ interface BreadcrumbsProps {
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
   if (items.length <= 1) return null
 
+  // Filter out items with invalid URLs
+  const validItems = items.filter(item => item.url && typeof item.url === 'string')
+
+  if (validItems.length <= 1) return null
+
   return (
     <nav aria-label="Breadcrumb" className="mb-6">
       <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-        {items.map((item, index) => {
-          const isLast = index === items.length - 1
+        {validItems.map((item, index) => {
+          const isLast = index === validItems.length - 1
 
           return (
-            <li key={item.url} className="flex items-center gap-2">
+            <li key={`${item.url}-${index}`} className="flex items-center gap-2">
               {index === 0 ? (
                 <Link
                   href={item.url}
