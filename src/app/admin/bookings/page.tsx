@@ -8,6 +8,8 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
+type AdminBooking = Awaited<ReturnType<typeof getBookings>>['bookings'][number]
+
 export default async function BookingsPage({ searchParams }: PageProps) {
   const params = await searchParams
   const page = parseInt(params.page as string) || 1
@@ -68,7 +70,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {bookings.map((booking) => {
+              {bookings.map((booking: AdminBooking) => {
                 const StatusIcon = statusIcons[booking.status] || Clock
                 return (
                   <div

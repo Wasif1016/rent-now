@@ -1,6 +1,6 @@
- 'use client'
+'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,7 +18,7 @@ interface VehicleListItem {
   } | null
 }
 
-export default function VendorVehiclesPage() {
+function VendorVehiclesPageInner() {
   const { session, loading } = useAuth()
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([])
   const [loadingVehicles, setLoadingVehicles] = useState(true)
@@ -241,6 +241,22 @@ export default function VendorVehiclesPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function VendorVehiclesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background p-8">
+          <div className="container mx-auto">
+            <div className="text-center text-muted-foreground">Loading your vehicles...</div>
+          </div>
+        </div>
+      }
+    >
+      <VendorVehiclesPageInner />
+    </Suspense>
   )
 }
 

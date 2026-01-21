@@ -599,6 +599,8 @@ export const getVehicleBySlug = cache(async (slug: string) => {
       color: true,
       features: true,
       images: true,
+      priceWithDriver: true,
+      priceSelfDrive: true,
       views: true,
       featured: true,
       city: {

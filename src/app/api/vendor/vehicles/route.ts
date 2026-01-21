@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getServerSession } from '@/lib/auth'
 import { getOrCreateVendor } from '@/lib/vendor'
 
@@ -113,7 +114,10 @@ export async function POST(request: NextRequest) {
         transmission: transmission as 'MANUAL' | 'AUTOMATIC',
         seats: Number(seats),
         color: color || null,
-        images: images && Array.isArray(images) && images.length > 0 ? images : null,
+        images:
+          images && Array.isArray(images) && images.length > 0
+            ? (images as Prisma.InputJsonValue)
+            : undefined,
         priceWithDriver: priceWithDriver ? Number(priceWithDriver) : null,
         priceSelfDrive: priceSelfDrive ? Number(priceSelfDrive) : null,
         priceWithinCity: priceWithinCity ? Number(priceWithinCity) : null,

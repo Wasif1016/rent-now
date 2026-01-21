@@ -38,11 +38,6 @@ export async function BrowseByVehicleType() {
                 <div className="font-semibold text-gray-900 group-hover:text-green-accent transition-colors text-sm lg:text-base">
                   {type.name}
                 </div>
-                {type.description && (
-                  <div className="text-xs text-gray-500 mt-1 hidden sm:block">
-                    {type.description}
-                  </div>
-                )}
               </Link>
             )
           })}

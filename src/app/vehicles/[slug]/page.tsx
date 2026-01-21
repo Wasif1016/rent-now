@@ -32,11 +32,11 @@ export default async function VehicleDetailPage({ params }: PageProps) {
     ? `${vehicle.vehicleModel.vehicleBrand.name} ${vehicle.vehicleModel.name}`
     : vehicle.title
 
-  const capacity = vehicle.vehicleModel?.capacity || vehicle.seats
+  const capacity = vehicle.seats
 
   // For now we use the vendor's phone number directly for manual bookings.
   // Fallback to a generic number if not set.
-  const vendorPhone = vehicle.vendor.phone || process.env.NEXT_PUBLIC_DEFAULT_VENDOR_PHONE || '923001234567'
+  const vendorPhone = process.env.NEXT_PUBLIC_DEFAULT_VENDOR_PHONE || '923001234567'
 
   const cleanVendorPhone = vendorPhone.replace(/\D/g, '')
   const telHref = `tel:+${cleanVendorPhone}`

@@ -58,7 +58,7 @@ export default async function VendorsPage({ searchParams }: PageProps) {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
                       <div>
                         <p className="font-medium">Contact Person</p>
-                        <p>{vendor.personName || 'N/A'}</p>
+                        <p>{vendor.name || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="font-medium">Phone</p>
@@ -66,7 +66,7 @@ export default async function VendorsPage({ searchParams }: PageProps) {
                       </div>
                       <div>
                         <p className="font-medium">WhatsApp</p>
-                        <p>{vendor.whatsappPhone || 'N/A'}</p>
+                        <p>{vendor.phone || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="font-medium">Vehicles</p>

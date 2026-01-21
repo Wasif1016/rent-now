@@ -42,8 +42,12 @@ export async function getServerSession(request?: { headers: Headers }) {
   })
 
   const {
-    data: { user, session },
+    data: { user },
   } = await supabase.auth.getUser()
+
+  // We don't have full session info from getUser in this simplified setup.
+  // Treat a non-null user as an authenticated session.
+  const session = user ? { user } as any : null
 
   return { user, session }
 }
