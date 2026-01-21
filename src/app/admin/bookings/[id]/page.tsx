@@ -12,7 +12,7 @@ interface PageProps {
 export default async function BookingDetailPage({ params }: PageProps) {
   const { id } = await params
   const { bookings } = await getBookings({ page: 1, limit: 1000 })
-  const booking = bookings.find(b => b.id === id)
+  const booking = bookings.find((b: any) => b.id === id)
 
   if (!booking) {
     notFound()
