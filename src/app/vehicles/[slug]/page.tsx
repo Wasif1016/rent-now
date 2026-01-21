@@ -2,11 +2,11 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getVehicleBySlug } from '@/lib/data'
-import { generateWhatsAppLink } from '@/lib/whatsapp'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { CheckCircle2, Users, Gauge, Fuel, MapPin, Calendar, Phone } from 'lucide-react'
+import { CheckCircle2, Users, Gauge, Fuel, MapPin, Calendar } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/breadcrumbs'
+import { generateWhatsAppLink } from '@/lib/whatsapp'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -34,7 +34,26 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
   const capacity = vehicle.vehicleModel?.capacity || vehicle.seats
 
-  const whatsappLink = generateWhatsAppLink(vehicle)
+  // For now we use the vendor's phone number directly for manual bookings.
+  // Fallback to a generic number if not set.
+  const vendorPhone = vehicle.vendor.phone || process.env.NEXT_PUBLIC_DEFAULT_VENDOR_PHONE || '923001234567'
+
+  const cleanVendorPhone = vendorPhone.replace(/\D/g, '')
+  const telHref = `tel:+${cleanVendorPhone}`
+
+  const whatsappUrl = generateWhatsAppLink({
+    title: vehicle.title,
+    city: { name: vehicle.city.name },
+    town: vehicle.town ? { name: vehicle.town.name } : null,
+    vehicleModel: vehicle.vehicleModel
+      ? {
+          name: vehicle.vehicleModel.name,
+          vehicleBrand: {
+            name: vehicle.vehicleModel.vehicleBrand.name,
+          },
+        }
+      : null,
+  })
 
   const breadcrumbs = [
     { name: 'Home', url: '/' },
@@ -180,10 +199,10 @@ export default async function VehicleDetailPage({ params }: PageProps) {
             </Card>
           </div>
 
-          {/* Sidebar - Booking Card */}
+          {/* Sidebar - Contact Card (manual booking) */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-8">
-              <h2 className="text-2xl font-bold mb-4">Book This Vehicle</h2>
+              <h2 className="text-2xl font-bold mb-4">Quick Booking</h2>
 
               {/* Pricing (if available) */}
               {(vehicle.priceWithDriver || vehicle.priceSelfDrive) && (
@@ -203,21 +222,27 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* Booking Button */}
-              <Button
-                asChild
-                size="lg"
-                className="w-full bg-green-accent hover:bg-green-accent/90 text-white mb-4"
-              >
-                <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                  <Phone className="h-5 w-5 mr-2" />
-                  Book Now via WhatsApp
-                </a>
-              </Button>
+              {/* Manual booking actions */}
+              <div className="mt-6 space-y-3">
+                <Button
+                  asChild
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <a href={telHref}>
+                    Call for Quick Booking
+                  </a>
+                </Button>
 
-              <p className="text-sm text-muted-foreground text-center">
-                Click to send a WhatsApp message with vehicle details. We'll confirm availability and help you complete the booking.
-              </p>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10"
+                >
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    WhatsApp Now
+                  </a>
+                </Button>
+              </div>
 
               {/* Vendor Info */}
               <div className="mt-6 pt-6 border-t">

@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
 interface VehicleListItem {
@@ -23,6 +23,7 @@ export default function VendorVehiclesPage() {
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([])
   const [loadingVehicles, setLoadingVehicles] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
   const message = searchParams.get('message')
@@ -68,6 +69,69 @@ export default function VendorVehiclesPage() {
     fetchVehicles()
   }, [session])
 
+  const handleDelete = async (id: string) => {
+    if (!session) return
+
+    const confirmed = window.confirm('Are you sure you want to delete this vehicle?')
+    if (!confirmed) return
+
+    setActionError(null)
+
+    try {
+      const response = await fetch(`/api/vendor/vehicles/${id}`, {
+        method: 'DELETE',
+        headers: {
+          ...(session.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
+      })
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete vehicle')
+      }
+
+      setVehicles(prev => prev.filter(v => v.id !== id))
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to delete vehicle')
+    }
+  }
+
+  const handleToggleAvailability = async (vehicle: VehicleListItem) => {
+    if (!session) return
+
+    setActionError(null)
+
+    try {
+      const response = await fetch(`/api/vendor/vehicles/${vehicle.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
+        body: JSON.stringify({ isAvailable: !vehicle.isAvailable }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update availability')
+      }
+
+      setVehicles(prev =>
+        prev.map(v =>
+          v.id === vehicle.id ? { ...v, isAvailable: data.isAvailable } : v,
+        ),
+      )
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to update availability')
+    }
+  }
+
   // Clear success message from URL after first render
   useEffect(() => {
     if (message) {
@@ -104,6 +168,12 @@ export default function VendorVehiclesPage() {
           </div>
         )}
 
+        {actionError && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {actionError}
+          </div>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Vehicles ({isLoading ? '...' : vehicles.length})</CardTitle>
@@ -132,20 +202,36 @@ export default function VendorVehiclesPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span
-                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAvailability(vehicle)}
+                        className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
                           vehicle.isAvailable
-                            ? 'bg-green-50 text-green-700 border border-green-200'
-                            : 'bg-gray-100 text-gray-600 border border-gray-200'
+                            ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                         }`}
                       >
                         {vehicle.isAvailable ? 'Available' : 'Unavailable'}
-                      </span>
+                      </button>
                       <Link href={`/vehicles/${vehicle.slug}`}>
                         <Button variant="outline" size="sm">
                           View
                         </Button>
                       </Link>
+                      <Link href={`/vendor/vehicles/${vehicle.id}/edit`}>
+                        <Button variant="outline" size="sm">
+                          <Pencil className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(vehicle.id)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 ))}

@@ -51,8 +51,8 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
     : vehicle.city.name
 
   return (
-    <Link href={`/vehicles/${vehicle.slug}`}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+      <Link href={`/vehicles/${vehicle.slug}`} className="block">
         <div className="relative aspect-video overflow-hidden bg-zinc-100">
           <Image
             src={imageUrl}
@@ -72,58 +72,63 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             </div>
           )}
         </div>
+      </Link>
 
-        <div className="p-4 flex-1 flex flex-col">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <Link href={`/vehicles/${vehicle.slug}`}>
               <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                 {vehicle.title}
               </h3>
-              {vehicle.vehicleModel && (
-                <p className="text-sm text-muted-foreground">
-                  {vehicle.vehicleModel.vehicleBrand.name} {vehicle.vehicleModel.name}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-3 text-xs text-muted-foreground">
-            {(vehicle.vehicleModel?.capacity || vehicle.seats) && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {vehicle.vehicleModel?.capacity || vehicle.seats} Passengers
-              </span>
+            </Link>
+            {vehicle.vehicleModel && (
+              <p className="text-sm text-muted-foreground">
+                {vehicle.vehicleModel.vehicleBrand.name} {vehicle.vehicleModel.name}
+              </p>
             )}
-            {vehicle.year && (
-              <span className="flex items-center gap-1">
-                <Gauge className="h-3 w-3" />
-                {vehicle.year}
-              </span>
-            )}
-            {vehicle.mileage && (
-              <span>{vehicle.mileage.toLocaleString()} km</span>
-            )}
-            {vehicle.fuelType && (
-              <span className="flex items-center gap-1">
-                <Fuel className="h-3 w-3" />
-                {vehicle.fuelType}
-              </span>
-            )}
-            {vehicle.transmission && (
-              <span>{vehicle.transmission}</span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-            <MapPin className="h-4 w-4" />
-            <span>{locationText}</span>
-          </div>
-
-          <div className="mt-auto rounded">
-            <Button variant="default" className="w-full">Book Now</Button>
           </div>
         </div>
-      </Card>
-    </Link>
+
+        <div className="flex flex-wrap gap-2 mb-3 text-xs text-muted-foreground">
+          {(vehicle.vehicleModel?.capacity || vehicle.seats) && (
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {vehicle.vehicleModel?.capacity || vehicle.seats} Passengers
+            </span>
+          )}
+          {vehicle.year && (
+            <span className="flex items-center gap-1">
+              <Gauge className="h-3 w-3" />
+              {vehicle.year}
+            </span>
+          )}
+          {vehicle.mileage && (
+            <span>{vehicle.mileage.toLocaleString()} km</span>
+          )}
+          {vehicle.fuelType && (
+            <span className="flex items-center gap-1">
+              <Fuel className="h-3 w-3" />
+              {vehicle.fuelType}
+            </span>
+          )}
+          {vehicle.transmission && (
+            <span>{vehicle.transmission}</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+          <MapPin className="h-4 w-4" />
+          <span>{locationText}</span>
+        </div>
+
+        {/* Booking is now manual via vehicle detail page */}
+        <div className="mt-auto rounded">
+          <Button variant="default" className="w-full" asChild>
+            <Link href={`/vehicles/${vehicle.slug}`}>View Details</Link>
+          </Button>
+        </div>
+      </div>
+    </Card>
   )
 }

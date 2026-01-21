@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createBooking } from '@/lib/data'
-import { sendBookingToWhatsAppViaAssistro } from '@/lib/whatsapp'
+import { sendBookingEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
       totalAmount,
     })
 
-    // Fire-and-forget WhatsApp notification via Assistro (non-blocking)
-    sendBookingToWhatsAppViaAssistro({
+    // Fire-and-forget email notification via Brevo SMTP (non-blocking)
+    sendBookingEmail({
       vehicleId,
       vendorId,
       userName,
@@ -51,3 +51,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
+ 

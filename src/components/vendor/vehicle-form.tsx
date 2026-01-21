@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, FormEvent, ChangeEvent, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -58,6 +58,7 @@ interface VehicleFormProps {
 export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: VehicleFormProps) {
   const router = useRouter()
   const { user, session, loading: authLoading } = useAuth()
+  const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [towns, setTowns] = useState<Array<{ id: string; name: string; slug: string }>>([])
@@ -81,7 +82,59 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
     priceWithinCity: initialData?.priceWithinCity || '',
     priceOutOfCity: initialData?.priceOutOfCity || '',
     images: initialData?.images || [],
+    imageUrl: '',
   })
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!user) {
+      setErrors(prev => ({
+        ...prev,
+        imageUpload: 'You must be logged in to upload an image',
+      }))
+      return
+    }
+
+    setUploadingImage(true)
+    setErrors(prev => ({ ...prev, imageUpload: '' }))
+
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      const filePath = `vendor-${user.id}/${fileName}.${fileExt}`
+
+      const { error: uploadError } = await supabase
+        .storage
+        .from('vehicle-images')
+        .upload(filePath, file)
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      const { data } = supabase
+        .storage
+        .from('vehicle-images')
+        .getPublicUrl(filePath)
+
+      const publicUrl = data.publicUrl
+
+      setFormData(prev => ({
+        ...prev,
+        images: publicUrl ? [publicUrl] : [],
+      }))
+    } catch (error: any) {
+      console.error('Error uploading vehicle image:', error)
+      setErrors(prev => ({
+        ...prev,
+        imageUpload: 'Failed to upload image. Please try again.',
+      }))
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   // Fetch predefined vehicles on mount
   useEffect(() => {
@@ -129,50 +182,6 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
       color: vehicle.defaultColor || '',
       images: vehicle.image ? [vehicle.image] : [],
     }))
-  }
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    if (!user) {
-      setErrors(prev => ({ ...prev, image: 'You must be logged in to upload images' }))
-      return
-    }
-
-    setUploadingImage(true)
-    setErrors(prev => ({ ...prev, image: '' }))
-
-    try {
-      const supabase = createClient()
-      const ext = file.name.split('.').pop() || 'jpg'
-      const fileName = `${user.id}-${Date.now()}.${ext}`
-      const filePath = `vehicles/${fileName}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('vehicle-images')
-        .upload(filePath, file)
-
-      if (uploadError) {
-        throw uploadError
-      }
-
-      const { data } = supabase.storage.from('vehicle-images').getPublicUrl(filePath)
-      const publicUrl = data.publicUrl
-
-      setFormData(prev => ({
-        ...prev,
-        images: publicUrl ? [publicUrl] : [],
-      }))
-    } catch (err: any) {
-      console.error('Image upload failed:', err)
-      setErrors(prev => ({
-        ...prev,
-        image: err?.message || 'Failed to upload image. Please try again.',
-      }))
-    } finally {
-      setUploadingImage(false)
-    }
   }
 
   const validateForm = (): boolean => {
@@ -247,7 +256,11 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
         throw new Error(data.error || 'Failed to save vehicle')
       }
 
-      router.push('/vendor/vehicles?message=Vehicle%20added%20successfully')
+      const message = vehicleId
+        ? 'Vehicle%20updated%20successfully'
+        : 'Vehicle%20added%20successfully'
+
+      router.push(`/vendor/vehicles?message=${message}`)
       router.refresh()
     } catch (error: any) {
       console.error('Error saving vehicle:', error)
@@ -400,22 +413,19 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
       {/* Custom Vehicle Image Upload */}
       {useCustomVehicle && (
         <div className="space-y-2">
-          <Label htmlFor="image">Vehicle Image</Label>
+          <Label htmlFor="imageFile">Vehicle Image</Label>
           <Input
-            id="image"
+            id="imageFile"
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             disabled={uploadingImage}
           />
           <p className="text-xs text-muted-foreground">
-            Upload a clear photo of your vehicle (recommended).
+            Upload a clear photo of your vehicle. It will be stored securely in Supabase.
           </p>
-          {uploadingImage && (
-            <p className="text-xs text-gray-500">Uploading image...</p>
-          )}
-          {errors.image && (
-            <p className="text-xs text-red-600">{errors.image}</p>
+          {errors.imageUpload && (
+            <p className="text-xs text-red-600">{errors.imageUpload}</p>
           )}
         </div>
       )}
