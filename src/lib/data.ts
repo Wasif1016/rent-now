@@ -72,6 +72,110 @@ export const getCityBySlug = cache(async (slug: string) => {
   return city
 })
 
+// Aggregate city stats (vehicles, vendors, routes) by slug
+export const getCityStatsBySlug = cache(async (slug: string) => {
+  const city = await getCityBySlug(slug)
+
+  if (!city) {
+    return null
+  }
+
+  const [vendorsCount, routesCount] = await Promise.all([
+    prisma.vendor.count({
+      where: {
+        isActive: true,
+        vehicles: {
+          some: {
+            isAvailable: true,
+            city: {
+              slug,
+            },
+          },
+        },
+      },
+    }),
+    prisma.route.count({
+      where: {
+        isActive: true,
+        fromCity: {
+          slug,
+        },
+      },
+    }),
+  ])
+
+  return {
+    city,
+    vehiclesCount: city._count.vehicles,
+    vendorsCount,
+    routesCount,
+  }
+})
+
+// Limited vendor list for a city
+export const getCityVendors = cache(async (slug: string, limit: number = 6) => {
+  const vendors = await prisma.vendor.findMany({
+    where: {
+      isActive: true,
+      vehicles: {
+        some: {
+          isAvailable: true,
+          city: {
+            slug,
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      verificationStatus: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: limit,
+  })
+
+  return vendors
+})
+
+// Intercity routes starting from a given city
+export const getCityRoutes = cache(async (slug: string, limit: number = 6) => {
+  const routes = await prisma.route.findMany({
+    where: {
+      isActive: true,
+      fromCity: {
+        slug,
+      },
+    },
+    select: {
+      id: true,
+      fromCity: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+      toCity: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: limit,
+  })
+
+  return routes
+})
+
 // Get town by slug
 export const getTownBySlug = cache(async (slug: string, cityId?: string) => {
   const where: any = { slug }
@@ -269,6 +373,17 @@ export const searchVehicles = cache(async (filters: {
             name: true,
             slug: true,
             verificationStatus: true,
+            phone: true,
+            whatsappPhone: true,
+          },
+        },
+        priceWithinCity: true,
+        priceOutOfCity: true,
+        vehicleType: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
           },
         },
         vehicleModel: {
@@ -397,7 +512,7 @@ export const getVehicleTypes = cache(async () => {
   })
 })
 
-// Get vehicle types with vehicles
+// Get vehicle types with vehicles (from VehicleType table)
 export const getVehicleTypesWithVehicles = cache(async () => {
   // First check if we have any vehicles at all
   const hasVehicles = await prisma.vehicle.count({
@@ -406,7 +521,7 @@ export const getVehicleTypesWithVehicles = cache(async () => {
 
   if (hasVehicles) {
     // Only show vehicle types that have available vehicles
-    return await prisma.vehicleModel.findMany({
+    return await prisma.vehicleType.findMany({
       where: {
         isActive: true,
         vehicles: {
@@ -427,7 +542,7 @@ export const getVehicleTypesWithVehicles = cache(async () => {
   }
 
   // If no vehicles exist yet, show all active vehicle types
-  return await prisma.vehicleModel.findMany({
+  return await prisma.vehicleType.findMany({
     where: {
       isActive: true,
     },
@@ -474,6 +589,33 @@ export const getPopularCities = cache(async (limit: number = 8) => {
       },
     },
     take: limit,
+  })
+})
+
+// Get all cities with vehicle counts for cities directory page
+export const getAllCitiesWithCounts = cache(async () => {
+  return await prisma.city.findMany({
+    where: {
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      province: true,
+      _count: {
+        select: {
+          vehicles: {
+            where: {
+              isAvailable: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      name: 'asc',
+    },
   })
 })
 
@@ -654,7 +796,8 @@ export const createBooking = async (data: {
   message?: string
   totalAmount?: number
 }) => {
-  const commissionAmount = data.totalAmount ? Math.round(data.totalAmount * 0.2) : null
+  // Platform commission is 2% of the total booking amount
+  const commissionAmount = data.totalAmount ? Math.round(data.totalAmount * 0.02) : null
 
   return await prisma.booking.create({
     data: {
@@ -753,7 +896,8 @@ export const updateBookingStatus = async (
   const updateData: any = { status: status as any }
   if (totalAmount !== undefined) {
     updateData.totalAmount = totalAmount
-    updateData.commissionAmount = Math.round(totalAmount * 0.2)
+    // Keep commission in sync with the 2% business rule
+    updateData.commissionAmount = Math.round(totalAmount * 0.02)
   }
 
   return await prisma.booking.update({

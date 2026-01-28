@@ -1,61 +1,87 @@
-import { Check } from 'lucide-react'
+import { 
+  ShieldCheck, 
+  CreditCard, 
+  HeadphonesIcon 
+} from 'lucide-react'
 
 const benefits = [
-  'Verified rental companies only',
-  'No full payment online',
-  'Manual confirmation by our team',
-  'Available in small cities & towns',
-  'Support before and after booking',
+  {
+    icon: ShieldCheck,
+    title: 'Verified rental companies only',
+    description: 'All rental partners are thoroughly verified for your safety and peace of mind.',
+  },
+  {
+    icon: CreditCard,
+    title: 'No full payment online',
+    description: 'Pay only a small advance. Complete payment after confirming your booking.',
+  },
+  {
+    icon: HeadphonesIcon,
+    title: 'Support before and after booking',
+    description: '24/7 customer support to assist you throughout your rental journey.',
+  },
 ]
 
 export function WhyChooseUs() {
   return (
-    <section className="py-16 lg:py-24 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left: Text Content */}
-          <div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-              Why Book Through Our Platform?
-            </h2>
-            <div className="space-y-4">
-              {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-accent/10 flex items-center justify-center mt-0.5">
-                    <Check className="h-4 w-4 text-green-accent" />
-                  </div>
-                  <p className="text-lg text-gray-700">{benefit}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+    <section className="relative py-16 lg:py-24 bg-background overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1),_transparent_70%)]" />
+      </div>
 
-          {/* Right: Subtle Illustration/Pattern */}
-          <div className="hidden lg:block">
-            <div className="relative w-full h-64 bg-gradient-to-br from-green-accent/10 to-navy/10 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-green-accent/20 flex items-center justify-center">
-                  <svg
-                    className="w-12 h-12 text-green-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-gray-600 font-medium">Trusted Platform</p>
-              </div>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
+        {/* Header */}
+        <div className="text-center mb-12 lg:mb-16">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-foreground mb-4">
+            Why Book Through Our Platform?
+          </h2>
+          <p className="text-lg lg:text-xl text-foreground max-w-2xl mx-auto">
+            Experience the most trusted and reliable way to rent vehicles across Pakistan
+          </p>
         </div>
+
+        {/* Benefits Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {benefits.map((benefit, index) => {
+            const Icon = benefit.icon
+            return (
+              <div
+                key={index}
+                className="group relative bg-[#1a1a1a] rounded-2xl p-6 lg:p-8 border border-gray-800/50 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_30px_theme(colors.primary/0.2)] hover:-translate-y-1"
+              >
+                {/* Icon */}
+                <div className="relative mb-4">
+                  <div className="absolute -inset-4 bg-primary/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative w-14 h-14 rounded-xl bg-[#0f0f0f] border border-gray-800/50 group-hover:border-primary/50 flex items-center justify-center transition-colors">
+                    <Icon className="h-7 w-7 text-primary" />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                  {benefit.title}
+                </h3>
+                <p className="text-gray-400 leading-relaxed">
+                  {benefit.description}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Bottom CTA Section */}
+        {/* <div className="mt-12 lg:mt-16 text-center">
+          <div className="inline-block bg-[#1a1a1a] rounded-2xl p-6 lg:p-8 border border-gray-800/50">
+            <p className="text-white text-lg lg:text-xl font-semibold mb-2">
+              Trusted by thousands of customers across Pakistan
+            </p>
+            <p className="text-gray-400 text-sm lg:text-base">
+              Join our community of satisfied renters
+            </p>
+          </div>
+        </div> */}
       </div>
     </section>
   )
 }
-

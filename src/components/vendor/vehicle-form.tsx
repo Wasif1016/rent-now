@@ -66,7 +66,7 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
   const [predefinedVehicles, setPredefinedVehicles] = useState<PredefinedVehicle[]>([])
   const [loadingPredefined, setLoadingPredefined] = useState(true)
   const [selectedPredefinedId, setSelectedPredefinedId] = useState<string>('')
-  const [useCustomVehicle, setUseCustomVehicle] = useState(false)
+  const [useCustomVehicle, setUseCustomVehicle] = useState(true)
   const [uploadingImage, setUploadingImage] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -76,7 +76,6 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
     title: initialData?.title || '',
     transmission: initialData?.transmission || '',
     seats: initialData?.seats || '',
-    color: initialData?.color || '',
     priceWithDriver: initialData?.priceWithDriver || '',
     priceSelfDrive: initialData?.priceSelfDrive || '',
     priceWithinCity: initialData?.priceWithinCity || '',
@@ -136,7 +135,7 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
     }
   }
 
-  // Fetch predefined vehicles on mount
+  // Fetch predefined vehicles on mount (kept for potential admin usage)
   useEffect(() => {
     fetch('/api/predefined-vehicles')
       .then(res => res.json())
@@ -179,7 +178,6 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
       title: `${vehicle.vehicleBrand.name} ${vehicle.name}`,
       transmission: vehicle.defaultTransmission || '',
       seats: vehicle.capacity?.toString() || '',
-      color: vehicle.defaultColor || '',
       images: vehicle.image ? [vehicle.image] : [],
     }))
   }
@@ -228,7 +226,6 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
         title: formData.title.trim(),
         transmission: formData.transmission,
         seats: parseInt(formData.seats),
-        color: formData.color || null,
         priceWithDriver: formData.priceWithDriver ? parseInt(formData.priceWithDriver) : null,
         priceSelfDrive: formData.priceSelfDrive ? parseInt(formData.priceSelfDrive) : null,
         priceWithinCity: formData.priceWithinCity ? parseInt(formData.priceWithinCity) : null,
@@ -299,97 +296,7 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
         </div>
       )}
 
-      {/* Quick Select Predefined Vehicles or Custom */}
-      {!vehicleId && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-yellow-500" />
-              <h3 className="text-lg font-semibold">Quick Select Vehicle</h3>
-              <span className="text-sm text-muted-foreground">(Select a vehicle to auto-fill details)</span>
-            </div>
-            <Button
-              type="button"
-              variant={useCustomVehicle ? 'default' : 'outline'}
-              onClick={() => {
-                setUseCustomVehicle(!useCustomVehicle)
-                setSelectedPredefinedId('')
-                if (!useCustomVehicle) {
-                  // Reset form when switching to custom
-                  setFormData(prev => ({
-                    ...prev,
-                    vehicleModelId: '',
-                    title: '',
-                    transmission: '',
-                    seats: '',
-                    color: '',
-                    images: [],
-                  }))
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {useCustomVehicle ? 'Use Quick Select' : 'Add Custom Vehicle'}
-            </Button>
-          </div>
-          
-          {!useCustomVehicle ? (
-            <>
-              {loadingPredefined ? (
-                <p className="text-sm text-muted-foreground">Loading vehicles...</p>
-              ) : predefinedVehicles.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {predefinedVehicles.map((vehicle) => (
-                    <Card
-                      key={vehicle.id}
-                      className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
-                        selectedPredefinedId === vehicle.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                      onClick={() => handlePredefinedSelect(vehicle)}
-                    >
-                      <div className="p-4">
-                        <div className="relative aspect-video mb-3 bg-zinc-100 rounded overflow-hidden">
-                          {vehicle.image ? (
-                            <Image
-                              src={vehicle.image}
-                              alt={`${vehicle.vehicleBrand.name} ${vehicle.name}`}
-                              fill
-                              className="object-contain"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                              No Image
-                            </div>
-                          )}
-                        </div>
-                        <h4 className="font-semibold text-sm mb-1">
-                          {vehicle.vehicleBrand.name} {vehicle.name}
-                        </h4>
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <p>{vehicle.bodyType || 'N/A'}</p>
-                          <p>{vehicle.capacity} Passengers • {vehicle.defaultTransmission || 'N/A'}</p>
-                          <p>{vehicle.defaultColor || 'N/A'}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No predefined vehicles available</p>
-              )}
-            </>
-          ) : (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                Enter your vehicle details manually below. All fields marked with * are required.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Quick Select has been disabled for vendors – all vehicles are added manually now */}
 
       {/* Vehicle Title - Required for custom vehicles */}
       {useCustomVehicle && (
@@ -548,15 +455,6 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
             )}
           </div>
 
-          <div>
-            <Label htmlFor="color">Color</Label>
-            <Input
-              id="color"
-              value={formData.color}
-              onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-              placeholder="White"
-            />
-          </div>
         </div>
       </div>
 

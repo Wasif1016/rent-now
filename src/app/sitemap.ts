@@ -15,10 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Add city pages
+  // Add city pages (canonical pattern)
   for (const city of cities) {
     sitemap.push({
-      url: `${siteUrl}/rent-cars/${city.slug}`,
+      url: `${siteUrl}/rent-a-car/${city.slug}`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,

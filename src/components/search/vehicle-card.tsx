@@ -14,7 +14,6 @@ interface VehicleCardProps {
     fuelType?: string | null
     transmission?: string | null
     seats?: number | null
-    color?: string | null
     images: string[] | null
     city: {
       name: string

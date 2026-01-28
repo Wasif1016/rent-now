@@ -23,7 +23,7 @@ function AuthCallbackInner() {
 
       try {
         const supabase = createClient()
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        const { error: exchangeError, data } = await supabase.auth.exchangeCodeForSession(code)
         
         if (exchangeError) {
           setError(exchangeError.message)
@@ -31,8 +31,15 @@ function AuthCallbackInner() {
             router.push(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`)
           }, 2000)
         } else {
-          // Success - redirect to vendor dashboard
-          router.push('/vendor')
+          // Check user role and redirect accordingly
+          const user = data?.session?.user
+          const role = user?.user_metadata?.role
+          
+          if (role === 'admin') {
+            router.push('/admin')
+          } else {
+            router.push('/vendor')
+          }
           router.refresh()
         }
       } catch (err: any) {

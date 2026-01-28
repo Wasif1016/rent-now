@@ -8,9 +8,8 @@ interface Vehicle {
   mileage?: number | null
   fuelType?: string | null
   transmission?: string | null
-  seats?: number | null
-  color?: string | null
-  images: string[] | null
+    seats?: number | null
+    images: string[] | null
   city: { name: string; slug: string }
   vendor: {
     name: string

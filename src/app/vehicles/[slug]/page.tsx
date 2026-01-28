@@ -57,7 +57,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
   const breadcrumbs = [
     { name: 'Home', url: '/' },
-    { name: vehicle.city.name, url: `/rent-cars/${vehicle.city.slug}` },
+    { name: vehicle.city.name, url: `/rent-a-car/${vehicle.city.slug}` },
     { name: vehicle.title, url: `/vehicles/${vehicle.slug}` },
   ]
 
@@ -164,12 +164,6 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">Transmission</p>
                     <p className="font-semibold">{vehicle.transmission}</p>
-                  </div>
-                )}
-                {vehicle.color && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Color</p>
-                    <p className="font-semibold">{vehicle.color}</p>
                   </div>
                 )}
               </div>

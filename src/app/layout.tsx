@@ -29,9 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${schibsted_grotesk.variable} ${oranienbaum.variable} antialiased font-sans`}
+        suppressHydrationWarning
       >
         <AuthProvider>
           <MainHeader />

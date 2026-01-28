@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getServerSession } from '@/lib/auth'
+import { getOrCreateVendor } from '@/lib/vendor'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -69,6 +71,7 @@ export async function PATCH(
     if (body.priceWithinCity !== undefined) updateData.priceWithinCity = body.priceWithinCity
     if (body.priceOutOfCity !== undefined) updateData.priceOutOfCity = body.priceOutOfCity
     if (body.isAvailable !== undefined) updateData.isAvailable = body.isAvailable
+    if (body.status !== undefined) updateData.status = body.status
 
     const vehicle = await prisma.vehicle.update({
       where: { id },
@@ -91,16 +94,84 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const { user } = await getServerSession(request)
 
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const vendor = await getOrCreateVendor(user)
+    const vendorId = vendor.id
+
+    // Verify that the vehicle belongs to this vendor
+    const vehicle = await prisma.vehicle.findFirst({
+      where: {
+        id,
+        vendorId,
+      },
+    })
+
+    if (!vehicle) {
+      return NextResponse.json(
+        { error: 'Vehicle not found or does not belong to you' },
+        { status: 404 }
+      )
+    }
+
+    // Check for related records
+    const [routeCount, bookingCount, inquiryCount] = await Promise.all([
+      prisma.route.count({ where: { vehicleId: id } }),
+      prisma.booking.count({ where: { vehicleId: id } }),
+      prisma.inquiry.count({ where: { vehicleId: id } }),
+    ])
+
+    // Delete related routes first (they depend on vehicle)
+    if (routeCount > 0) {
+      await prisma.route.deleteMany({
+        where: { vehicleId: id },
+      })
+    }
+
+    // If there are bookings or inquiries, we should prevent deletion or handle them
+    // For now, we'll prevent deletion if there are bookings (as they represent actual business)
+    if (bookingCount > 0) {
+      return NextResponse.json(
+        { 
+          error: `Cannot delete vehicle. It has ${bookingCount} booking(s) associated with it. Please cancel or complete the bookings first.` 
+        },
+        { status: 400 }
+      )
+    }
+
+    // Delete inquiries (they're just inquiries, not actual bookings)
+    if (inquiryCount > 0) {
+      await prisma.inquiry.deleteMany({
+        where: { vehicleId: id },
+      })
+    }
+
+    // Now delete the vehicle
     await prisma.vehicle.delete({
       where: { id },
     })
 
     return NextResponse.json({ success: true }, { status: 200 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting vehicle:', error)
+    
+    // Check for foreign key constraint errors
+    if (error.code === 'P2003' || error.message?.includes('Foreign key constraint')) {
+      return NextResponse.json(
+        { error: 'Cannot delete vehicle. It is being used in routes or has active bookings. Please remove all routes first.' },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Failed to delete vehicle' },
+      { error: error.message || 'Failed to delete vehicle' },
       { status: 500 }
     )
   }

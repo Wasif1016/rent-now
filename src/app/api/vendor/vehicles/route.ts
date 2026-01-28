@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { Prisma, VehicleStatus } from '@prisma/client'
 import { getServerSession } from '@/lib/auth'
 import { getOrCreateVendor } from '@/lib/vendor'
 
@@ -75,14 +75,47 @@ export async function POST(request: NextRequest) {
     const vendorId = vendor.id
 
     const body = await request.json()
-    const { vehicleModelId, vehicleTypeId, cityId, townId, title, description, year, mileage, fuelType, transmission, seats, color, images, priceWithDriver, priceSelfDrive, priceWithinCity, priceOutOfCity } = body
+    const {
+      vehicleModelId,
+      vehicleTypeId,
+      cityId,
+      townId,
+      title,
+      description,
+      year,
+      mileage,
+      fuelType,
+      transmission,
+      seats,
+      color,
+      images,
+      priceWithDriver,
+      priceSelfDrive,
+      priceWithinCity,
+      priceOutOfCity,
+      features,
+      status,
+    } = body
 
-    // Validate required fields
+    const vehicleStatus: VehicleStatus =
+      status === 'DRAFT' || status === 'PUBLISHED'
+        ? (status as VehicleStatus)
+        : 'PUBLISHED'
+
+    // Validate required fields – slightly looser for drafts
     const errors: string[] = []
+
     if (!cityId) errors.push('City is required')
     if (!title || title.trim() === '') errors.push('Title is required')
-    if (!seats || isNaN(Number(seats))) errors.push('Seats (passengers) is required and must be a number')
-    if (!transmission) errors.push('Transmission is required')
+
+    if (vehicleStatus === 'PUBLISHED') {
+      if (!seats || isNaN(Number(seats))) {
+        errors.push('Seats (passengers) is required and must be a number')
+      }
+      if (!transmission) {
+        errors.push('Transmission is required')
+      }
+    }
 
     if (errors.length > 0) {
       return NextResponse.json(
@@ -112,17 +145,22 @@ export async function POST(request: NextRequest) {
         mileage: mileage ? Number(mileage) : null,
         fuelType: fuelType || null,
         transmission: transmission as 'MANUAL' | 'AUTOMATIC',
-        seats: Number(seats),
+        seats: seats ? Number(seats) : null,
         color: color || null,
         images:
           images && Array.isArray(images) && images.length > 0
             ? (images as Prisma.InputJsonValue)
             : undefined,
+        features:
+          features && Array.isArray(features) && features.length > 0
+            ? (features as Prisma.InputJsonValue)
+            : undefined,
         priceWithDriver: priceWithDriver ? Number(priceWithDriver) : null,
         priceSelfDrive: priceSelfDrive ? Number(priceSelfDrive) : null,
         priceWithinCity: priceWithinCity ? Number(priceWithinCity) : null,
         priceOutOfCity: priceOutOfCity ? Number(priceOutOfCity) : null,
-        isAvailable: true,
+        isAvailable: vehicleStatus === 'PUBLISHED' ? true : false,
+        status: vehicleStatus,
       },
     })
 

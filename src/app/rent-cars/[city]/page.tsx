@@ -1,6 +1,15 @@
 import { notFound } from 'next/navigation'
-import { getCityBySlug, searchVehicles, getAllCitiesForStatic, getTownsByCity, getVehicleBrandsWithVehicles, getVehicleFilters } from '@/lib/data'
-import { generateCityPageMetadata, generateBreadcrumbs, generateStructuredData } from '@/lib/seo'
+import {
+  getCityStatsBySlug,
+  getCityVendors,
+  getCityRoutes,
+  searchVehicles,
+  getAllCitiesForStatic,
+  getTownsByCity,
+  getVehicleBrandsWithVehicles,
+  getVehicleFilters,
+} from '@/lib/data'
+import { generateCityPageMetadata, generateBreadcrumbs, generateStructuredData, generateCityFaqSchema } from '@/lib/seo'
 import { VehicleGrid } from '@/components/search/vehicle-grid'
 import { SearchResultsHeader } from '@/components/search/search-results-header'
 import { EmptyState } from '@/components/search/empty-state'
@@ -9,10 +18,12 @@ import { StructuredData } from '@/components/seo/structured-data'
 import { SearchFilters } from '@/components/search/search-filters'
 import { Pagination } from '@/components/search/pagination'
 import { Suspense } from 'react'
+import { CityLandingTemplate } from '@/components/cities/city-landing-template'
 
 interface PageProps {
   params: Promise<{ city: string }>
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  isKeywordRoute?: boolean
 }
 
 export async function generateStaticParams() {
@@ -24,26 +35,32 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps) {
   const { city: citySlug } = await params
-  const city = await getCityBySlug(citySlug)
+  const stats = await getCityStatsBySlug(citySlug)
 
-  if (!city) {
+  if (!stats || !stats.city) {
     return {
       title: 'City Not Found | Rent Now',
     }
   }
 
-  return generateCityPageMetadata(city.name, city._count.vehicles)
+  return generateCityPageMetadata(
+    { id: stats.city.id, name: stats.city.name, slug: stats.city.slug },
+    stats.vehiclesCount
+  )
 }
 
-export default async function CityPage({ params, searchParams }: PageProps) {
+export default async function CityPage({ params, searchParams, isKeywordRoute = false }: PageProps) {
   const { city: citySlug } = await params
   const resolvedSearchParams = await searchParams
 
-  const city = await getCityBySlug(citySlug)
+  const stats = await getCityStatsBySlug(citySlug)
 
-  if (!city || !city.isActive) {
+  if (!stats || !stats.city || !stats.city.isActive) {
     notFound()
   }
+
+  const city = stats.city
+
 
   // Parse search params
   const page = parseInt(resolvedSearchParams.page as string) || 1
@@ -79,19 +96,28 @@ export default async function CityPage({ params, searchParams }: PageProps) {
 
   // Generate SEO data
   const breadcrumbs = generateBreadcrumbs(city.name)
-  const structuredData = generateStructuredData(city.name, vehicles.map(v => ({
-    id: v.id,
-    title: v.title,
-    slug: v.slug,
-    images: Array.isArray(v.images) ? (v.images as string[]) : null,
-    vendor: { name: v.vendor.name },
-  })))
+  const structuredData = generateStructuredData(
+    city.name,
+    vehicles.map(v => ({
+      id: v.id,
+      title: v.title,
+      slug: v.slug,
+      images: Array.isArray(v.images) ? (v.images as string[]) : null,
+      vendor: { name: v.vendor.name },
+    }))
+  )
+  const faqSchema = generateCityFaqSchema(city.name)
+
+  const [vendors, routes] = await Promise.all([
+    getCityVendors(citySlug, 6),
+    getCityRoutes(citySlug, 6),
+  ])
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <Breadcrumbs items={breadcrumbs} />
-        <StructuredData data={structuredData} />
+        <StructuredData data={[...structuredData, faqSchema]} />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1 lg:sticky lg:top-8 lg:self-start">
@@ -124,23 +150,35 @@ export default async function CityPage({ params, searchParams }: PageProps) {
 
             {vehicles.length > 0 ? (
               <>
-                <VehicleGrid vehicles={vehicles.map(v => ({
-                  ...v,
-                  images: Array.isArray(v.images) ? (v.images as string[]) : null,
-                }))} />
+                <VehicleGrid
+                  vehicles={vehicles.map(v => ({
+                    ...v,
+                    images: Array.isArray(v.images) ? (v.images as string[]) : null,
+                  }))}
+                />
                 {totalPages > 1 && (
                   <Pagination
                     currentPage={page}
                     totalPages={totalPages}
-                    basePath={`/rent-cars/${citySlug}`}
+                    // Use the keyword-friendly `/rent-a-car/{city}` pattern for pagination links
+                    basePath={`/rent-a-car/${citySlug}`}
                   />
                 )}
               </>
-            ) : (
+            ) : !isKeywordRoute ? (
               <EmptyState city={city.name} />
-            )}
+            ) : null}
           </main>
         </div>
+
+        <CityLandingTemplate
+          city={city}
+          vehiclesCount={stats.vehiclesCount}
+          vendorsCount={stats.vendorsCount}
+          routesCount={stats.routesCount}
+          vendors={vendors}
+          routes={routes}
+        />
       </div>
     </div>
   )

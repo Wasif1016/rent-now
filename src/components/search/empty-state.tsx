@@ -22,7 +22,7 @@ export function EmptyState({ city }: EmptyStateProps) {
         </Button>
         {city && (
           <Button asChild>
-            <Link href={`/rent-cars/${city.toLowerCase().replace(/\s+/g, '-')}`}>
+            <Link href={`/rent-a-car/${city.toLowerCase().replace(/\s+/g, '-')}`}>
               View All in {city}
             </Link>
           </Button>

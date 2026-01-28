@@ -1,9 +1,10 @@
 import { HeroSection } from '@/components/hero/hero-section'
 import { HowItWorks } from '@/components/home/how-it-works'
 import { BrowseByCity } from '@/components/home/browse-by-city'
-import { BrowseByVehicleType } from '@/components/home/browse-by-vehicle-type'
-import { PopularRoutes } from '@/components/home/popular-routes'
+// import { BrowseByVehicleType } from '@/components/home/browse-by-vehicle-type'
+// import { PopularRoutes } from '@/components/home/popular-routes'
 import { WhyChooseUs } from '@/components/home/why-choose-us'
+import { PopularRoutesSection } from '@/components/home/popular-routes-section'
 import { ListYourCar } from '@/components/home/list-your-car'
 import { SeoFooter } from '@/components/home/seo-footer'
 
@@ -13,9 +14,10 @@ export default function Home() {
       <HeroSection />
       <HowItWorks />
       <BrowseByCity />
-      <BrowseByVehicleType />
-      <PopularRoutes />
+      {/* <BrowseByVehicleType /> */}
+      {/* <PopularRoutes /> */}
       <WhyChooseUs />
+      <PopularRoutesSection />
       <ListYourCar />
       <SeoFooter />
     </main>

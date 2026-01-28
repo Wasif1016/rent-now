@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
+import { createClient } from '@/lib/supabase-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -40,13 +41,30 @@ function LoginPageInner() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/')
+      // Get the user session to check role
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session?.user) {
+        const role = session.user.user_metadata?.role
+        const redirect = searchParams.get('redirect')
+        
+        if (redirect) {
+          router.push(redirect)
+        } else if (role === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/vendor')
+        }
+      } else {
+        router.push('/')
+      }
       router.refresh()
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center my-12 bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
@@ -81,7 +99,15 @@ function LoginPageInner() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-[#10b981] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"

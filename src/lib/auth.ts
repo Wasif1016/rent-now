@@ -66,3 +66,31 @@ export async function requireAuth(request?: { headers: Headers }) {
   return { user, session }
 }
 
+/**
+ * Server-side function to require admin role
+ * Throws an error if user is not authenticated or not an admin
+ */
+export async function requireAdmin(request?: { headers: Headers }) {
+  const { user, session } = await requireAuth(request)
+
+  // Check if user has admin role in metadata
+  const role = user.user_metadata?.role
+  if (role !== 'admin') {
+    throw new Error('Forbidden: Admin access required')
+  }
+
+  return { user, session }
+}
+
+/**
+ * Check if current user is admin (non-throwing)
+ */
+export async function isAdmin(request?: { headers: Headers }): Promise<boolean> {
+  try {
+    await requireAdmin(request)
+    return true
+  } catch {
+    return false
+  }
+}
+

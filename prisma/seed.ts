@@ -522,12 +522,162 @@ async function main() {
   }
 
   // ============================================
-  // 7. ASSIGN PREDEFINED VEHICLES TO VENDORS
+  // 7. SEO DIMENSIONS & FAQ TEMPLATES
   // ============================================
-  console.log('\n🚗 Cleaning up old vehicles...')
-  // Delete all existing vehicles to start fresh
+  console.log('\n📈 Creating SEO dimensions and FAQ templates...')
+
+  // Reusable FAQ groups (use `any` to avoid issues if client typings lag behind)
+  const anyPrisma = prisma as any
+
+  const cityFaqGroup = await anyPrisma.faqGroup.upsert({
+    where: { id: 'city_rent_a_car' },
+    update: {},
+    create: {
+      id: 'city_rent_a_car',
+      name: 'city_rent_a_car',
+      faqs: {
+        create: [
+          {
+            question: 'How do I book a car for rent in {city_name}?',
+            answer:
+              'Choose your preferred vehicle, share your travel dates, and our team will confirm availability in {city_name} by phone or WhatsApp before you pay a 2% advance online.',
+            sortOrder: 1,
+          },
+          {
+            question: 'Can I hire a car with driver in {city_name}?',
+            answer:
+              'Yes, most vehicles listed in {city_name} are with professional local drivers who know the routes, tolls, and parking spots. Self-drive options are limited and subject to verification.',
+            sortOrder: 2,
+          },
+          {
+            question: 'What documents are required to rent a car in {city_name}?',
+            answer:
+              'For trips with driver, you usually only need a valid CNIC and active phone number. For self-drive, vendors may ask for CNIC, driving license, and a refundable security deposit.',
+            sortOrder: 3,
+          },
+        ],
+      },
+    },
+  })
+
+  const routeFaqGroup = await anyPrisma.faqGroup.upsert({
+    where: { id: 'intercity_routes' },
+    update: {},
+    create: {
+      id: 'intercity_routes',
+      name: 'intercity_routes',
+      faqs: {
+        create: [
+          {
+            question: 'What is included in the fare from {from_city} to {to_city}?',
+            answer:
+              'Quoted prices for {from_city} to {to_city} usually include fuel, driver, and basic tolls unless clearly mentioned otherwise by the vendor. Always confirm inclusions on your confirmation call.',
+            sortOrder: 1,
+          },
+          {
+            question: 'Can I make stops on the way between {from_city} and {to_city}?',
+            answer:
+              'Short refreshment and prayer stops are normally included. For longer detours or sightseeing, discuss the route with your vendor so they can adjust pricing if needed.',
+            sortOrder: 2,
+          },
+        ],
+      },
+    },
+  })
+
+  const airportFaqGroup = await anyPrisma.faqGroup.upsert({
+    where: { id: 'airport_transfer' },
+    update: {},
+    create: {
+      id: 'airport_transfer',
+      name: 'airport_transfer',
+      faqs: {
+        create: [
+          {
+            question: 'How do airport transfer bookings work in {city_name}?',
+            answer:
+              'Share your flight number, landing time, and passenger count. The driver will track your arrival at {city_name} airport and wait with a name card at the pickup area.',
+            sortOrder: 1,
+          },
+          {
+            question: 'Is waiting time included in airport transfers?',
+            answer:
+              'Most vendors include a free waiting window for flight delays. Extra waiting time can be charged per hour, so always confirm the policy before your trip.',
+            sortOrder: 2,
+          },
+        ],
+      },
+    },
+  })
+
+  // Core SEO dimensions for programmatic pages
+  await anyPrisma.seoDimension.upsert({
+    where: {
+      id: 'rent-a-car-city',
+    },
+    update: {},
+    create: {
+      id: 'rent-a-car-city',
+      slug: 'rent-a-car-city',
+      type: 'keyword_city',
+      basePattern: '/rent-a-car/{city_slug}',
+      defaultH1Template: 'Rent a Car in {city_name}',
+      defaultTitleTemplate: 'Rent a Car in {city_name} | Best Car Rental Deals | Rent Now',
+      defaultMetaDescriptionTemplate:
+        'Compare verified car rental vendors in {city_name}. Browse {vehicles_count}+ vehicles with drivers for city and outstation trips. Pay only 2% advance to confirm.',
+      faqGroupId: cityFaqGroup.id,
+      isIndexableByDefault: true,
+    },
+  })
+
+  await anyPrisma.seoDimension.upsert({
+    where: {
+      id: 'route-rent-a-car',
+    },
+    update: {},
+    create: {
+      id: 'route-rent-a-car',
+      slug: 'route-rent-a-car',
+      type: 'route',
+      basePattern: '/routes/{from_slug}-to-{to_slug}',
+      defaultH1Template: 'Car Rental from {from_city} to {to_city}',
+      defaultTitleTemplate: 'Rent a Car from {from_city} to {to_city} | Intercity Route | Rent Now',
+      defaultMetaDescriptionTemplate:
+        'Book reliable vehicles with drivers for the {from_city} to {to_city} route. Compare vendors, seat capacity, and prices before paying a 2% advance to confirm your trip.',
+      faqGroupId: routeFaqGroup.id,
+      isIndexableByDefault: true,
+    },
+  })
+
+  await anyPrisma.seoDimension.upsert({
+    where: {
+      id: 'airport-transfer-city',
+    },
+    update: {},
+    create: {
+      id: 'airport-transfer-city',
+      slug: 'airport-transfer-city',
+      type: 'airport_transfer',
+      basePattern: '/airport-transfer/{city_slug}',
+      defaultH1Template: 'Airport Transfer in {city_name}',
+      defaultTitleTemplate: 'Airport Transfer in {city_name} | Reliable Pick & Drop | Rent Now',
+      defaultMetaDescriptionTemplate:
+        'Book airport transfers in {city_name} with professional drivers and clean vehicles. Ideal for late-night arrivals, business trips, and family travel. Pay only 2% in advance.',
+      faqGroupId: airportFaqGroup.id,
+      isIndexableByDefault: true,
+    },
+  })
+
+  console.log('  ✅ SEO dimensions and FAQ templates created')
+
+  // ============================================
+  // 8. ASSIGN PREDEFINED VEHICLES TO VENDORS
+  // ============================================
+  console.log('\n🚗 Cleaning up old vehicles and related bookings...')
+  // Delete bookings first to avoid foreign key issues, then vehicles
+  await prisma.booking.deleteMany({})
   await prisma.vehicle.deleteMany({})
-  console.log('  ✅ Removed all existing vehicles')
+  console.log('  ✅ Removed all existing bookings and vehicles')
 
   console.log('\n🚗 Assigning predefined vehicles to vendors...')
 
