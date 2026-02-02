@@ -95,7 +95,7 @@ export function MainHeader() {
             <>
               <Link
                 href="/vendor"
-                className="hidden md:flex text-primary-foreground/90 bg-primary px-4 py-1 font-semibold hover:text-primary-foreground transition-colors"
+                className="hidden md:flex text-white/90 bg-primary px-4 py-1 font-semibold hover:text-primary-foreground transition-colors"
               >
                 List Your Vehicles
               </Link>
@@ -228,8 +228,7 @@ export function MainHeader() {
                 className="flex items-center justify-between py-5 mt-4 bg-primary px-6 rounded-2xl text-white group shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform"
               >
                 <div className="flex items-center gap-3">
-                  <Image src="/icons/car.svg" alt="Car" width={24} height={24} className="brightness-0 invert h-6 w-auto" style={{ transform: 'scaleX(-1)' }} />
-                  <span className="text-lg font-bold">List Your Vehicle</span>
+                  <span className="text-lg text-black font-bold">List Your Vehicle</span>
                 </div>
                 <ChevronRight className="h-5 w-5 opacity-80" />
               </Link>
