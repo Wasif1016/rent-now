@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { HeroSection } from '@/components/hero/hero-section'
-import { SeoFooter } from '@/components/home/seo-footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Check, Car, ShieldCheck, Search, CreditCard, Phone, FileCheck, HelpCircle, ArrowRight } from 'lucide-react'
@@ -148,8 +147,6 @@ export function CityKeywordRouteLandingPage({ keywordSlug, route }: CityKeywordR
           </ul>
         </div>
       </section>
-
-      <SeoFooter />
     </main>
   )
 }

@@ -12,148 +12,102 @@ import {
   HelpCircle,
   ArrowRight,
 } from 'lucide-react'
-import type { FilterType } from '@/lib/seo-resolver'
 
-export type CityKeywordFilterLandingPageProps = {
-  citySlug: string
-  cityName: string
+export type KeywordModelLandingPageProps = {
   keywordSlug: string
-  /** Second segment (e.g. with-driver, 7-seater, suv). */
-  filterSlug: string
-  /** DRIVER | SEATING | PRICE for filter-context paragraph. */
-  filterType?: FilterType
-  category?: { id: string; name: string; slug: string }
-  capacity?: number
-  minPrice?: string
-  maxPrice?: string
+  modelSlug: string
+  modelName: string
+  brandName: string
+  vehicleCategory?: string | null
+  seatingCapacity?: number | null
+  driverOption?: string
 }
 
 function toTitleCase(s: string): string {
   return s.replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
 }
 
-function humanizeSlug(slug: string): string {
+function humanizeKeyword(slug: string): string {
   return toTitleCase(slug.replace(/-/g, ' '))
 }
 
 const USE_CASES = [
-  'Daily or short-term travel',
+  'Daily transportation',
+  'Office and business travel',
   'Family trips and tours',
-  'Business and office use',
-  'Events, weddings, and functions',
-  'Airport pick and drop',
+  'Airport pick & drop',
+  'Intercity journeys',
 ]
 
-const TRUST_ITEMS = [
-  'Business information',
-  'Vehicle details',
-  'Pricing structure',
-  'Service coverage',
-]
+const TRUST_ITEMS = ['Business details', 'Available vehicles', 'Service areas', 'Contact information']
 
-function getFilterContextParagraph(
-  filterType: FilterType | undefined,
-  filterNatural: string
-): string {
-  switch (filterType) {
-    case 'DRIVER':
-      return `This page shows vehicles available ${filterNatural}, making it ideal for users who prefer convenience, long trips, or do not want to drive themselves.`
-    case 'SEATING':
-      return `This page lists vehicles with ${filterNatural} capacity, suitable for families, groups, tours, and business travel.`
-    case 'PRICE':
-      return 'This page highlights rental options within a specific budget range, helping users find vehicles that match their affordability.'
-    default:
-      return `This page lists vehicles matching your filter (${filterNatural}), helping you find options that suit your needs.`
-  }
-}
-
-export function CityKeywordFilterLandingPage({
-  citySlug,
-  cityName,
+export function KeywordModelLandingPage({
   keywordSlug,
-  filterSlug,
-  filterType,
-  category,
-  capacity,
-}: CityKeywordFilterLandingPageProps) {
-  const keywordNatural = humanizeSlug(keywordSlug)
-  const city = cityName
-  const filterNatural =
-    capacity != null
-      ? `${capacity} seater`
-      : category
-        ? humanizeSlug(category.name)
-        : humanizeSlug(filterSlug)
+  modelSlug,
+  modelName,
+  brandName,
+  vehicleCategory,
+  seatingCapacity,
+  driverOption = 'With Driver / Without Driver / Both',
+}: KeywordModelLandingPageProps) {
+  const keywordNatural = humanizeKeyword(keywordSlug)
+  const vehicleBrand = brandName
+  const vehicleModel = modelName
+  const seating_capacity = seatingCapacity != null ? String(seatingCapacity) : '5'
+  const driver_option = driverOption
 
-  const h1 = `${keywordNatural} ${filterNatural} in ${city}`
+  // e.g. "Rent A Car Toyota Corolla" -> "Toyota Corolla Rent A Car"
+  const h1 = `${vehicleBrand} ${vehicleModel} ${keywordNatural}`
 
   const whyChooseItems = [
-    'Local availability and faster coordination',
-    'Flexible rental durations',
-    'Transparent pricing',
-    'Verified rental providers',
+    `Comfortable seating for up to ${seating_capacity} passengers`,
     'Suitable for city and intercity travel',
+    'Fuel-efficient and reliable',
+    `Available ${driver_option}`,
+    'Ideal for families, professionals, and tourists',
   ]
 
   const faqs = [
     {
-      q: `Is ${filterNatural} available in ${city}?`,
-      a: `Yes, many rental providers in ${city} offer vehicles matching this requirement.`,
+      q: `Is ${vehicleBrand} ${vehicleModel} available with a driver?`,
+      a: `Yes, many rental providers offer ${vehicleModel} with driver, depending on availability.`,
     },
     {
-      q: 'Can I book instantly?',
-      a: 'You can submit a booking request instantly. Confirmation depends on vehicle availability.',
+      q: `Can I book ${vehicleModel} for long-term use?`,
+      a: 'Yes, both short-term and long-term rental options are available from selected providers.',
     },
     {
       q: 'Is advance payment required?',
-      a: 'Yes, a small advance is required to confirm your booking.',
-    },
-    {
-      q: 'Are vendors verified?',
-      a: 'We focus on listing genuine local rental businesses.',
+      a: 'A small advance is required to confirm your booking. The remaining amount is paid directly to the rental company.',
     },
   ]
-
-  const filterContextParagraph = getFilterContextParagraph(filterType, filterNatural)
-
-  const searchParams = new URLSearchParams()
-  searchParams.set('city', citySlug)
-  if (capacity != null) searchParams.set('seating', String(capacity))
-  if (category) searchParams.set('category', category.slug)
-  if (filterSlug === 'with-driver') searchParams.set('driver', 'with')
-  if (filterSlug === 'without-driver') searchParams.set('driver', 'without')
-  const searchHref = `/search?${searchParams.toString()}`
 
   return (
     <main className="min-h-screen bg-background text-foreground">
       <HeroSection heading={h1} />
 
-      {/* Intro – content centered */}
+      {/* Intro section */}
       <section className="relative py-16 lg:py-24 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.18),_transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(34,197,94,0.12),_transparent_55%)]" />
         </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl flex justify-center items-center">
-          <div className="space-y-4 flex flex-col items-center text-center">
-            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-foreground tracking-tight">
-              Looking for {keywordNatural} {filterNatural} in {city}?
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+          <div className="flex flex-col items-center justify-center text-center space-y-4">
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-foreground tracking-tight text-center">
+              Looking for {vehicleBrand} {vehicleModel}?
             </h2>
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Our platform helps you connect with verified local rental businesses offering vehicles that match your exact requirements.
+              Our platform helps you find trusted {vehicleModel} rental options near you.
             </p>
             <p className="text-normal md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Whether you need a vehicle for travel, family use, business, or events, you can compare options, check availability, and book confidently.
-            </p>
-            <p className="text-normal md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              We connect you directly with local rental businesses so you get better availability, fair pricing, and faster response.
+              Whether you need {vehicleBrand} {vehicleModel} for daily use, family travel, tours, business trips, or special occasions, you can compare verified rental companies and book with confidence.
             </p>
           </div>
         </div>
       </section>
 
-
-      {/* Why this option + Filter context – dark cards */}
+      {/* Why Choose + Vehicles */}
       <section className="relative py-16 lg:py-24 bg-[#0a0a0a] overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1),_transparent_70%)]" />
@@ -161,10 +115,10 @@ export function CityKeywordFilterLandingPage({
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="text-center mb-12 lg:mb-16">
             <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-background mb-4">
-              Why This Option in {city}
+              Why Choose Our {vehicleBrand} {vehicleModel}?
             </h2>
             <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              People prefer {keywordNatural} {filterNatural} in {city} because:
+              Verified partners, transparent pricing, and support every step of the way.
             </p>
           </div>
           <div className="grid gap-6 lg:gap-8 md:grid-cols-2">
@@ -196,27 +150,35 @@ export function CityKeywordFilterLandingPage({
                 </div>
               </div>
               <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
-                Filter context
+                Available vehicles
               </h3>
-              <p className="text-gray-400 text-normal">
-                {filterContextParagraph}
+              <p className="text-gray-400 text-normal mb-4">
+                You can book {vehicleBrand} {vehicleModel} and similar options depending on availability:
               </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {USE_CASES.map((item, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-gray-800/50 bg-[#0f0f0f] px-4 py-3 flex items-center gap-3 text-gray-400"
+                  >
+                    <Check className="h-5 w-5 text-primary shrink-0" />
+                    <span className="text-normal">{item}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Use cases + How booking works – two columns */}
+      {/* Use cases + How booking works */}
       <section className="relative py-16 lg:py-24 bg-background overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 opacity-70">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.12),_transparent_55%)]" />
-        </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-2">
             <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-8 space-y-5">
               <h3 className="text-xl font-bold text-white">Use cases &amp; purposes</h3>
               <p className="text-normal text-gray-400">
-                People usually book these vehicles for:
+                People choose {vehicleBrand} {vehicleModel} for many reasons:
               </p>
               <ul className="mt-3 grid gap-2 text-normal text-gray-400">
                 {USE_CASES.map((item, i) => (
@@ -226,9 +188,6 @@ export function CityKeywordFilterLandingPage({
                   </li>
                 ))}
               </ul>
-              <p className="text-normal md:text-lg text-muted-foreground mt-3 leading-relaxed">
-                No matter the purpose, you&apos;ll find suitable rental options through verified providers.
-              </p>
             </div>
 
             <div className="rounded-2xl border border-primary bg-foreground p-8 space-y-5 shadow-primary">
@@ -244,7 +203,7 @@ export function CityKeywordFilterLandingPage({
                     <Search className="h-5 w-5 text-primary" />
                   </span>
                   <span className="flex-1 self-center">
-                    Browse vehicles matching your filter
+                    Browse available vehicles
                   </span>
                 </li>
                 <li className="flex gap-3">
@@ -260,7 +219,7 @@ export function CityKeywordFilterLandingPage({
                     <CreditCard className="h-5 w-5 text-primary" />
                   </span>
                   <span className="flex-1 self-center">
-                    Confirm with a small advance payment
+                    Pay a small advance to confirm
                   </span>
                 </li>
                 <li className="flex gap-3">
@@ -268,29 +227,31 @@ export function CityKeywordFilterLandingPage({
                     <Phone className="h-5 w-5 text-primary" />
                   </span>
                   <span className="flex-1 self-center">
-                    Coordinate directly with the rental provider
+                    Our team coordinates with the rental company
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal">
+                    <Car className="h-5 w-5 text-primary" />
+                  </span>
+                  <span className="flex-1 self-center">
+                    Vehicle is arranged as per your requirement
                   </span>
                 </li>
               </ol>
-              <p className="text-normal md:text-lg text-emerald-50/80 mt-3 leading-relaxed">
-                Simple, fast, and reliable.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust + SEO – two cards */}
+      {/* Trust + Find */}
       <section className="relative py-16 lg:py-24 bg-[#0a0a0a] overflow-hidden">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1),_transparent_70%)]" />
-        </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-6 lg:p-8">
               <h3 className="text-xl font-bold text-white mb-3">Trust &amp; verification</h3>
               <p className="text-gray-400 text-normal mb-3">
-                We focus on listing genuine rental businesses operating in {city}. Each listing includes:
+                We focus on listing genuine rental businesses. Each profile includes:
               </p>
               <ul className="space-y-1 text-normal text-gray-400">
                 {TRUST_ITEMS.map((item, i) => (
@@ -300,23 +261,12 @@ export function CityKeywordFilterLandingPage({
                   </li>
                 ))}
               </ul>
-              <p className="text-gray-400 text-normal mt-3">
-                This ensures transparency and trust.
-              </p>
             </div>
 
             <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-6 lg:p-8">
-              <h3 className="text-xl font-bold text-white mb-3">Find {keywordNatural} {filterNatural} in {city}</h3>
-              <p className="text-gray-400 text-normal mb-3">
-                If you&apos;re searching for:
-              </p>
-              <ul className="text-gray-400 text-normal space-y-1 mb-3">
-                <li>• {keywordNatural} {filterNatural} near me in {city}</li>
-                <li>• Best {keywordNatural} {filterNatural} in {city}</li>
-                <li>• Affordable vehicle rental options in {city}</li>
-              </ul>
+              <h3 className="text-xl font-bold text-white mb-3">Find {vehicleBrand} {vehicleModel}</h3>
               <p className="text-gray-400 text-normal">
-                this page is designed to help you find reliable options quickly.
+                Searching for {vehicleModel} rent, {vehicleModel} with driver, or affordable {vehicleModel} rental? This page helps you find reliable vehicle rental options quickly and easily.
               </p>
             </div>
           </div>
@@ -331,7 +281,7 @@ export function CityKeywordFilterLandingPage({
               Frequently Asked Questions
             </h2>
             <p className="text-muted-foreground">
-              Quick answers about {keywordNatural} {filterNatural} in {city} and booking.
+              Quick answers about {vehicleBrand} {vehicleModel} and booking.
             </p>
           </div>
           <div className="grid gap-4">
@@ -353,37 +303,26 @@ export function CityKeywordFilterLandingPage({
         </div>
       </section>
 
-      {/* Final CTA – two buttons */}
+      {/* Final CTA */}
       <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Ready to book {keywordNatural} {filterNatural} in {city}?
+              Ready to proceed with <br />
+              {vehicleBrand} {vehicleModel}?
             </h2>
             <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-              Compare vehicles and connect with trusted rental companies in {city}.
+              Compare available {vehicleModel} listings, connect with trusted rental companies, and book with confidence.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href={searchHref}>
-                <Button
-                  size="lg"
-                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-lg w-full sm:w-auto"
-                >
-                  View Available Vehicles
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href={searchHref}>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 font-semibold px-8 py-6 text-lg w-full sm:w-auto"
-                >
-                  Start Booking Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+            <Link href={`/search?model=${modelSlug}`}>
+              <Button
+                size="lg"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-lg"
+              >
+                View Available {vehicleModel}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

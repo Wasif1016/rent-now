@@ -77,8 +77,6 @@ export async function ModelLandingPage({ model }: ModelLandingPageProps) {
           </div>
         </div>
       </section>
-
-      <SeoFooter />
     </main>
   );
 }

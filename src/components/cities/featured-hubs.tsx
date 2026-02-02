@@ -36,18 +36,18 @@ export async function FeaturedHubs() {
             >
               {/* Tag */}
               <div className="absolute top-4 right-4">
-                <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="bg-white/20 backdrop-blur-sm text-foreground text-xs font-semibold px-3 py-1 rounded-full">
                   {city.tag}
                 </span>
               </div>
 
               {/* City Name */}
-              <h3 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+              <h3 className="text-3xl lg:text-4xl font-bold text-black mb-2">
                 {city.name}
               </h3>
 
               {/* Vehicle Count */}
-              <p className="text-white/70 text-sm font-semibold">
+              <p className="text-black/70 text-sm font-semibold">
                 {city.vehicleCount}+ Verified Vehicles Available
               </p>
             </Link>

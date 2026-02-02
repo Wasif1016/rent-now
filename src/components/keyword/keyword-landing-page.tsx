@@ -346,7 +346,7 @@ export function KeywordLandingPage({ keyword }: KeywordLandingPageProps) {
             <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
               Compare vehicles, connect with trusted rental companies, and book your vehicle today with ease.
             </p>
-            <Link href="/search">
+            <Link href="/view-all-vehicles">
               <Button
                 size="lg"
                 className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-lg"
@@ -358,8 +358,6 @@ export function KeywordLandingPage({ keyword }: KeywordLandingPageProps) {
           </div>
         </div>
       </section>
-
-      <SeoFooter />
     </main>
   );
 }

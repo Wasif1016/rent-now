@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { HeroSection } from '@/components/hero/hero-section'
-import { SeoFooter } from '@/components/home/seo-footer'
 import { Button } from '@/components/ui/button'
 import {
   Check,
@@ -330,7 +329,7 @@ export function CategoryLandingPage({
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/search">
+              <Link href="/view-all-vehicles">
                 <Button
                   size="lg"
                   variant="outline"
@@ -344,8 +343,6 @@ export function CategoryLandingPage({
           </div>
         </div>
       </section>
-
-      <SeoFooter />
     </main>
   )
 }

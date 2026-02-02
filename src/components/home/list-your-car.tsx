@@ -13,10 +13,10 @@ export function ListYourCar() {
           <p className="text-lg lg:text-xl text-foreground/90 mb-8 max-w-2xl mx-auto">
             Get customers from your city without spending on ads. List your vehicles and receive confirmed bookings.
           </p>
-          <Link href="/signup">
+          <Link href="/auth/signup">
             <Button
               size="lg"
-              className="bg-green-accent hover:bg-green-accent/90 text-foregroun font-semibold px-8 py-6 text-lg"
+              className="bg-black hover:bg-black/90 text-white font-semibold px-8 py-6 text-lg"
             >
               Rent Your Vehicle
               <ArrowRight className="ml-2 h-5 w-5" />

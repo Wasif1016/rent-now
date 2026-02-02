@@ -46,7 +46,7 @@ export async function AllLocationsDirectory() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Cities Directory - 5 columns */}
           <div className="lg:col-span-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -77,19 +77,7 @@ export async function AllLocationsDirectory() {
             </div>
           </div>
 
-          {/* More Cities Card */}
-          <div className="lg:col-span-1">
-            <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-800/50 h-fit">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-12 h-12 rounded-lg bg-[#0f0f0f] flex items-center justify-center border border-gray-800/50">
-                  <Compass className="h-6 w-6 text-gray-400" />
-                </div>
-                <p className="text-gray-300 text-sm font-semibold">
-                  MORE CITIES ADDED WEEKLY
-                </p>
-              </div>
-            </div>
-          </div>
+        
         </div>
       </div>
     </section>

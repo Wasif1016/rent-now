@@ -16,6 +16,7 @@ export default function VendorDashboard() {
   const [hasRoutes, setHasRoutes] = useState(false)
   const [progress, setProgress] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [vendorName, setVendorName] = useState('Vendor')
 
   // Redirect admins to admin dashboard
   useEffect(() => {
@@ -50,6 +51,23 @@ export default function VendorDashboard() {
           setHasVehicles(data.hasVehicles)
           setHasRoutes(data.hasRoutes)
           setProgress(data.progress)
+          
+          // Fetch vendor name for personalized welcome
+          try {
+            const profileRes = await fetch('/api/vendor/profile', {
+              headers: {
+                ...(session.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+              },
+            })
+            if (profileRes.ok) {
+              const profileData = await profileRes.json()
+              if (profileData.name) {
+                setVendorName(profileData.name)
+              }
+            }
+          } catch (e) {
+            // silent fail
+          }
         }
       } catch (error) {
         console.error('Error fetching dashboard progress:', error)
@@ -83,7 +101,7 @@ export default function VendorDashboard() {
         <div>
           <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Welcome, <span className="text-primary">Vendor</span>
+            Welcome, <span className="text-primary">{vendorName}</span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Let&apos;s get your business road-ready. Complete these steps to start receiving bookings.

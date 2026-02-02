@@ -52,6 +52,7 @@ export type ResolvedPageType =
   | 'keyword_city'
   | 'keyword_city_model'
   | 'keyword_filter_city'
+  | 'keyword_model'
   | 'keyword_route'
   | 'keyword_route_model'
   | 'keyword_filter_route'
@@ -159,6 +160,38 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
         segments,
       }
     }
+
+    const model = await getVehicleModelBySlug(second)
+    if (model) {
+      const m = model as {
+        id: string
+        name: string
+        slug: string
+        vehicleBrand: { name: string; slug: string }
+        vehicleType?: { name: string } | null
+        capacity?: number | null
+      }
+      return {
+        pageType: 'keyword_model',
+        keyword: {
+          slug: keyword.slug,
+          defaultH1Template: keyword.defaultH1Template,
+          defaultTitleTemplate: keyword.defaultTitleTemplate,
+          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
+        },
+        model: {
+          id: m.id,
+          name: m.name,
+          slug: m.slug,
+          vehicleBrand: m.vehicleBrand,
+          vehicleType: m.vehicleType ?? undefined,
+          capacity: m.capacity ?? undefined,
+        },
+        canonical,
+        segments,
+      }
+    }
+
     return notFound
   }
 

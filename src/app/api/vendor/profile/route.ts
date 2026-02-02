@@ -54,12 +54,12 @@ export async function PATCH(request: NextRequest) {
     const updated = await prisma.vendor.update({
       where: { id: vendor.id },
       data: {
-        name: body.companyName ?? vendor.name,
-        address: body.companyAddress ?? vendor.address,
-        phone: body.phoneNumber ?? vendor.phone,
-        whatsappPhone: body.whatsappNumber ?? vendor.whatsappPhone,
-        email: body.email ?? vendor.email,
-        logo: body.logoUrl ?? vendor.logo,
+        name: body.companyName !== undefined ? body.companyName : vendor.name,
+        address: body.companyAddress !== undefined ? body.companyAddress : vendor.address,
+        phone: body.phoneNumber !== undefined ? body.phoneNumber : vendor.phone,
+        whatsappPhone: body.whatsappNumber !== undefined ? body.whatsappNumber : vendor.whatsappPhone,
+        email: body.email !== undefined ? body.email : vendor.email,
+        logo: body.logoUrl !== undefined ? body.logoUrl : vendor.logo,
         metadata,
       },
     })

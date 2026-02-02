@@ -6,7 +6,6 @@ import { BrowseByCity } from '@/components/home/browse-by-city'
 import { WhyChooseUs } from '@/components/home/why-choose-us'
 import { PopularRoutesSection } from '@/components/home/popular-routes-section'
 import { ListYourCar } from '@/components/home/list-your-car'
-import { SeoFooter } from '@/components/home/seo-footer'
 
 export default function Home() {
   return (
@@ -19,7 +18,6 @@ export default function Home() {
       <WhyChooseUs />
       <PopularRoutesSection />
       <ListYourCar />
-      <SeoFooter />
     </main>
   )
 }

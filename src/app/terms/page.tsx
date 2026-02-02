@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoFooter } from '@/components/home/seo-footer'
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions | RentNow Pk',
@@ -190,7 +189,6 @@ export default function TermsPage() {
           </section>
         </div>
       </div>
-      <SeoFooter />
     </main>
   )
 }

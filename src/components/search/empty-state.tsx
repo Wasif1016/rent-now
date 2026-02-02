@@ -18,7 +18,7 @@ export function EmptyState({ city }: EmptyStateProps) {
       <p className="text-muted-foreground mb-6 max-w-md">{message}</p>
       <div className="flex gap-4">
         <Button asChild variant="outline">
-          <Link href="/search">Browse All Vehicles</Link>
+          <Link href="/view-all-vehicles">Browse All Vehicles</Link>
         </Button>
         {city && (
           <Button asChild>

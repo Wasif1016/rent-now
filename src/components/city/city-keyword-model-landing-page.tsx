@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { HeroSection } from '@/components/hero/hero-section'
-import { SeoFooter } from '@/components/home/seo-footer'
 import { Button } from '@/components/ui/button'
 import {
   Check,
@@ -350,8 +349,6 @@ export function CityKeywordModelLandingPage({
           </div>
         </div>
       </section>
-
-      <SeoFooter />
     </main>
   )
 }

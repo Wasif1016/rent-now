@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroSection } from "@/components/hero/hero-section";
-import { SeoFooter } from "@/components/home/seo-footer";
 import { Button } from "@/components/ui/button";
 import {
   Check,
@@ -408,7 +407,7 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
             <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
               Compare vehicles, connect with trusted local rental businesses, and book your vehicle in {cityDisplay} today.
             </p>
-            <Link href="/search">
+            <Link href="/view-all-vehicles">
               <Button
                 size="lg"
                 className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-lg"
@@ -420,8 +419,6 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
           </div>
         </div>
       </section>
-
-      <SeoFooter />
     </main>
   );
 }

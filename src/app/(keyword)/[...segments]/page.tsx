@@ -7,6 +7,7 @@ import { CityKeywordModelLandingPage } from '@/components/city/city-keyword-mode
 import { CityKeywordFilterLandingPage } from '@/components/city/city-keyword-filter-landing-page'
 import { CityKeywordRouteLandingPage } from '@/components/route/city-keyword-route-landing-page'
 import { CityKeywordRouteModelLandingPage } from '@/components/route/city-keyword-route-model-landing-page'
+import { KeywordModelLandingPage } from '@/components/keyword/keyword-model-landing-page'
 
 type PageProps = {
   params: Promise<{ segments: string[] }>
@@ -25,6 +26,20 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
 
   if (resolved.pageType === 'keyword_only' && resolved.keyword) {
     return <KeywordLandingPage keyword={resolved.keyword.slug} />
+  }
+
+  if (resolved.pageType === 'keyword_model' && resolved.keyword && resolved.model) {
+    return (
+      <KeywordModelLandingPage
+        keywordSlug={resolved.keyword.slug}
+        modelSlug={resolved.model.slug}
+        modelName={resolved.model.name}
+        brandName={resolved.model.vehicleBrand.name}
+        vehicleCategory={resolved.model.vehicleType?.name}
+        seatingCapacity={resolved.model.capacity}
+        driverOption="With Driver / Without Driver / Both"
+      />
+    )
   }
 
   if (resolved.pageType === 'keyword_city' && resolved.keyword && resolved.city) {
@@ -115,6 +130,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title =
     resolved.pageType === 'keyword_only' && resolved.keyword
       ? resolved.keyword.defaultTitleTemplate.replace(/\{city_name\}/g, 'Your City')
+      : resolved.pageType === 'keyword_model' && resolved.keyword && resolved.model
+      ? `${resolved.model.vehicleBrand.name} ${resolved.model.name} | Rent Now`
       : resolved.pageType === 'keyword_city' && resolved.keyword && resolved.city
         ? resolved.keyword.defaultTitleTemplate.replace(/\{city_name\}/g, resolved.city.name)
         : resolved.pageType === 'keyword_city_model' && resolved.city && resolved.model

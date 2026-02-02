@@ -84,7 +84,7 @@ async function main() {
     'Sambrial', 'Samundri', 'Sangla Hill', 'Sargodha', 'Shabqadar', 'Shahdadkot', 'Shahdadpur', 'Shakargarh',
     'Sheikhupura', 'Shikarpur', 'Shujabad', 'Sialkot', 'Sukkur', 'Swabi', 'Swat', 'Tando Adam',
     'Tando Allahyar', 'Tando Muhammad Khan', 'Taunsa', 'Taxila', 'Timergara', 'Tordher', 'Turbat',
-    'Umerkot', 'Upper Dir', 'Vehari', 'Wah Cantonment', 'Zaida', 'Ziarat',
+    'Umerkot', 'Upper Dir', 'Vehari', 'Wah Cantonment', 'Zaida', 'Ziarat', 'Murree', 'Skardu', 'Hunza', 'Gilgit', 'Gwadar',
   ]
 
   const cityRecords: { id: string; name: string; slug: string }[] = []
@@ -568,6 +568,9 @@ async function main() {
     { name: 'Ford', slug: 'ford' },
     { name: 'Chevrolet', slug: 'chevrolet' },
     { name: 'Mazda', slug: 'mazda' },
+    { name: 'Mitsubishi', slug: 'mitsubishi' },
+    { name: 'Hino', slug: 'hino' },
+    { name: 'Daewoo', slug: 'daewoo' },
   ]
 
   const brandRecords = []
@@ -596,7 +599,13 @@ async function main() {
     { name: 'Land Cruiser', brand: 'toyota' },
     { name: 'Hilux', brand: 'toyota' },
     { name: 'Prius', brand: 'toyota' },
+
     { name: 'Vitz', brand: 'toyota' },
+    { name: 'Yaris', brand: 'toyota' },
+    { name: 'Premio', brand: 'toyota' },
+    { name: 'Hiace Grand Cabin', brand: 'toyota' },
+    { name: 'Hiace High Roof', brand: 'toyota' },
+    { name: 'Coaster Saloon', brand: 'toyota' },
     // Honda
     { name: 'Civic', brand: 'honda' },
     { name: 'City', brand: 'honda' },
@@ -613,6 +622,7 @@ async function main() {
     { name: 'Sunny', brand: 'nissan' },
     { name: 'X-Trail', brand: 'nissan' },
     { name: 'Sentra', brand: 'nissan' },
+    { name: 'Caravan', brand: 'nissan' },
     // Hyundai
     { name: 'Elantra', brand: 'hyundai' },
     { name: 'Tucson', brand: 'hyundai' },
@@ -622,13 +632,28 @@ async function main() {
     { name: 'Sportage', brand: 'kia' },
     { name: 'Picanto', brand: 'kia' },
     { name: 'Cerato', brand: 'kia' },
+    // Mitsubishi
+    { name: 'Pajero', brand: 'mitsubishi' },
+    // Hino
+    { name: 'Bus', brand: 'hino' },
+    // Isuzu
+    { name: 'Bus', brand: 'isuzu' },
+    { name: 'D-Max', brand: 'isuzu' },
+    // Daewoo
+    { name: 'Bus', brand: 'daewoo' },
     // Luxury
     { name: 'C-Class', brand: 'mercedes-benz' },
+
     { name: 'E-Class', brand: 'mercedes-benz' },
+    { name: 'S-Class', brand: 'mercedes-benz' },
     { name: '3 Series', brand: 'bmw' },
+
     { name: '5 Series', brand: 'bmw' },
+    { name: '7 Series', brand: 'bmw' },
     { name: 'A4', brand: 'audi' },
+
     { name: 'A6', brand: 'audi' },
+    { name: 'A8', brand: 'audi' },
     // Others
     { name: 'Golf', brand: 'volkswagen' },
     { name: 'Passat', brand: 'volkswagen' },
@@ -1078,6 +1103,13 @@ async function main() {
     'personal-car-rental': 'Personal car rental',
     'commercial-car-rental': 'Commercial car rental',
     'airport-transfer': 'Airport transfer',
+    'self-drive-car-rental': 'Self drive car rental',
+    'wedding-car-rental': 'Wedding car rental',
+    'airport-transfer-services': 'Airport transfer services',
+    'monthly-daily-car-rental': 'Monthly & daily car rental',
+    'luxury-economy-budget-cars': 'Luxury, economy & budget cars',
+    'bus-coaster-rental': 'Bus & coaster rental',
+    'tour-travel-vehicles': 'Tour & travel vehicles',
   }
   for (const [slug, label] of Object.entries(keywordConfig)) {
     const displayLabel = label.replace(/-/g, ' ')
@@ -1146,30 +1178,72 @@ async function main() {
   const getRouteCategoryId = (slug: string) => routeCategoryRecords.find(r => r.slug === slug)?.id ?? routeCategoryRecords[0].id
 
   const majorRoutes = [
+    // Previous routes (Rawalpindi ones specifically)
+    { fromSlug: 'rawalpindi', toSlug: 'islamabad' },
+    { fromSlug: 'rawalpindi', toSlug: 'lahore' },
+
+    // User requested routes
     { fromSlug: 'lahore', toSlug: 'islamabad' },
     { fromSlug: 'lahore', toSlug: 'karachi' },
     { fromSlug: 'lahore', toSlug: 'multan' },
     { fromSlug: 'lahore', toSlug: 'faisalabad' },
     { fromSlug: 'lahore', toSlug: 'sialkot' },
     { fromSlug: 'lahore', toSlug: 'gujranwala' },
+    { fromSlug: 'lahore', toSlug: 'murree' },
     { fromSlug: 'lahore', toSlug: 'bahawalpur' },
-    { fromSlug: 'karachi', toSlug: 'lahore' },
-    { fromSlug: 'karachi', toSlug: 'islamabad' },
+    { fromSlug: 'lahore', toSlug: 'bahawalnagar' },
+    { fromSlug: 'lahore', toSlug: 'skardu' },
+
+    { fromSlug: 'karachi', toSlug: 'hyderabad' },
+    { fromSlug: 'karachi', toSlug: 'sukkur' },
+    { fromSlug: 'karachi', toSlug: 'larkana' },
+    { fromSlug: 'karachi', toSlug: 'gwadar' },
+    { fromSlug: 'karachi', toSlug: 'quetta' },
     { fromSlug: 'karachi', toSlug: 'multan' },
-    { fromSlug: 'islamabad', toSlug: 'lahore' },
+    { fromSlug: 'karachi', toSlug: 'islamabad' },
+    { fromSlug: 'karachi', toSlug: 'lahore' },
+    { fromSlug: 'karachi', toSlug: 'nawabshah-benazirabad' },
+    { fromSlug: 'karachi', toSlug: 'mirpur-khas' },
+
+    { fromSlug: 'islamabad', toSlug: 'murree' },
+    { fromSlug: 'islamabad', toSlug: 'abbottabad' },
+    { fromSlug: 'islamabad', toSlug: 'mansehra' },
     { fromSlug: 'islamabad', toSlug: 'peshawar' },
+    { fromSlug: 'islamabad', toSlug: 'skardu' },
+    { fromSlug: 'islamabad', toSlug: 'hunza' },
+    { fromSlug: 'islamabad', toSlug: 'gilgit' },
     { fromSlug: 'islamabad', toSlug: 'faisalabad' },
+    { fromSlug: 'islamabad', toSlug: 'sialkot' },
+    { fromSlug: 'islamabad', toSlug: 'lahore' },
+
     { fromSlug: 'multan', toSlug: 'bahawalpur' },
+    { fromSlug: 'multan', toSlug: 'rahim-yar-khan' },
+    { fromSlug: 'multan', toSlug: 'dera-ghazi-khan' },
     { fromSlug: 'multan', toSlug: 'lahore' },
     { fromSlug: 'multan', toSlug: 'karachi' },
+
     { fromSlug: 'peshawar', toSlug: 'islamabad' },
+    { fromSlug: 'peshawar', toSlug: 'swat' },
+    { fromSlug: 'peshawar', toSlug: 'mardan' },
+    { fromSlug: 'peshawar', toSlug: 'abbottabad' },
+
+    { fromSlug: 'quetta', toSlug: 'gwadar' },
+    { fromSlug: 'quetta', toSlug: 'karachi' },
+    { fromSlug: 'quetta', toSlug: 'turbat' },
+
+    { fromSlug: 'skardu', toSlug: 'hunza' },
+
+    { fromSlug: 'gilgit', toSlug: 'hunza' },
+    { fromSlug: 'gilgit', toSlug: 'skardu' },
+
     { fromSlug: 'faisalabad', toSlug: 'lahore' },
     { fromSlug: 'faisalabad', toSlug: 'islamabad' },
+
     { fromSlug: 'gujranwala', toSlug: 'sialkot' },
+
     { fromSlug: 'sialkot', toSlug: 'lahore' },
+
     { fromSlug: 'bahawalpur', toSlug: 'multan' },
-    { fromSlug: 'rawalpindi', toSlug: 'islamabad' },
-    { fromSlug: 'rawalpindi', toSlug: 'lahore' },
   ]
   const intercityTypeId = getRouteTypeId('intercity')
   const touristCategoryId = getRouteCategoryId('tourist')

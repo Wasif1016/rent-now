@@ -129,7 +129,7 @@ export function SearchPageInner({ initialVehicles, cities, initialTowns, vehicle
     if (selectedVehicleType) params.set('vehicleType', selectedVehicleType)
     
     const newUrl = params.toString() ? `?${params.toString()}` : ''
-    router.replace(`/search${newUrl}`, { scroll: false })
+    router.replace(`/view-all-vehicles${newUrl}`, { scroll: false })
   }, [selectedCity, selectedTown, selectedVehicleType, router])
 
   const handleResetFilters = () => {

@@ -3,6 +3,7 @@ import { Oranienbaum, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
 import { MainHeader } from "@/components/layout/main-header";
 import { AuthProvider } from "@/contexts/auth-context";
+import { FooterWrapper } from "@/components/layout/footer-wrapper";
 
 
 const oranienbaum = Oranienbaum({
@@ -37,6 +38,7 @@ export default function RootLayout({
         <AuthProvider>
           <MainHeader />
           {children}
+          <FooterWrapper />
         </AuthProvider>
       </body>
     </html>

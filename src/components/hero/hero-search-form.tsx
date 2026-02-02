@@ -163,7 +163,7 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
       if (town) params.set('town', town)
 
       const queryString = params.toString()
-      router.push(`/search?${queryString}`)
+      router.push(`/view-all-vehicles?${queryString}`)
     } else if (activeTab === 'route') {
       // Build route URL: /routes/{fromSlug}-to-{toSlug}
       const fromCityData = cities.find(c => c.slug === fromCity)

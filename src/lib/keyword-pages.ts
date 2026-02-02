@@ -35,6 +35,14 @@ export const KEYWORD_CONFIG: Record<string, string> = {
   'vehicle-rental-marketplace': 'Vehicle rental marketplace',
   'personal-car-rental': 'Personal car rental',
   'commercial-car-rental': 'Commercial car rental',
+  'airport-transfer': 'Airport transfer',
+  'self-drive-car-rental': 'Self drive car rental',
+  'wedding-car-rental': 'Wedding car rental',
+  'airport-transfer-services': 'Airport transfer services',
+  'monthly-daily-car-rental': 'Monthly & daily car rental',
+  'luxury-economy-budget-cars': 'Luxury, economy & budget cars',
+  'bus-coaster-rental': 'Bus & coaster rental',
+  'tour-travel-vehicles': 'Tour & travel vehicles',
 }
 
 

@@ -24,7 +24,12 @@ const prismaClientSingleton = () => {
   }
 
   // Use adapter for Prisma 7
-  const pool = new Pool({ connectionString })
+  const pool = new Pool({ 
+    connectionString,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000, 
+  })
   const adapter = new PrismaPg(pool)
 
   return new PrismaClient({
