@@ -101,7 +101,7 @@ export async function getBusinessById(id: string) {
         select: {
           vehicles: true,
           bookings: true,
-          routes: true,
+          vendorRouteOffers: true,
         },
       },
       vehicles: {

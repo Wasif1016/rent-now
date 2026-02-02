@@ -35,11 +35,12 @@ interface VehicleModel {
 interface HeroSearchFormProps {
   cities: City[]
   vehicleModels: VehicleModel[]
+  heading?: string
 }
 
 type TabType = 'vehicle' | 'route'
 
-export function HeroSearchForm({ cities, vehicleModels }: HeroSearchFormProps) {
+export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFormProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('vehicle')
 
@@ -156,14 +157,13 @@ export function HeroSearchForm({ cities, vehicleModels }: HeroSearchFormProps) {
     }
 
     if (activeTab === 'vehicle') {
-      // Build search URL for vehicle search
+      // Redirect to search results page with city and optional town
       const params = new URLSearchParams()
+      params.set('city', city)
       if (town) params.set('town', town)
 
       const queryString = params.toString()
-      const canonicalUrl = `/rent-a-car/${city}${queryString ? `?${queryString}` : ''}`
-
-      router.push(canonicalUrl)
+      router.push(`/search?${queryString}`)
     } else if (activeTab === 'route') {
       // Build route URL: /routes/{fromSlug}-to-{toSlug}
       const fromCityData = cities.find(c => c.slug === fromCity)
@@ -302,8 +302,10 @@ export function HeroSearchForm({ cities, vehicleModels }: HeroSearchFormProps) {
             {/* Vehicle Tab Content */}
             <div className="mb-4">
               <h1 className="text-2xl sm:text-3xl lg:text-2xl font-bold black leading-tight">
-                Book Verified Cars, Hiace, Vans & Buses Across Pakistan
+                {heading ?? 'Book Verified Cars, Hiace, Vans & Buses Across Pakistan'}
               </h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                Search by vehicles near you</p>
             </div>
             <div className="space-y-4">
               {/* City Field */}
@@ -519,7 +521,7 @@ export function HeroSearchForm({ cities, vehicleModels }: HeroSearchFormProps) {
             {/* Route Tab Content */}
             <div className="mb-4">
               <h1 className="text-2xl sm:text-3xl lg:text-2xl font-bold black leading-tight">
-                Book Verified Cars, Hiace, Vans & Buses Across Pakistan
+                {heading ?? 'Book Verified Cars, Hiace, Vans & Buses Across Pakistan'}
               </h1>
             </div>
             <div className="space-y-4">

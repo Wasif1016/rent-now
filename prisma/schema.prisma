@@ -62,6 +62,12 @@ enum RegistrationStatus {
   SUSPENDED
 }
 
+enum DriverOption {
+  WITH_DRIVER
+  WITHOUT_DRIVER
+  BOTH
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -90,14 +96,17 @@ model City {
   updatedAt DateTime? @default(now()) @updatedAt
 
   // Relations
-  country          Country           @relation(fields: [countryId], references: [id])
-  towns            Town[]
-  vehicles         Vehicle[]
-  routesFrom       Route[]           @relation("RouteFromCity")
-  routesTo         Route[]           @relation("RouteToCity")
-  pickupBookings   Booking[]         @relation("BookingPickupCity")
-  dropoffBookings  Booking[]         @relation("BookingDropoffCity")
-  seoCityOverrides SeoCityOverride[]
+  country               Country            @relation(fields: [countryId], references: [id])
+  towns                 Town[]
+  vehicles              Vehicle[]
+  vendors               Vendor[]
+  vendorRouteOffersFrom VendorRouteOffer[] @relation("VendorRouteFromCity")
+  vendorRouteOffersTo   VendorRouteOffer[] @relation("VendorRouteToCity")
+  routesAsOrigin        Route[]            @relation("RouteOriginCity")
+  routesAsDestination   Route[]            @relation("RouteDestinationCity")
+  pickupBookings        Booking[]          @relation("BookingPickupCity")
+  dropoffBookings       Booking[]          @relation("BookingDropoffCity")
+  seoCityOverrides      SeoCityOverride[]
 }
 
 model Town {
@@ -118,10 +127,23 @@ model Town {
   @@index([slug])
 }
 
+model VehicleCategory {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  // Relations
+  vehicleTypes VehicleType[]
+  vehicles     Vehicle[]
+}
+
 model VehicleType {
   id          String    @id @default(uuid())
+  categoryId  String?   // Required in seed; nullable for migration of existing rows
   name        String
-  slug        String    @unique
+  slug        String
   icon        String? // Optional icon URL
   description String? // Optional description
   isActive    Boolean?  @default(true)
@@ -129,7 +151,12 @@ model VehicleType {
   updatedAt   DateTime? @default(now()) @updatedAt
 
   // Relations
-  vehicles Vehicle[]
+  category  VehicleCategory? @relation(fields: [categoryId], references: [id])
+  vehicles  Vehicle[]
+  vehicleModels VehicleModel[]
+
+  @@unique([slug, categoryId])
+  @@index([categoryId])
 }
 
 model VehicleBrand {
@@ -148,8 +175,9 @@ model VehicleBrand {
 model VehicleModel {
   id                  String        @id @default(uuid())
   name                String
-  slug                String
+  slug                String        @unique // Globally unique for URLs (e.g. toyota-corolla)
   vehicleBrandId      String
+  vehicleTypeId       String? // Optional: sub-category (Sedan, Hatchback, etc.)
   capacity            Int? // Passenger capacity
   image               String? // Predefined vehicle image path
   bodyType            String? // HatchBack, Sedan, SUV, Van
@@ -164,10 +192,11 @@ model VehicleModel {
 
   // Relations
   vehicleBrand VehicleBrand @relation(fields: [vehicleBrandId], references: [id])
+  vehicleType  VehicleType?  @relation(fields: [vehicleTypeId], references: [id])
   vehicles     Vehicle[]
 
-  @@unique([slug, vehicleBrandId])
   @@index([vehicleBrandId])
+  @@index([vehicleTypeId])
   @@index([isPredefined])
 }
 
@@ -180,6 +209,7 @@ model Vendor {
   personName                 String? // Contact person name (admin-only)
   whatsappPhone              String? // WhatsApp number for bookings (admin-only)
   address                    String?
+  cityId                     String? // Primary city of operation
   supabaseUserId             String?                   @unique // For Supabase auth integration
   description                String? // Vendor bio
   logo                       String? // Cloudinary URL
@@ -201,59 +231,71 @@ model Vendor {
   updatedAt                  DateTime?                 @default(now()) @updatedAt
 
   // Relations
-  vehicles  Vehicle[]
-  inquiries Inquiry[]
-  bookings  Booking[]
-  routes    Route[]
+  city               City?               @relation(fields: [cityId], references: [id])
+  vehicles           Vehicle[]
+  inquiries          Inquiry[]
+  bookings           Booking[]
+  vendorRouteOffers  VendorRouteOffer[]
 }
 
 model Vehicle {
-  id              String        @id @default(uuid())
-  vendorId        String
-  vehicleModelId  String?
-  vehicleTypeId   String? // Optional: vehicle type (Cars, Hiace, Vans, etc.)
-  cityId          String // Required: vehicle location (city)
-  townId          String? // Optional: specific town within city
-  title           String // Display title
-  slug            String        @unique // For SEO URLs
-  description     String? // Full description
-  year            Int? // Manufacturing year
-  mileage         Int? // KM driven
-  fuelType        FuelType?
-  transmission    Transmission?
-  features        Json? // Array of features (AC, GPS, Bluetooth, etc.)
-  color           String?
-  seats           Int? // Number of seats
-  images          Json? // Array of Cloudinary URLs
-  views           Int           @default(0) // View counter for analytics
-  featured        Boolean       @default(false) // Premium listing flag
-  isAvailable     Boolean?      @default(true)
-  isVerified      Boolean?      @default(false)
-  status          VehicleStatus @default(PUBLISHED)
-  // Pricing fields (optional)
-  priceWithDriver Int? // Price per day with driver
-  priceSelfDrive  Int? // Price per day self-drive
+  id               String         @id @default(uuid())
+  vendorId         String
+  vehicleModelId   String?
+  vehicleTypeId    String? // Optional: vehicle type (Sedan, Hiace, etc.)
+  categoryId       String? // Top-level category (Car, SUV, Van, etc.)
+  cityId           String // Required: vehicle location (city)
+  townId           String? // Optional: specific town within city
+  title            String // Display title
+  slug             String         @unique // For SEO URLs (listing-specific)
+  description      String? // Full description
+  year             Int? // Manufacturing year
+  mileage          Int? // KM driven
+  fuelType         FuelType?
+  transmission     Transmission?
+  features         Json? // Array of features (AC, GPS, Bluetooth, etc.)
+  color            String?
+  seats            Int? // Number of seats (legacy)
+  seatingCapacity  Int? // 2,4,5,7,9,12,15,22,30+ for filters/SEO
+  driverOption     DriverOption? // WITH_DRIVER, WITHOUT_DRIVER, BOTH
+  images           Json? // Array of Cloudinary URLs
+  views            Int            @default(0) // View counter for analytics
+  featured         Boolean        @default(false) // Premium listing flag
+  isAvailable      Boolean?       @default(true)
+  isVerified       Boolean?       @default(false)
+  status           VehicleStatus   @default(PUBLISHED)
+  // Pricing fields
+  priceWithDriver  Int? // Price per day with driver (legacy)
+  priceSelfDrive   Int? // Price per day self-drive (legacy)
+  priceDaily       Int? // Primary daily rate
+  priceHourly     Int? // Hourly rate
+  priceMonthly    Int? // Monthly rate
   priceWithinCity Int? // Price for within city
   priceOutOfCity  Int? // Price for out of city
-  metadata        Json? // Additional metadata
-  createdAt       DateTime?     @default(now())
-  updatedAt       DateTime?     @default(now()) @updatedAt
+  metadata         Json? // Additional metadata
+  createdAt        DateTime?      @default(now())
+  updatedAt        DateTime?      @default(now()) @updatedAt
 
   // Relations
-  vendor       Vendor        @relation(fields: [vendorId], references: [id])
-  vehicleModel VehicleModel? @relation(fields: [vehicleModelId], references: [id])
-  vehicleType  VehicleType?  @relation(fields: [vehicleTypeId], references: [id])
-  city         City          @relation(fields: [cityId], references: [id])
-  town         Town?         @relation(fields: [townId], references: [id])
-  inquiries    Inquiry[]
-  bookings     Booking[]
-  routes       Route[]
+  vendor       Vendor         @relation(fields: [vendorId], references: [id])
+  vehicleModel VehicleModel?  @relation(fields: [vehicleModelId], references: [id])
+  vehicleType  VehicleType?   @relation(fields: [vehicleTypeId], references: [id])
+  category     VehicleCategory? @relation(fields: [categoryId], references: [id])
+  city         City           @relation(fields: [cityId], references: [id])
+  town         Town?          @relation(fields: [townId], references: [id])
+  inquiries          Inquiry[]
+  bookings           Booking[]
+  vendorRouteOffers  VendorRouteOffer[]
+  vehicleRoutes      VehicleRoute[]
 
   @@index([cityId])
   @@index([townId])
   @@index([cityId, townId])
   @@index([isAvailable])
   @@index([vehicleTypeId])
+  @@index([categoryId])
+  @@index([driverOption])
+  @@index([seatingCapacity])
 }
 
 model Inquiry {
@@ -292,7 +334,7 @@ model Booking {
   // New fields to support route-based & city-based bookings and advance payments
   pickupCityId        String? // City where the booking starts
   dropoffCityId       String? // City where the booking ends (for intercity/route bookings)
-  routeId             String? // Optional associated route
+  vendorRouteOfferId   String? // Optional associated vendor route offering
   startDateTime       DateTime? // Trip start date & time
   endDateTime         DateTime? // Trip end date & time
   advanceAmount       Int? // 2% advance amount paid online
@@ -301,16 +343,17 @@ model Booking {
   updatedAt           DateTime?     @default(now()) @updatedAt
 
   // Relations
-  vehicle     Vehicle @relation(fields: [vehicleId], references: [id])
-  vendor      Vendor  @relation(fields: [vendorId], references: [id])
-  pickupCity  City?   @relation("BookingPickupCity", fields: [pickupCityId], references: [id])
-  dropoffCity City?   @relation("BookingDropoffCity", fields: [dropoffCityId], references: [id])
-  route       Route?  @relation(fields: [routeId], references: [id])
+  vehicle           Vehicle            @relation(fields: [vehicleId], references: [id])
+  vendor            Vendor             @relation(fields: [vendorId], references: [id])
+  pickupCity        City?              @relation("BookingPickupCity", fields: [pickupCityId], references: [id])
+  dropoffCity       City?              @relation("BookingDropoffCity", fields: [dropoffCityId], references: [id])
+  vendorRouteOffer  VendorRouteOffer?  @relation(fields: [vendorRouteOfferId], references: [id])
 
   @@index([vehicleId])
   @@index([vendorId])
   @@index([status])
   @@index([createdAt])
+  @@index([vendorRouteOfferId])
 }
 
 /// ============================================
@@ -384,23 +427,23 @@ model SeoCityOverride {
   @@index([seoDimensionId])
 }
 
-model Route {
-  id                  String    @id @default(uuid())
-  vendorId            String
-  fromCityId          String
-  toCityId            String
-  vehicleId           String
-  basePrice           Int // Base price in Rs.
-  instantAvailability Boolean   @default(true)
-  compatibleBodyTypes Json? // Array of compatible body types
-  isActive            Boolean   @default(true)
-  createdAt           DateTime? @default(now())
-  updatedAt           DateTime? @default(now()) @updatedAt
+model VendorRouteOffer {
+  id                   String    @id @default(uuid())
+  vendorId             String
+  fromCityId           String
+  toCityId             String
+  vehicleId            String
+  basePrice            Int // Base price in Rs.
+  instantAvailability  Boolean   @default(true)
+  compatibleBodyTypes  Json? // Array of compatible body types
+  isActive             Boolean   @default(true)
+  createdAt            DateTime? @default(now())
+  updatedAt            DateTime? @default(now()) @updatedAt
 
   // Relations
   vendor   Vendor    @relation(fields: [vendorId], references: [id])
-  fromCity City      @relation("RouteFromCity", fields: [fromCityId], references: [id])
-  toCity   City      @relation("RouteToCity", fields: [toCityId], references: [id])
+  fromCity City      @relation("VendorRouteFromCity", fields: [fromCityId], references: [id])
+  toCity   City      @relation("VendorRouteToCity", fields: [toCityId], references: [id])
   vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
   bookings Booking[]
 
@@ -409,6 +452,59 @@ model Route {
   @@index([toCityId])
   @@index([vehicleId])
   @@index([isActive])
+}
+
+model RouteType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  routes Route[]
+}
+
+model RouteCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  routes Route[]
+}
+
+model Route {
+  id                  Int       @id @default(autoincrement())
+  slug                String    @unique
+  originCityId        String
+  destinationCityId  String
+  routeTypeId         Int
+  routeCategoryId     Int
+  distanceKm          Int?
+  estimatedTime       String?
+  oneWay              Boolean   @default(true)
+  roundTrip           Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+
+  originCity      City          @relation("RouteOriginCity", fields: [originCityId], references: [id])
+  destinationCity City          @relation("RouteDestinationCity", fields: [destinationCityId], references: [id])
+  routeType       RouteType     @relation(fields: [routeTypeId], references: [id])
+  routeCategory   RouteCategory @relation(fields: [routeCategoryId], references: [id])
+  vehicles        VehicleRoute[]
+
+  @@index([originCityId, destinationCityId])
+}
+
+model VehicleRoute {
+  id        Int     @id @default(autoincrement())
+  vehicleId String
+  routeId   Int
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  route   Route   @relation(fields: [routeId], references: [id])
+
+  @@unique([vehicleId, routeId])
+  @@index([vehicleId])
+  @@index([routeId])
 }
 
 model ActivityLog {
@@ -432,6 +528,15 @@ model EmailTemplate {
   subject   String
   body      String // HTML template with {{variables}}
   variables Json? // Array of available variables
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WhatsAppTemplate {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  body      String   // Plain text; line breaks preserved for WhatsApp
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

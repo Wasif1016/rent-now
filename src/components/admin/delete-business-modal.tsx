@@ -16,8 +16,12 @@ import { AlertTriangle } from 'lucide-react'
 interface DeleteBusinessModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  businessId: string
-  businessName: string
+  /** Single delete: pass one id and one name */
+  businessId?: string
+  businessName?: string
+  /** Bulk delete: pass arrays (takes precedence over single) */
+  businessIds?: string[]
+  businessNames?: string[]
 }
 
 export function DeleteBusinessModal({
@@ -25,37 +29,57 @@ export function DeleteBusinessModal({
   onOpenChange,
   businessId,
   businessName,
+  businessIds,
+  businessNames,
 }: DeleteBusinessModalProps) {
   const { session } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const isBulk = Array.isArray(businessIds) && businessIds.length > 0
+  const ids = isBulk ? businessIds! : businessId ? [businessId] : []
+  const names = isBulk ? businessNames! : businessName ? [businessName] : []
+  const count = ids.length
+
   const handleDelete = async () => {
     if (!session?.access_token) {
       setError('You must be logged in to delete businesses')
       return
     }
+    if (ids.length === 0) return
 
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/admin/businesses/${businessId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete business')
+      if (ids.length === 1) {
+        const response = await fetch(`/api/admin/businesses/${ids[0]}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Failed to delete business')
+      } else {
+        const response = await fetch('/api/admin/businesses/bulk-delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ ids }),
+        })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Failed to delete businesses')
+        if (data.results?.some((r: { success: boolean }) => !r.success)) {
+          const failed = data.results.filter((r: { success: boolean }) => !r.success)
+          throw new Error(`${failed.length} business(es) could not be deleted`)
+        }
       }
 
-      // Close modal and refresh
       onOpenChange(false)
       router.refresh()
       router.push('/admin/businesses')
@@ -76,7 +100,12 @@ export function DeleteBusinessModal({
           </DialogTitle>
           <DialogDescription>
             This action cannot be undone. This will permanently delete{' '}
-            <strong>{businessName}</strong> and all associated data including:
+            {count === 1 ? (
+              <strong>{names[0]}</strong>
+            ) : (
+              <strong>{count} businesses</strong>
+            )}{' '}
+            and all associated data including:
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +139,7 @@ export function DeleteBusinessModal({
               onClick={handleDelete}
               disabled={loading}
             >
-              {loading ? 'Deleting...' : 'Delete Permanently'}
+              {loading ? (count > 1 ? 'Deleting...' : 'Deleting...') : count > 1 ? `Delete ${count} businesses` : 'Delete Permanently'}
             </Button>
           </div>
         </div>

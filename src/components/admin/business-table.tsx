@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ import {
   Eye,
   Edit,
   Mail,
+  MessageCircle,
   UserPlus,
   Ban,
   CheckCircle,
@@ -23,7 +25,9 @@ import {
 } from 'lucide-react'
 import { CreateAccountModal } from './create-account-modal'
 import { SendEmailModal } from './send-email-modal'
+import { SendWhatsAppModal } from './send-whatsapp-modal'
 import { DeleteBusinessModal } from './delete-business-modal'
+import { buildWhatsAppChatLink } from '@/lib/whatsapp'
 
 type RegistrationStatus = 'NOT_REGISTERED' | 'ACCOUNT_CREATED' | 'EMAIL_SENT' | 'ACTIVE' | 'SUSPENDED'
 
@@ -32,6 +36,7 @@ interface Business {
   name: string
   email: string | null
   phone: string | null
+  whatsappPhone?: string | null
   town: string | null
   province: string | null
   registrationStatus: RegistrationStatus | null
@@ -75,30 +80,113 @@ export function BusinessTable({
   const router = useRouter()
   const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false)
   const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false)
+  const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false)
   const [deleteBusinessModalOpen, setDeleteBusinessModalOpen] = useState(false)
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isBulkDelete, setIsBulkDelete] = useState(false)
+
+  const selectedBusinesses = useMemo(
+    () => businesses.filter((b) => selectedIds.has(b.id)),
+    [businesses, selectedIds]
+  )
+
+  const allOnPageSelected =
+    businesses.length > 0 && businesses.every((b) => selectedIds.has(b.id))
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleAllOnPage = () => {
+    if (allOnPageSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        businesses.forEach((b) => next.delete(b.id))
+        return next
+      })
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        businesses.forEach((b) => next.add(b.id))
+        return next
+      })
+    }
+  }
+
+  const openBulkDeleteModal = () => {
+    setIsBulkDelete(true)
+    setSelectedBusiness(null)
+    setDeleteBusinessModalOpen(true)
+  }
+
+  const openSingleDeleteModal = (business: Business) => {
+    setIsBulkDelete(false)
+    setSelectedBusiness(business)
+    setDeleteBusinessModalOpen(true)
+  }
 
   // Refresh when modals close after successful operations
-  const handleModalClose = (modalType: 'create' | 'email' | 'delete') => {
+  const handleModalClose = (modalType: 'create' | 'email' | 'whatsapp' | 'delete') => {
     if (modalType === 'create') {
       setCreateAccountModalOpen(false)
     } else if (modalType === 'email') {
       setSendEmailModalOpen(false)
+    } else if (modalType === 'whatsapp') {
+      setSendWhatsAppModalOpen(false)
     } else if (modalType === 'delete') {
       setDeleteBusinessModalOpen(false)
+      setSelectedIds(new Set())
+      setIsBulkDelete(false)
     }
     setSelectedBusiness(null)
-    // Refresh to get updated business status
     router.refresh()
   }
 
   return (
     <>
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-4 p-3 mb-4 bg-muted/50 rounded-lg border border-border">
+          <span className="text-sm font-medium">
+            {selectedIds.size} business{selectedIds.size !== 1 ? 'es' : ''} selected
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear selection
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={openBulkDeleteModal}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete selected
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-card rounded-lg border border-border">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
+                <th className="w-10 p-4">
+                  <Checkbox
+                    checked={allOnPageSelected}
+                    onCheckedChange={toggleAllOnPage}
+                    aria-label="Select all on page"
+                  />
+                </th>
                 <th className="text-left p-4 font-semibold text-sm">Business Name</th>
                 <th className="text-left p-4 font-semibold text-sm">Email</th>
                 <th className="text-left p-4 font-semibold text-sm">Phone</th>
@@ -115,6 +203,13 @@ export function BusinessTable({
                   key={business.id}
                   className="border-b border-border hover:bg-muted/50 transition-colors"
                 >
+                  <td className="w-10 p-4">
+                    <Checkbox
+                      checked={selectedIds.has(business.id)}
+                      onCheckedChange={() => toggleOne(business.id)}
+                      aria-label={`Select ${business.name}`}
+                    />
+                  </td>
                   <td className="p-4">
                     <div className="font-medium">{business.name}</div>
                   </td>
@@ -122,7 +217,20 @@ export function BusinessTable({
                     {business.email || 'N/A'}
                   </td>
                   <td className="p-4 text-muted-foreground">
-                    {business.phone || 'N/A'}
+                    {business.phone || business.whatsappPhone ? (
+                      <a
+                        href={buildWhatsAppChatLink(
+                          business.whatsappPhone || business.phone || ''
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {business.phone || business.whatsappPhone || 'N/A'}
+                      </a>
+                    ) : (
+                      'N/A'
+                    )}
                   </td>
                   <td className="p-4 text-muted-foreground">
                     {business.town || 'N/A'}
@@ -177,6 +285,15 @@ export function BusinessTable({
                             <Mail className="h-4 w-4 mr-2" />
                             Send Email
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedBusiness(business)
+                              setSendWhatsAppModalOpen(true)
+                            }}
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Send WhatsApp
+                          </DropdownMenuItem>
                           {business.isActive ? (
                             <DropdownMenuItem>
                               <Ban className="h-4 w-4 mr-2" />
@@ -190,10 +307,7 @@ export function BusinessTable({
                           )}
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
-                            onClick={() => {
-                              setSelectedBusiness(business)
-                              setDeleteBusinessModalOpen(true)
-                            }}
+                            onClick={() => openSingleDeleteModal(business)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
@@ -267,20 +381,44 @@ export function BusinessTable({
             businessEmail={selectedBusiness.email || ''}
             registrationStatus={selectedBusiness.registrationStatus}
           />
-          <DeleteBusinessModal
-            open={deleteBusinessModalOpen}
+          <SendWhatsAppModal
+            open={sendWhatsAppModalOpen}
             onOpenChange={(open) => {
               if (!open) {
-                handleModalClose('delete')
+                handleModalClose('whatsapp')
               } else {
-                setDeleteBusinessModalOpen(true)
+                setSendWhatsAppModalOpen(true)
               }
             }}
             businessId={selectedBusiness.id}
             businessName={selectedBusiness.name}
+            businessPhone={
+              selectedBusiness.whatsappPhone || selectedBusiness.phone
+            }
+            businessEmail={selectedBusiness.email}
+            registrationStatus={selectedBusiness.registrationStatus}
           />
         </>
       )}
+
+      <DeleteBusinessModal
+        open={deleteBusinessModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleModalClose('delete')
+          } else {
+            setDeleteBusinessModalOpen(true)
+          }
+        }}
+        businessId={!isBulkDelete && selectedBusiness ? selectedBusiness.id : undefined}
+        businessName={!isBulkDelete && selectedBusiness ? selectedBusiness.name : undefined}
+        businessIds={isBulkDelete && selectedIds.size > 0 ? Array.from(selectedIds) : undefined}
+        businessNames={
+          isBulkDelete && selectedBusinesses.length > 0
+            ? selectedBusinesses.map((b) => b.name)
+            : undefined
+        }
+      />
     </>
   )
 }

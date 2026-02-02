@@ -293,7 +293,7 @@ export function VehicleTable({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/vehicles/${vehicle.slug}`}>
+                              <Link href={`/listings/${vehicle.slug}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View
                               </Link>

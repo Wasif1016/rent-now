@@ -116,11 +116,6 @@ export function SendEmailModal({
       return
     }
 
-    if (!isAccountCreated) {
-      setError('Please create an account first before sending email. The account must be created to generate login credentials.')
-      return
-    }
-
     setLoading(true)
     setError(null)
 
@@ -159,11 +154,6 @@ export function SendEmailModal({
   const handleSend = async () => {
     if (!session?.access_token) {
       setError('You must be logged in to send emails')
-      return
-    }
-
-    if (!isAccountCreated) {
-      setError('Please create an account first before sending email. The account must be created to generate login credentials.')
       return
     }
 

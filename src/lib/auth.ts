@@ -11,19 +11,25 @@ import { cookies } from 'next/headers'
  * This makes it work both with our client-side auth (where we pass the token
  * explicitly in the Authorization header) and with any future cookie-based flow.
  */
+function getAccessTokenFromRequest(request?: { headers: Headers }): string | undefined {
+  if (!request?.headers) return undefined
+  const authHeader =
+    request.headers.get('authorization') ??
+    request.headers.get('Authorization') ??
+    (request.headers as unknown as Record<string, string>)?.authorization
+  if (authHeader && typeof authHeader === 'string' && authHeader.toLowerCase().startsWith('bearer ')) {
+    return authHeader.slice(7).trim()
+  }
+  return undefined
+}
+
 export async function getServerSession(request?: { headers: Headers }) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-  let accessToken: string | undefined
+  let accessToken: string | undefined = getAccessTokenFromRequest(request)
 
-  // 1) Try to read from Authorization header (Bearer token)
-  const authHeader = request?.headers.get('authorization') || request?.headers.get('Authorization')
-  if (authHeader?.toLowerCase().startsWith('bearer ')) {
-    accessToken = authHeader.slice(7).trim()
-  }
-
-  // 2) Fallback to cookie-based token
+  // Fallback to cookie-based token
   if (!accessToken) {
     const cookieStore = await cookies()
     accessToken = cookieStore.get('sb-access-token')?.value

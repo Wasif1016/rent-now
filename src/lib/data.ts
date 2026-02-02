@@ -1,5 +1,19 @@
 import { prisma, cache } from './prisma'
 
+/** All active cities (for hero dropdown, cities page, API). */
+export const getCities = cache(async () => {
+  return await prisma.city.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      province: true,
+    },
+    orderBy: { name: 'asc' },
+  })
+})
+
 // Cached functions for per-request deduplication
 export const getCitiesWithVehicles = cache(async () => {
   // First check if we have any vehicles at all
@@ -94,7 +108,7 @@ export const getCityStatsBySlug = cache(async (slug: string) => {
         },
       },
     }),
-    prisma.route.count({
+    prisma.vendorRouteOffer.count({
       where: {
         isActive: true,
         fromCity: {
@@ -143,7 +157,7 @@ export const getCityVendors = cache(async (slug: string, limit: number = 6) => {
 
 // Intercity routes starting from a given city
 export const getCityRoutes = cache(async (slug: string, limit: number = 6) => {
-  const routes = await prisma.route.findMany({
+  const routes = await prisma.vendorRouteOffer.findMany({
     where: {
       isActive: true,
       fromCity: {
@@ -174,6 +188,174 @@ export const getCityRoutes = cache(async (slug: string, limit: number = 6) => {
   })
 
   return routes
+})
+
+// ============================================
+// SEO Route (new Route model) – slug-based, many vehicles per route
+// ============================================
+
+const routeIncludeWithVehicles = {
+  originCity: {
+    select: { id: true, name: true, slug: true },
+  },
+  destinationCity: {
+    select: { id: true, name: true, slug: true },
+  },
+  routeType: {
+    select: { id: true, name: true, slug: true },
+  },
+  routeCategory: {
+    select: { id: true, name: true, slug: true },
+  },
+  vehicles: {
+    select: {
+      vehicle: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          seats: true,
+          seatingCapacity: true,
+          driverOption: true,
+          images: true,
+          priceDaily: true,
+          priceWithDriver: true,
+          priceSelfDrive: true,
+          priceOutOfCity: true,
+          priceWithinCity: true,
+          category: {
+            select: { id: true, name: true, slug: true },
+          },
+          vehicleModel: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              vehicleBrand: { select: { id: true, name: true, slug: true } },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const
+
+export const getRouteBySlug = cache(async (slug: string) => {
+  const route = await prisma.route.findUnique({
+    where: { slug },
+    include: routeIncludeWithVehicles,
+  })
+  if (!route) return null
+  return {
+    ...route,
+    vehicles: route.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
+  }
+})
+
+export const getRoutesByCity = cache(async (citySlug: string, limit: number = 12) => {
+  const routes = await prisma.route.findMany({
+    where: {
+      OR: [
+        { originCity: { slug: citySlug } },
+        { destinationCity: { slug: citySlug } },
+      ],
+    },
+    include: routeIncludeWithVehicles,
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  })
+  return routes.map((r) => ({
+    ...r,
+    vehicles: r.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
+  }))
+})
+
+export const getRoutesByCities = cache(async (originSlug: string, destinationSlug: string) => {
+  const route = await prisma.route.findFirst({
+    where: {
+      originCity: { slug: originSlug },
+      destinationCity: { slug: destinationSlug },
+    },
+    include: routeIncludeWithVehicles,
+  })
+  if (!route) return null
+  return {
+    ...route,
+    vehicles: route.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
+  }
+})
+
+export const getRoutesForSitemap = cache(async () => {
+  const routes = await prisma.route.findMany({
+    where: {
+      vehicles: {
+        some: {},
+      },
+    },
+    select: {
+      slug: true,
+      originCity: { select: { slug: true } },
+      destinationCity: { select: { slug: true } },
+    },
+  })
+  return routes
+})
+
+/** All routes (with or without vehicles) for routes index page, grouped by origin city. */
+export const getRoutesListGroupedByOrigin = cache(async () => {
+  const routes = await prisma.route.findMany({
+    select: {
+      slug: true,
+      originCity: { select: { id: true, name: true, slug: true } },
+      destinationCity: { select: { id: true, name: true, slug: true } },
+    },
+    orderBy: [{ originCity: { name: 'asc' } }, { destinationCity: { name: 'asc' } }],
+  })
+  const grouped = new Map<string, typeof routes>()
+  for (const r of routes) {
+    const key = r.originCity.name
+    if (!grouped.has(key)) grouped.set(key, [])
+    grouped.get(key)!.push(r)
+  }
+  return { routes: Object.fromEntries(grouped), sortedCities: Array.from(grouped.keys()).sort() }
+})
+
+export const getVehiclesByRoute = cache(async (routeId: number) => {
+  const rows = await prisma.vehicleRoute.findMany({
+    where: { routeId },
+    select: {
+      vehicle: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          seats: true,
+          seatingCapacity: true,
+          driverOption: true,
+          images: true,
+          priceDaily: true,
+          priceWithDriver: true,
+          priceSelfDrive: true,
+          priceOutOfCity: true,
+          priceWithinCity: true,
+          category: {
+            select: { id: true, name: true, slug: true },
+          },
+          vehicleModel: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              vehicleBrand: { select: { id: true, name: true, slug: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+  return rows.map((r) => r.vehicle).filter((v) => v != null)
 })
 
 // Get town by slug
@@ -247,7 +429,13 @@ export const searchVehicles = cache(async (filters: {
   townSlug?: string
   brandSlug?: string
   vehicleSlug?: string
+  modelSlug?: string
   vehicleTypeSlug?: string
+  categorySlug?: string
+  categoryId?: string
+  typeId?: string
+  driverOption?: 'WITH_DRIVER' | 'WITHOUT_DRIVER' | 'BOTH'
+  seatingCapacity?: number
   fuelType?: string
   transmission?: string
   sortBy?: 'date' | 'popularity'
@@ -259,7 +447,13 @@ export const searchVehicles = cache(async (filters: {
     townSlug,
     brandSlug,
     vehicleSlug,
+    modelSlug,
     vehicleTypeSlug,
+    categorySlug,
+    categoryId,
+    typeId,
+    driverOption,
+    seatingCapacity,
     fuelType,
     transmission,
     sortBy = 'popularity',
@@ -291,25 +485,23 @@ export const searchVehicles = cache(async (filters: {
   // Filter by brand (if specified)
   if (brandSlug) {
     where.vehicleModel = {
+      ...(typeof where.vehicleModel === 'object' ? where.vehicleModel : {}),
       vehicleBrand: {
         slug: brandSlug,
       },
     }
   }
 
-  // Filter by vehicle (model or custom) if specified
-  if (vehicleSlug) {
-    where.OR = [
-      {
-        vehicleModel: {
-          ...(where.vehicleModel || {}),
-          slug: vehicleSlug,
-        },
+  // Filter by model slug (VehicleModel.slug, e.g. toyota-corolla) or listing slug
+  const slugFilter = modelSlug ?? vehicleSlug
+  if (slugFilter) {
+    const modelBranch: any = {
+      vehicleModel: {
+        slug: slugFilter,
+        ...(brandSlug ? { vehicleBrand: { slug: brandSlug } } : {}),
       },
-      {
-        slug: vehicleSlug,
-      },
-    ]
+    }
+    where.OR = [modelBranch, { slug: slugFilter }]
   }
 
   // Filter by vehicle type (if specified)
@@ -317,6 +509,32 @@ export const searchVehicles = cache(async (filters: {
     where.vehicleType = {
       slug: vehicleTypeSlug,
     }
+  }
+
+  if (categorySlug) {
+    where.category = {
+      slug: categorySlug,
+    }
+  }
+  if (categoryId) {
+    where.categoryId = categoryId
+  }
+  if (typeId) {
+    where.vehicleTypeId = typeId
+  }
+  if (driverOption) {
+    where.driverOption = driverOption
+  }
+  if (seatingCapacity != null) {
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : []),
+      {
+        OR: [
+          { seatingCapacity },
+          { seats: seatingCapacity },
+        ],
+      },
+    ]
   }
 
   if (fuelType) {
@@ -379,6 +597,20 @@ export const searchVehicles = cache(async (filters: {
         },
         priceWithinCity: true,
         priceOutOfCity: true,
+        priceDaily: true,
+        priceHourly: true,
+        priceMonthly: true,
+        priceWithDriver: true,
+        priceSelfDrive: true,
+        seatingCapacity: true,
+        driverOption: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
         vehicleType: {
           select: {
             id: true,
@@ -426,6 +658,108 @@ export const getAllCitiesForStatic = cache(async () => {
     select: {
       slug: true,
     },
+  })
+})
+
+// Vehicle taxonomy: categories
+// Use raw queries so this works even when PrismaClient was cached before VehicleCategory existed (restart dev server after: bunx prisma generate)
+type VehicleCategoryRow = { id: string; name: string; slug: string }
+
+export const getVehicleCategoryBySlug = cache(async (slug: string) => {
+  const rows = await prisma.$queryRaw<VehicleCategoryRow[]>`
+    SELECT id, name, slug FROM "VehicleCategory" WHERE slug = ${slug} LIMIT 1
+  `
+  return rows[0] ?? null
+})
+
+export const getVehicleCategories = cache(async () => {
+  return await prisma.$queryRaw<VehicleCategoryRow[]>`
+    SELECT id, name, slug FROM "VehicleCategory" ORDER BY name ASC
+  `
+})
+
+export const getCategorySlugs = cache(async () => {
+  const rows = await prisma.$queryRaw<{ slug: string }[]>`SELECT slug FROM "VehicleCategory"`
+  return rows.map((r: { slug: string }) => r.slug)
+})
+
+// Vehicle taxonomy: types by category
+export const getVehicleTypesByCategoryId = cache(async (categoryId: string) => {
+  return await prisma.vehicleType.findMany({
+    where: { categoryId, isActive: true },
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: 'asc' },
+  })
+})
+
+export const getVehicleTypesByCategorySlug = cache(async (categorySlug: string) => {
+  return await prisma.vehicleType.findMany({
+    where: { category: { slug: categorySlug }, isActive: true },
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: 'asc' },
+  })
+})
+
+// Vehicle model by globally unique slug (e.g. toyota-corolla)
+export const getVehicleModelBySlug = cache(async (slug: string) => {
+  return await prisma.vehicleModel.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      capacity: true,
+      vehicleBrandId: true,
+      vehicleTypeId: true,
+      vehicleBrand: {
+        select: { id: true, name: true, slug: true },
+      },
+      vehicleType: {
+        select: { id: true, name: true, slug: true },
+      },
+    },
+  })
+})
+
+export const getModelSlugs = cache(async () => {
+  const rows = await prisma.vehicleModel.findMany({
+    where: { isActive: true },
+    select: { slug: true },
+  })
+  return rows.map((r) => r.slug)
+})
+
+// Keyword (SeoDimension type=keyword) for dynamic SEO URLs
+export const getKeywordBySlug = cache(async (slug: string) => {
+  return await prisma.seoDimension.findUnique({
+    where: {
+      slug_type: { slug, type: 'keyword' },
+    },
+    select: {
+      id: true,
+      slug: true,
+      type: true,
+      basePattern: true,
+      defaultH1Template: true,
+      defaultTitleTemplate: true,
+      defaultMetaDescriptionTemplate: true,
+    },
+  })
+})
+
+export const getKeywordSlugs = cache(async () => {
+  const rows = await prisma.seoDimension.findMany({
+    where: { type: 'keyword' },
+    select: { slug: true },
+  })
+  return rows.map((r) => r.slug)
+})
+
+// Get all cities for sitemap (id + slug)
+export const getCitiesForSitemap = cache(async () => {
+  return await prisma.city.findMany({
+    where: { isActive: true },
+    select: { id: true, slug: true },
   })
 })
 
@@ -724,7 +1058,7 @@ export const getVehicleFilters = cache(async () => {
   return Array.from(filterMap.values())
 })
 
-// Get vehicle by slug
+// Get vehicle (listing) by slug
 export const getVehicleBySlug = cache(async (slug: string) => {
   return await prisma.vehicle.findUnique({
     where: { slug },
@@ -738,11 +1072,18 @@ export const getVehicleBySlug = cache(async (slug: string) => {
       fuelType: true,
       transmission: true,
       seats: true,
+      seatingCapacity: true,
+      driverOption: true,
       color: true,
       features: true,
       images: true,
       priceWithDriver: true,
       priceSelfDrive: true,
+      priceDaily: true,
+      priceHourly: true,
+      priceMonthly: true,
+      priceWithinCity: true,
+      priceOutOfCity: true,
       views: true,
       featured: true,
       city: {
@@ -759,12 +1100,21 @@ export const getVehicleBySlug = cache(async (slug: string) => {
           slug: true,
         },
       },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
       vendor: {
         select: {
           id: true,
           name: true,
           slug: true,
           verificationStatus: true,
+          phone: true,
+          whatsappPhone: true,
         },
       },
       vehicleModel: {
@@ -929,6 +1279,7 @@ export const getAllVendors = async (filters: {
         slug: true,
         email: true,
         phone: true,
+        whatsappPhone: true,
         address: true,
         verificationStatus: true,
         isActive: true,

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -12,11 +12,13 @@ import {
   BarChart3,
   Settings,
   Bell,
+  MessageCircle,
   Search,
   User,
   LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/auth-context'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -24,12 +26,21 @@ const navigation = [
   { name: 'Vehicles', href: '/admin/vehicles', icon: Car },
   { name: 'Routes', href: '/admin/routes', icon: Route },
   { name: 'Email Templates', href: '/admin/email-templates', icon: Bell },
+  { name: 'WhatsApp Templates', href: '/admin/whatsapp-templates', icon: MessageCircle },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Reports', href: '/admin/reports', icon: BarChart3 },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/auth/login?redirect=/admin')
+    router.refresh()
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -105,10 +116,19 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </Button>
 
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <User className="h-4 w-4 text-primary-foreground" />
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                <User className="h-4 w-4 text-white" />
               </div>
               <span className="text-sm font-medium">Admin</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={handleSignOut}
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </header>

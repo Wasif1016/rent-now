@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DeleteEmailTemplateModal } from '@/components/admin/delete-email-template-modal'
 
 interface EmailTemplate {
   id: string
@@ -34,6 +36,14 @@ interface EmailTemplateListProps {
 }
 
 export function EmailTemplateList({ templates }: EmailTemplateListProps) {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [templateToDelete, setTemplateToDelete] = useState<{ id: string; name: string } | null>(null)
+
+  const openDeleteModal = (id: string, name: string) => {
+    setTemplateToDelete({ id, name })
+    setDeleteModalOpen(true)
+  }
+
   if (templates.length === 0) {
     return (
       <Card>
@@ -81,11 +91,19 @@ export function EmailTemplateList({ templates }: EmailTemplateListProps) {
                     Edit
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Duplicate
+                <DropdownMenuItem asChild>
+                  <Link href={`/admin/email-templates/new?duplicate=${template.id}`}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Duplicate
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onSelect={(e) => {
+                    e.preventDefault()
+                    openDeleteModal(template.id, template.name)
+                  }}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </DropdownMenuItem>
@@ -116,6 +134,15 @@ export function EmailTemplateList({ templates }: EmailTemplateListProps) {
           </CardContent>
         </Card>
       ))}
+
+      {templateToDelete && (
+        <DeleteEmailTemplateModal
+          open={deleteModalOpen}
+          onOpenChange={setDeleteModalOpen}
+          templateId={templateToDelete.id}
+          templateName={templateToDelete.name}
+        />
+      )}
     </div>
   )
 }

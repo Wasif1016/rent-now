@@ -111,7 +111,7 @@ export function ActivityLogViewer({ logs }: ActivityLogViewerProps) {
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                {formatDistanceToNow(new Date(log.createdAt))}
                 {log.adminUserId && ` • Admin ID: ${log.adminUserId.slice(0, 8)}...`}
               </div>
             </div>

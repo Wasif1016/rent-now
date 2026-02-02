@@ -46,10 +46,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    if (error.message === 'Unauthorized' || error.message.includes('Forbidden')) {
+    if (error.message === 'Unauthorized') {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized', code: 'UNAUTHORIZED' },
         { status: 401 }
+      )
+    }
+    if (error.message?.includes('Forbidden') || error.message?.includes('Admin access required')) {
+      return NextResponse.json(
+        { error: 'Admin access required', code: 'FORBIDDEN' },
+        { status: 403 }
       )
     }
 

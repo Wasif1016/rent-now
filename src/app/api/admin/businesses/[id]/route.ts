@@ -24,7 +24,7 @@ export async function DELETE(
             vehicles: true,
             bookings: true,
             inquiries: true,
-            routes: true,
+            vendorRouteOffers: true,
           },
         },
       },
@@ -53,11 +53,18 @@ export async function DELETE(
       }
     }
 
-    // Delete all related data (cascade delete)
-    // Prisma will handle cascade deletes based on schema relations
-    // But we need to delete in the correct order to avoid foreign key constraints
+    // Delete all related data in order to satisfy foreign key constraints
+    // 1. VehicleRoute links (vehicleId references Vehicle)
+    const vendorVehicleIds = await prisma.vehicle
+      .findMany({ where: { vendorId: id }, select: { id: true } })
+      .then((rows) => rows.map((r) => r.id))
+    if (vendorVehicleIds.length > 0) {
+      await prisma.vehicleRoute.deleteMany({
+        where: { vehicleId: { in: vendorVehicleIds } },
+      })
+    }
 
-    // Delete vehicles (will cascade to inquiries and bookings if needed)
+    // 2. Vehicles
     await prisma.vehicle.deleteMany({
       where: { vendorId: id },
     })
@@ -73,7 +80,7 @@ export async function DELETE(
     })
 
     // Delete routes
-    await prisma.route.deleteMany({
+    await prisma.vendorRouteOffer.deleteMany({
       where: { vendorId: id },
     })
 
@@ -101,7 +108,7 @@ export async function DELETE(
         deletedVehicles: vendor._count.vehicles,
         deletedBookings: vendor._count.bookings,
         deletedInquiries: vendor._count.inquiries,
-        deletedRoutes: vendor._count.routes,
+        deletedRoutes: vendor._count.vendorRouteOffers,
       },
     })
 

@@ -64,10 +64,16 @@ export async function PATCH(
     if (body.fuelType !== undefined) updateData.fuelType = body.fuelType
     if (body.transmission !== undefined) updateData.transmission = body.transmission
     if (body.seats !== undefined) updateData.seats = body.seats
+    if (body.seatingCapacity !== undefined) updateData.seatingCapacity = body.seatingCapacity
+    if (body.driverOption !== undefined) updateData.driverOption = body.driverOption
+    if (body.categoryId !== undefined) updateData.categoryId = body.categoryId
     if (body.color !== undefined) updateData.color = body.color
     if (body.images !== undefined) updateData.images = body.images
     if (body.priceWithDriver !== undefined) updateData.priceWithDriver = body.priceWithDriver
     if (body.priceSelfDrive !== undefined) updateData.priceSelfDrive = body.priceSelfDrive
+    if (body.priceDaily !== undefined) updateData.priceDaily = body.priceDaily
+    if (body.priceHourly !== undefined) updateData.priceHourly = body.priceHourly
+    if (body.priceMonthly !== undefined) updateData.priceMonthly = body.priceMonthly
     if (body.priceWithinCity !== undefined) updateData.priceWithinCity = body.priceWithinCity
     if (body.priceOutOfCity !== undefined) updateData.priceOutOfCity = body.priceOutOfCity
     if (body.isAvailable !== undefined) updateData.isAvailable = body.isAvailable
@@ -123,14 +129,14 @@ export async function DELETE(
 
     // Check for related records
     const [routeCount, bookingCount, inquiryCount] = await Promise.all([
-      prisma.route.count({ where: { vehicleId: id } }),
+      prisma.vendorRouteOffer.count({ where: { vehicleId: id } }),
       prisma.booking.count({ where: { vehicleId: id } }),
       prisma.inquiry.count({ where: { vehicleId: id } }),
     ])
 
     // Delete related routes first (they depend on vehicle)
     if (routeCount > 0) {
-      await prisma.route.deleteMany({
+      await prisma.vendorRouteOffer.deleteMany({
         where: { vehicleId: id },
       })
     }

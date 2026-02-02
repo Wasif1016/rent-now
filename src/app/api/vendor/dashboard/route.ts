@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const hasVehicles = vehicleCount > 0
 
     // Check if vendor has at least one route
-    const routeCount = await prisma.route.count({
+    const routeCount = await prisma.vendorRouteOffer.count({
       where: { vendorId: vendor.id },
     })
     const hasRoutes = routeCount > 0

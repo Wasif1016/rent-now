@@ -94,7 +94,7 @@ export function MainHeader() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors">
-                    <div className="relative w-8 h-8 rounded-full bg-[#10b981] flex items-center justify-center text-white font-semibold overflow-hidden">
+                    <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold overflow-hidden">
                       {vendorLogo ? (
                         <Image src={vendorLogo} alt="Vendor logo" fill className="object-cover" />
                       ) : (

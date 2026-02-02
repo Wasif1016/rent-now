@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import type { User, Session } from '@supabase/supabase-js'
 
@@ -8,6 +8,8 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  /** Get the current session (refreshes from Supabase so token is up-to-date before API calls) */
+  getSession: () => Promise<Session | null>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<{ error: any }>
   signOut: () => Promise<void>
@@ -84,11 +86,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const resetPassword = async (email: string) => {
+    // Redirect URL must be allowlisted in Supabase: Authentication → URL Configuration → Redirect URLs
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/reset-password`
+        : `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password`
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo,
     })
     return { error }
   }
+
+  const getSession = useCallback(async (): Promise<Session | null> => {
+    const { data: { session: currentSession } } = await supabase.auth.getSession()
+    return currentSession
+  }, [supabase])
 
   return (
     <AuthContext.Provider
@@ -96,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
+        getSession,
         signIn,
         signUp,
         signOut,

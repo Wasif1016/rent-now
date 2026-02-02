@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const vendor = await getOrCreateVendor(user)
     const vendorId = vendor.id
 
-    const routes = await prisma.route.findMany({
+    const routes = await prisma.vendorRouteOffer.findMany({
       where: {
         vendorId,
       },
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const route = await prisma.route.create({
+    const route = await prisma.vendorRouteOffer.create({
       data: {
         vendorId,
         fromCityId,

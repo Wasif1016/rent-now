@@ -185,7 +185,7 @@ export function generateStructuredData(
           '@type': 'Product',
           name: vehicle.title,
           description: `${vehicle.title} available for rent`,
-          url: `${siteUrl}/vehicles/${vehicle.slug}`,
+          url: `${siteUrl}/listings/${vehicle.slug}`,
           image: vehicle.images?.[0] || '',
           brand: {
             '@type': 'Brand',

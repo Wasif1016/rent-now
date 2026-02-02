@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Users, MapPin, Phone, MessageCircle } from 'lucide-react'
 import { generateWhatsAppLink } from '@/lib/whatsapp'
+import { getVehicleDisplayTitle } from '@/lib/vehicle-utils'
 
 interface VehicleCardRedesignedProps {
   vehicle: {
@@ -22,6 +23,10 @@ interface VehicleCardRedesignedProps {
       phone?: string | null
       whatsappPhone?: string | null
     }
+    vehicleModel?: {
+      name: string
+      vehicleBrand: { name: string }
+    } | null
     priceWithinCity?: number | null
     priceOutOfCity?: number | null
   }
@@ -49,7 +54,7 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
     title: vehicle.title,
     city: { name: vehicle.city.name },
     town: vehicle.town ? { name: vehicle.town.name } : null,
-    vehicleModel: null, // We don't have vehicleModel in the card props
+    vehicleModel: vehicle.vehicleModel ?? undefined,
   })
 
   // Get WhatsApp number (prefer vendor's WhatsApp, fallback to phone, then default)
@@ -61,7 +66,8 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
   
   // Override WhatsApp URL with vendor's number if available
   const cleanWhatsAppNumber = whatsappNumber.replace(/\D/g, '')
-  const vehicleName = vehicle.title
+  const displayTitle = getVehicleDisplayTitle(vehicle)
+  const vehicleName = displayTitle
   const location = vehicle.town
     ? `${vehicle.town.name}, ${vehicle.city.name}`
     : vehicle.city.name
@@ -76,11 +82,11 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col bg-white border-gray-200">
-      <Link href={`/vehicles/${vehicle.slug}`} className="block relative">
+      <Link href={`/listings/${vehicle.slug}`} className="block relative">
         <div className="relative aspect-video overflow-hidden bg-gray-100">
           <Image
             src={imageUrl}
-            alt={vehicle.title}
+            alt={displayTitle}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -96,9 +102,9 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
 
       <div className="p-4 flex-1 flex flex-col">
         {/* Vehicle Name */}
-        <Link href={`/vehicles/${vehicle.slug}`}>
+        <Link href={`/listings/${vehicle.slug}`}>
           <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors text-gray-900">
-            {vehicle.title}
+            {displayTitle}
           </h3>
         </Link>
 

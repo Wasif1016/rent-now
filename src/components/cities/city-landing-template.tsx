@@ -16,11 +16,10 @@ type CityLandingTemplateProps = {
     slug: string
     verificationStatus?: string | null
   }>
-  routes: Array<{
-    id: string
-    fromCity: { slug: string; name: string }
-    toCity: { slug: string; name: string }
-  }>
+  routes: Array<
+    | { id: string; fromCity: { slug: string; name: string }; toCity: { slug: string; name: string } }
+    | { slug: string; originCity: { slug: string; name: string }; destinationCity: { slug: string; name: string } }
+  >
   topVehicleTypes?: Array<{
     id: string
     name: string
@@ -187,20 +186,27 @@ export function CityLandingTemplate({
         </h2>
         {routes.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
-            {routes.map((route) => (
-              <Link
-                key={route.id}
-                href={`/routes/${route.fromCity.slug}-to-${route.toCity.slug}`}
-                className="flex items-center justify-between rounded-lg border bg-card px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <span>
-                  {route.fromCity.name} to {route.toCity.name}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  View route
-                </span>
-              </Link>
-            ))}
+            {routes.map((route) => {
+              const isNewShape = 'slug' in route && 'originCity' in route
+              const href = isNewShape ? `/routes/${route.slug}` : `/routes/${route.fromCity.slug}-to-${route.toCity.slug}`
+              const fromName = isNewShape ? route.originCity.name : route.fromCity.name
+              const toName = isNewShape ? route.destinationCity.name : route.toCity.name
+              const key = isNewShape ? route.slug : (route as { id: string }).id
+              return (
+                <Link
+                  key={key}
+                  href={href}
+                  className="flex items-center justify-between rounded-lg border bg-card px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <span>
+                    {fromName} to {toName}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    View route
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">

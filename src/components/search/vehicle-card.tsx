@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { CheckCircle2, Users, Gauge, Fuel, MapPin } from 'lucide-react'
 import { Button } from '../ui/button'
+import { getVehicleDisplayTitle } from '@/lib/vehicle-utils'
 
 interface VehicleCardProps {
   vehicle: {
@@ -39,6 +40,7 @@ interface VehicleCardProps {
 }
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
+  const displayTitle = getVehicleDisplayTitle(vehicle)
   const imageUrl = vehicle.images && Array.isArray(vehicle.images) && vehicle.images.length > 0
     ? vehicle.images[0]
     : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop'
@@ -51,11 +53,11 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-      <Link href={`/vehicles/${vehicle.slug}`} className="block">
+      <Link href={`/listings/${vehicle.slug}`} className="block">
         <div className="relative aspect-video overflow-hidden bg-zinc-100">
           <Image
             src={imageUrl}
-            alt={vehicle.title}
+            alt={displayTitle}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -76,15 +78,13 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <Link href={`/vehicles/${vehicle.slug}`}>
+            <Link href={`/listings/${vehicle.slug}`}>
               <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
-                {vehicle.title}
+                {displayTitle}
               </h3>
             </Link>
-            {vehicle.vehicleModel && (
-              <p className="text-sm text-muted-foreground">
-                {vehicle.vehicleModel.vehicleBrand.name} {vehicle.vehicleModel.name}
-              </p>
+            {vehicle.vehicleModel && vehicle.title !== displayTitle && (
+              <p className="text-sm text-muted-foreground line-clamp-1">{vehicle.title}</p>
             )}
           </div>
         </div>
@@ -124,7 +124,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
         {/* Booking is now manual via vehicle detail page */}
         <div className="mt-auto rounded">
           <Button variant="default" className="w-full" asChild>
-            <Link href={`/vehicles/${vehicle.slug}`}>View Details</Link>
+            <Link href={`/listings/${vehicle.slug}`}>View Details</Link>
           </Button>
         </div>
       </div>

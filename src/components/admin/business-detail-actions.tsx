@@ -12,16 +12,20 @@ import {
   Ban,
   CheckCircle,
   Mail,
+  MessageCircle,
   UserPlus,
 } from 'lucide-react'
 import { CreateAccountModal } from './create-account-modal'
 import { SendEmailModal } from './send-email-modal'
+import { SendWhatsAppModal } from './send-whatsapp-modal'
 import { useAuth } from '@/contexts/auth-context'
 
 interface Business {
   id: string
   name: string
   email: string | null
+  phone: string | null
+  whatsappPhone?: string | null
   registrationStatus: string | null
   isActive: boolean | null
   supabaseUserId: string | null
@@ -37,6 +41,7 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
   const [loading, setLoading] = useState(false)
   const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false)
   const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false)
+  const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false)
 
   const handleSuspend = async () => {
     if (!session?.access_token) {
@@ -131,6 +136,17 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
             </Button>
           )}
 
+          {(business.phone || business.whatsappPhone) && (
+            <Button
+              className="w-full justify-start"
+              variant="outline"
+              onClick={() => setSendWhatsAppModalOpen(true)}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Send WhatsApp
+            </Button>
+          )}
+
           {business.supabaseUserId && (
             <>
               <Button
@@ -212,6 +228,16 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
         businessId={business.id}
         businessName={business.name}
         businessEmail={business.email || ''}
+        registrationStatus={business.registrationStatus}
+      />
+      <SendWhatsAppModal
+        open={sendWhatsAppModalOpen}
+        onOpenChange={setSendWhatsAppModalOpen}
+        businessId={business.id}
+        businessName={business.name}
+        businessPhone={business.whatsappPhone || business.phone}
+        businessEmail={business.email}
+        registrationStatus={business.registrationStatus}
       />
     </>
   )

@@ -71,7 +71,7 @@ export async function getAdminStats() {
     }),
 
     // Total routes
-    prisma.route.count({
+    prisma.vendorRouteOffer.count({
       where: {
         isActive: true,
       },

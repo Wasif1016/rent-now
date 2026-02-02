@@ -76,8 +76,13 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
     title: initialData?.title || '',
     transmission: initialData?.transmission || '',
     seats: initialData?.seats || '',
+    seatingCapacity: initialData?.seatingCapacity ?? initialData?.seats ?? '',
+    driverOption: initialData?.driverOption || '',
     priceWithDriver: initialData?.priceWithDriver || '',
     priceSelfDrive: initialData?.priceSelfDrive || '',
+    priceDaily: initialData?.priceDaily || '',
+    priceHourly: initialData?.priceHourly || '',
+    priceMonthly: initialData?.priceMonthly || '',
     priceWithinCity: initialData?.priceWithinCity || '',
     priceOutOfCity: initialData?.priceOutOfCity || '',
     images: initialData?.images || [],
@@ -226,10 +231,15 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
         title: formData.title.trim(),
         transmission: formData.transmission,
         seats: parseInt(formData.seats),
-        priceWithDriver: formData.priceWithDriver ? parseInt(formData.priceWithDriver) : null,
-        priceSelfDrive: formData.priceSelfDrive ? parseInt(formData.priceSelfDrive) : null,
-        priceWithinCity: formData.priceWithinCity ? parseInt(formData.priceWithinCity) : null,
-        priceOutOfCity: formData.priceOutOfCity ? parseInt(formData.priceOutOfCity) : null,
+        seatingCapacity: formData.seatingCapacity ? parseInt(String(formData.seatingCapacity), 10) : null,
+        driverOption: formData.driverOption || null,
+        priceWithDriver: formData.priceWithDriver ? parseInt(formData.priceWithDriver, 10) : null,
+        priceSelfDrive: formData.priceSelfDrive ? parseInt(formData.priceSelfDrive, 10) : null,
+        priceDaily: formData.priceDaily ? parseInt(formData.priceDaily, 10) : null,
+        priceHourly: formData.priceHourly ? parseInt(formData.priceHourly, 10) : null,
+        priceMonthly: formData.priceMonthly ? parseInt(formData.priceMonthly, 10) : null,
+        priceWithinCity: formData.priceWithinCity ? parseInt(formData.priceWithinCity, 10) : null,
+        priceOutOfCity: formData.priceOutOfCity ? parseInt(formData.priceOutOfCity, 10) : null,
         images: Array.isArray(formData.images) ? formData.images : [],
       }
 
@@ -455,6 +465,39 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
             )}
           </div>
 
+          <div>
+            <Label htmlFor="seatingCapacity">Seating capacity (for filters)</Label>
+            <Select
+              id="seatingCapacity"
+              value={formData.seatingCapacity}
+              onChange={(e) => setFormData(prev => ({ ...prev, seatingCapacity: e.target.value }))}
+            >
+              <option value="">Any</option>
+              <option value="2">2 Seater</option>
+              <option value="4">4 Seater</option>
+              <option value="5">5 Seater</option>
+              <option value="7">7 Seater</option>
+              <option value="9">9 Seater</option>
+              <option value="12">12 Seater</option>
+              <option value="15">15 Seater</option>
+              <option value="22">22 Seater</option>
+              <option value="30">30+ Seater</option>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="driverOption">Driver option</Label>
+            <Select
+              id="driverOption"
+              value={formData.driverOption}
+              onChange={(e) => setFormData(prev => ({ ...prev, driverOption: e.target.value }))}
+            >
+              <option value="">Not specified</option>
+              <option value="WITH_DRIVER">With driver</option>
+              <option value="WITHOUT_DRIVER">Without driver</option>
+              <option value="BOTH">Both</option>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -463,6 +506,39 @@ export function VehicleForm({ cities, vehicleModels, vehicleId, initialData }: V
         <h3 className="text-lg font-semibold">Pricing (Optional)</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="priceDaily">Price daily (Rs)</Label>
+            <Input
+              id="priceDaily"
+              type="number"
+              value={formData.priceDaily}
+              onChange={(e) => setFormData(prev => ({ ...prev, priceDaily: e.target.value }))}
+              placeholder="5000"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="priceHourly">Price hourly (Rs)</Label>
+            <Input
+              id="priceHourly"
+              type="number"
+              value={formData.priceHourly}
+              onChange={(e) => setFormData(prev => ({ ...prev, priceHourly: e.target.value }))}
+              placeholder="500"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="priceMonthly">Price monthly (Rs)</Label>
+            <Input
+              id="priceMonthly"
+              type="number"
+              value={formData.priceMonthly}
+              onChange={(e) => setFormData(prev => ({ ...prev, priceMonthly: e.target.value }))}
+              placeholder="80000"
+            />
+          </div>
+
           <div>
             <Label htmlFor="priceWithDriver">Price with Driver (Rs/day)</Label>
             <Input

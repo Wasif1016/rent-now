@@ -59,6 +59,7 @@ function ForgotPasswordPageInner() {
               </p>
               <p className="text-sm text-gray-500">
                 Please check your inbox and click the link to reset your password.
+                If you don&apos;t see it in a few minutes, check your spam or junk folder.
               </p>
             </div>
 

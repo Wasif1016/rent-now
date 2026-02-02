@@ -1,11 +1,15 @@
 import { HeroSearchForm } from './hero-search-form'
-import { getCitiesWithVehicles, getVehicleFilters } from '@/lib/data'
+import { getCities, getVehicleFilters } from '@/lib/data'
 import Image from 'next/image'
 
-export async function HeroSection() {
-  // Fetch cities and vehicle models in parallel using Server Components
+interface HeroSectionProps {
+  heading?: string
+}
+
+export async function HeroSection({ heading }: HeroSectionProps) {
+  // Fetch all cities and vehicle models in parallel (hero shows all cities so user can select any)
   const [cities, vehicleFilters] = await Promise.all([
-    getCitiesWithVehicles(),
+    getCities(),
     getVehicleFilters(),
   ])
 
@@ -52,7 +56,11 @@ export async function HeroSection() {
       </div>
       <div className="w-full container mx-auto">
         <div className='relative z-10 max-w-[500px]'>
-          <HeroSearchForm cities={citiesData} vehicleModels={vehicleModelsData} />
+          <HeroSearchForm
+            cities={citiesData}
+            vehicleModels={vehicleModelsData}
+            heading={heading}
+          />
         </div>
       </div>
     </section>

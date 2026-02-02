@@ -227,7 +227,10 @@ export async function sendVendorCredentialsEmail(
     `
 
     const subject = customSubject || defaultSubject
-    const bodyTemplate = customBody || defaultBody
+    // Convert newlines to <br> so line breaks from the editor appear in the email
+    const bodyTemplate = customBody
+      ? customBody.replace(/\n/g, '<br>')
+      : defaultBody
 
     // Replace variables
     const htmlBody = replaceTemplateVariables(bodyTemplate, {

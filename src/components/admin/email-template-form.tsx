@@ -12,8 +12,9 @@ import { X } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
 interface EmailTemplateFormProps {
+  /** When id is present, form updates existing template; when omitted (e.g. duplicate), form creates new */
   template?: {
-    id: string
+    id?: string
     name: string
     subject: string
     body: string
@@ -98,10 +99,10 @@ export function EmailTemplateForm({ template }: EmailTemplateFormProps) {
     setError(null)
 
     try {
-      const url = template
+      const url = template?.id
         ? `/api/admin/email-templates/${template.id}`
         : '/api/admin/email-templates'
-      const method = template ? 'PUT' : 'POST'
+      const method = template?.id ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
         method,
@@ -133,7 +134,7 @@ export function EmailTemplateForm({ template }: EmailTemplateFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{template ? 'Edit Email Template' : 'Create Email Template'}</CardTitle>
+        <CardTitle>{template?.id ? 'Edit Email Template' : 'Create Email Template'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -228,7 +229,7 @@ export function EmailTemplateForm({ template }: EmailTemplateFormProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : template ? 'Update Template' : 'Create Template'}
+              {loading ? 'Saving...' : template?.id ? 'Update Template' : 'Create Template'}
             </Button>
           </div>
         </form>

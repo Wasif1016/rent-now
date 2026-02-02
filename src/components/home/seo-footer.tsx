@@ -163,7 +163,7 @@ export async function SeoFooter() {
                   href="/terms"
                   className="text-gray-300 hover:text-[#C0F11C] transition-colors"
                 >
-                  Terms of Service
+                  Terms & Conditions
                 </Link>
               </li>
               <li>

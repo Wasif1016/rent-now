@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if route already exists
-    const existing = await prisma.route.findFirst({
+    const existing = await prisma.vendorRouteOffer.findFirst({
       where: {
         fromCityId,
         toCityId,
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const route = await prisma.route.create({
+    const route = await prisma.vendorRouteOffer.create({
       data: {
         fromCityId,
         toCityId,

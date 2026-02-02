@@ -29,7 +29,7 @@ export async function PATCH(
     const { isActive } = body
 
     // Verify that the route belongs to this vendor
-    const route = await prisma.route.findFirst({
+    const route = await prisma.vendorRouteOffer.findFirst({
       where: {
         id,
         vendorId,
@@ -43,7 +43,7 @@ export async function PATCH(
       )
     }
 
-    const updatedRoute = await prisma.route.update({
+    const updatedRoute = await prisma.vendorRouteOffer.update({
       where: { id },
       data: {
         isActive: isActive !== undefined ? isActive : route.isActive,

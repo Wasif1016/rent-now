@@ -112,7 +112,8 @@ export async function POST(
       </html>
     `
 
-    const templateBody = emailBody || defaultBody
+    // Convert newlines to <br> so line breaks match the sent email
+    const templateBody = emailBody ? emailBody.replace(/\n/g, '<br>') : defaultBody
     const htmlBody = replaceTemplateVariables(templateBody, variables)
     const subject = emailSubject || 'Your Vendor Account Credentials - Rent Now'
 

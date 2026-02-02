@@ -61,6 +61,30 @@ export function generateWhatsAppLink(
   return `https://wa.me/${cleanNumber}?text=${encodedMessage}`
 }
 
+const DEFAULT_COUNTRY_CODE =
+  process.env.NEXT_PUBLIC_DEFAULT_COUNTRY_CODE || '92'
+
+/**
+ * Builds a wa.me chat link for admin→vendor (or any phone). Use for one-click
+ * "Send WhatsApp" in the admin dashboard. Normalizes phone to digits; optionally
+ * prepends default country code if the number is too short.
+ */
+export function buildWhatsAppChatLink(
+  phone: string,
+  prefillText?: string
+): string {
+  const digits = phone.replace(/\D/g, '')
+  const withCountry =
+    digits.length >= 10
+      ? digits
+      : `${DEFAULT_COUNTRY_CODE}${digits}`
+  const base = `https://wa.me/${withCountry}`
+  if (prefillText != null && prefillText.trim() !== '') {
+    return `${base}?text=${encodeURIComponent(prefillText.trim())}`
+  }
+  return base
+}
+
 /**
  * Opens WhatsApp in a new window/tab
  */
