@@ -140,24 +140,24 @@ export default function VendorDashboard() {
               {/* Step 1 - Profile Setup */}
               <div className={`flex flex-col gap-3 rounded-2xl p-4 md:flex-row md:items-center md:justify-between ${
                 profileComplete 
-                  ? 'bg-emerald-50/70 text-emerald-900' 
+                  ? 'bg-primary/20 text-foreground' 
                   : 'border bg-background'
               }`}>
                 <div className="flex items-start gap-3">
                   <div className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
                     profileComplete 
-                      ? 'bg-emerald-600 text-white' 
+                      ? 'bg-primary text-black' 
                       : 'border'
                   }`}>
                     1
                   </div>
                   <div>
                     <p className="flex items-center gap-2 text-sm font-semibold">
-                      {profileComplete && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                      {profileComplete && <CheckCircle2 className="h-4 w-4 text-primary" />}
                       Set up Profile
                     </p>
                     <p className={`mt-1 text-xs ${
-                      profileComplete ? 'text-emerald-900/80' : 'text-muted-foreground'
+                      profileComplete ? 'text-foreground/80' : 'text-muted-foreground'
                     }`}>
                       Complete all fields: Company name, address, city, phone, WhatsApp, email, and logo.
                     </p>
@@ -170,7 +170,7 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 {profileComplete ? (
-                  <span className="mt-1 text-xs font-semibold tracking-wide text-emerald-700 md:mt-0">
+                  <span className="mt-1 text-xs font-bold tracking-wide text-primary md:mt-0">
                     COMPLETED
                   </span>
                 ) : (
@@ -183,24 +183,24 @@ export default function VendorDashboard() {
               {/* Step 2 - Add Vehicles */}
               <div className={`flex flex-col gap-3 rounded-2xl p-4 md:flex-row md:items-center md:justify-between ${
                 hasVehicles 
-                  ? 'bg-emerald-50/70 text-emerald-900' 
+                  ? 'bg-primary/20 text-foreground' 
                   : 'border bg-background'
               }`}>
                 <div className="flex items-start gap-3">
                   <div className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
                     hasVehicles 
-                      ? 'bg-emerald-600 text-white' 
+                      ? 'bg-primary text-black' 
                       : 'border'
                   }`}>
                     2
                   </div>
                   <div>
                     <p className="flex items-center gap-2 text-sm font-semibold">
-                      {hasVehicles && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                      {hasVehicles && <CheckCircle2 className="h-4 w-4 text-primary" />}
                       Add Vehicles
                     </p>
                     <p className={`mt-1 text-xs ${
-                      hasVehicles ? 'text-emerald-900/80' : 'text-muted-foreground'
+                      hasVehicles ? 'text-foreground/80' : 'text-muted-foreground'
                     }`}>
                       Add at least one vehicle to your fleet.
                     </p>
@@ -213,7 +213,7 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 {hasVehicles ? (
-                  <span className="mt-1 text-xs font-semibold tracking-wide text-emerald-700 md:mt-0">
+                  <span className="mt-1 text-xs font-bold tracking-wide text-primary md:mt-0">
                     COMPLETED
                   </span>
                 ) : (
@@ -233,25 +233,25 @@ export default function VendorDashboard() {
               {/* Step 3 - Add Routes */}
               <div className={`flex flex-col gap-3 rounded-2xl p-4 md:flex-row md:items-center md:justify-between ${
                 hasRoutes 
-                  ? 'bg-emerald-50/70 text-emerald-900' 
+                  ? 'bg-primary/20 text-foreground' 
                   : 'border bg-background'
               }`}>
                 <div className="flex items-start gap-3">
                   <div className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
                     hasRoutes 
-                      ? 'bg-emerald-600 text-white' 
+                      ? 'bg-primary text-black' 
                       : 'border'
                   }`}>
                     3
                   </div>
                   <div>
                     <p className="flex items-center gap-2 text-sm font-semibold">
-                      {hasRoutes && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                      {hasRoutes && <CheckCircle2 className="h-4 w-4 text-primary" />}
                       {!hasRoutes && <Lock className="h-4 w-4" />}
                       Add Routes
                     </p>
                     <p className={`mt-1 text-xs ${
-                      hasRoutes ? 'text-emerald-900/80' : 'text-muted-foreground'
+                      hasRoutes ? 'text-foreground/80' : 'text-muted-foreground'
                     }`}>
                       Add at least one route to define your service areas.
                     </p>
@@ -264,7 +264,7 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 {hasRoutes ? (
-                  <span className="mt-1 text-xs font-semibold tracking-wide text-emerald-700 md:mt-0">
+                  <span className="mt-1 text-xs font-bold tracking-wide text-primary md:mt-0">
                     COMPLETED
                   </span>
                 ) : (

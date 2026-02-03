@@ -184,10 +184,10 @@ export default function PrivacyPolicyPage() {
               <li>
                 <strong className="text-white">Email:</strong>{' '}
                 <a
-                  href="mailto:rentnowpk@gmail.com"
+                  href="mailto:help@rentnowpk.com"
                   className="text-[#C0F11C] hover:underline"
                 >
-                  rentnowpk@gmail.com
+                  help@rentnowpk.com
                 </a>
               </li>
               <li>

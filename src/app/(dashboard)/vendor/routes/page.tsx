@@ -138,7 +138,7 @@ function VendorRoutesPageInner() {
         </div>
 
         {message && (
-          <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
             {decodeURIComponent(message)}
           </div>
         )}
@@ -218,14 +218,14 @@ function VendorRoutesPageInner() {
                         {/* Availability Toggle */}
                         <div className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
                           <div className="flex items-center gap-2">
-                            <Power className={`h-4 w-4 ${route.isActive ? 'text-emerald-600' : 'text-slate-400'}`} />
+                            <Power className={`h-4 w-4 ${route.isActive ? 'text-primary' : 'text-slate-400'}`} />
                             <span className="text-xs font-medium text-foreground">Available for Booking</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleToggleAvailability(route)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                              route.isActive ? 'bg-emerald-500' : 'bg-slate-300'
+                              route.isActive ? 'bg-primary' : 'bg-slate-300'
                             }`}
                           >
                             <span

@@ -80,6 +80,10 @@ export default async function ListingDetailPage({ params }: PageProps) {
                     priority
                     sizes="(max-width: 1024px) 100vw, 66vw"
                   />
+
+                  <div className="absolute bottom-2 left-2">
+                    <p className="text-sm text-white">{vehicle.name}</p>
+                  </div>
                 </div>
                 {otherImages.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 sm:p-4">
@@ -122,6 +126,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                     <p className="text-muted-foreground whitespace-pre-line text-sm sm:text-base">{vehicle.description}</p>
                   </div>
                 )}
+
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                   {capacity != null && (
@@ -200,52 +205,22 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
                 {hasAnyPrice && (
                   <div className="mb-6 space-y-3">
-                    {vehicle.priceWithDriver != null && (
+                    {vehicle.priceWithinCity != null && (
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">With Driver</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceWithDriver)}/day</span>
+                        <span className="text-sm text-muted-foreground">Within City (With Driver)</span>
+                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceWithinCity)}/day</span>
                       </div>
                     )}
                     {vehicle.priceSelfDrive != null && (
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Without Driver</span>
+                        <span className="text-sm text-muted-foreground">Within City (Self Drive)</span>
                         <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceSelfDrive)}/day</span>
-                      </div>
-                    )}
-                    {vehicle.priceDaily != null && !vehicle.priceWithDriver && !vehicle.priceSelfDrive && (
-                      <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Daily rate</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceDaily)}/day</span>
-                      </div>
-                    )}
-                    {vehicle.priceDaily != null && (vehicle.priceWithDriver != null || vehicle.priceSelfDrive != null) && (
-                      <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Daily</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceDaily)}/day</span>
-                      </div>
-                    )}
-                    {vehicle.priceHourly != null && (
-                      <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Hourly</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceHourly)}/hr</span>
-                      </div>
-                    )}
-                    {vehicle.priceMonthly != null && (
-                      <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Monthly</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceMonthly)}/month</span>
-                      </div>
-                    )}
-                    {vehicle.priceWithinCity != null && (
-                      <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Within City</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceWithinCity)}</span>
                       </div>
                     )}
                     {vehicle.priceOutOfCity != null && (
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">Out of City</span>
-                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceOutOfCity)}</span>
+                        <span className="text-sm text-muted-foreground">Out of City (With Driver)</span>
+                        <span className="font-bold text-[#1a2332]">{formatPrice(vehicle.priceOutOfCity)}/day</span>
                       </div>
                     )}
                   </div>
@@ -254,7 +229,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 <div className="space-y-3">
                   <Button
                     asChild
-                    className="w-full bg-[#10b981] hover:bg-[#0d9668] text-white font-semibold h-12 rounded-lg shadow-md"
+                    className="w-full bg-primary text-black hover:bg-black hover:text-white font-semibold h-12 rounded-lg shadow-md"
                   >
                     <a href={telHref} className="flex items-center justify-center gap-2">
                       <Phone className="h-5 w-5" />
@@ -263,7 +238,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   </Button>
                   <Button
                     asChild
-                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold h-12 rounded-lg shadow-md"
+                    className="w-full text-white bg-black hover:bg-primary hover:text-black font-semibold h-12 rounded-lg shadow-md"
                   >
                     <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
                       <MessageCircle className="h-5 w-5" />

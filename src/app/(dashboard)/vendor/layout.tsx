@@ -81,7 +81,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
 
   return (
     <VendorProtectedRoute>
-    <div className="flex min-h-screen bg-slate-50 mt-16 flex-col md:flex-row md:mt-16">
+    <div className="flex bg-slate-50 mt-16 flex-col md:flex-row md:h-[calc(100vh-64px)] md:overflow-hidden">
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b bg-black px-4 md:hidden">
         <Link href="/" className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
       {/* Mobile Drawer / Desktop Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 top-0 z-[70] w-full transform bg-white transition-transform duration-300 ease-in-out md:static md:flex md:w-60 md:translate-x-0 md:flex-col md:border-r md:bg-white/95 md:shadow-sm md:px-4 md:py-6",
+          "fixed inset-y-0 left-0 top-0 z-[70] w-full transform bg-white transition-transform duration-300 ease-in-out md:static md:z-30 md:flex md:w-60 md:translate-x-0 md:flex-col md:border-r md:bg-white md:shadow-sm md:px-4 md:py-6",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
@@ -163,15 +163,15 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
                 className={cn(
                   'flex items-center justify-between group rounded-lg px-3 py-4 md:py-2.5 transition-all md:hover:bg-slate-50 border-b border-slate-100 md:border-none',
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700 md:bg-emerald-50'
+                    ? 'bg-primary/20 text-primary md:bg-primary/20'
                     : 'text-slate-600 hover:text-foreground',
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={cn('h-5 w-5 md:h-4 md:w-4', isActive && 'text-emerald-600')} />
+                  <Icon className={cn('h-5 w-5 md:h-4 md:w-4', isActive && 'text-primary')} />
                   <span className="font-medium">{item.label}</span>
                 </div>
-                <ChevronRight className={cn("h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 md:hidden", isActive && "text-emerald-400")} />
+                <ChevronRight className={cn("h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 md:hidden", isActive && "text-primary/60")} />
               </Link>
             )
           })}
@@ -184,12 +184,12 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
             className={cn(
               'flex items-center justify-between group rounded-lg px-3 py-4 md:py-2.5 md:text-sm transition-all md:hover:bg-slate-50 border-b border-slate-100 md:border-none',
               pathname === '/vendor/settings'
-                ? 'bg-emerald-50 text-emerald-700'
+                ? 'bg-primary/20 text-primary'
                 : 'text-slate-600 hover:text-foreground',
             )}
           >
             <div className="flex items-center gap-3">
-              <Settings className={cn('h-5 w-5 md:h-4 md:w-4', pathname === '/vendor/settings' && 'text-emerald-600')} />
+              <Settings className={cn('h-5 w-5 md:h-4 md:w-4', pathname === '/vendor/settings' && 'text-primary')} />
               <span className="font-medium">Settings</span>
             </div>
             <ChevronRight className="h-4 w-4 text-slate-300 md:hidden" />
@@ -210,7 +210,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
         <div className="mt-8 hidden text-[11px] text-muted-foreground md:block">
           <p className="px-2">
             Need help?{' '}
-            <Link href="/contact" className="font-medium text-emerald-600 hover:underline">
+            <Link href="/contact" className="font-medium text-primary hover:underline">
               Contact support
             </Link>
           </p>
@@ -219,7 +219,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 mt-14 md:mt-0">
+      <main className="flex-1 mt-14 md:mt-0 md:overflow-y-auto">
         {children}
       </main>
     </div>

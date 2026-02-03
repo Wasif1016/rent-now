@@ -13,9 +13,9 @@ After running the seed (`bun run prisma db seed` or `npx prisma db seed`), a def
 
 Log in at `/auth/login`; you will be redirected to `/admin`.
 
-To use your own admin credentials (e.g. `rentnowpk@gmail.com`), set env vars **before** seeding:
+To use your own admin credentials (e.g. `help@rentnowpk.com`), set env vars **before** seeding:
 
-- `ADMIN_SEED_EMAIL` – admin email (e.g. `rentnowpk@gmail.com`)
+- `ADMIN_SEED_EMAIL` – admin email (e.g. `help@rentnowpk.com`)
 - `ADMIN_SEED_PASSWORD` – admin password (e.g. `Wasif*1016`)
 
 Then run:
@@ -31,7 +31,7 @@ If the admin user **already exists** in Supabase, the seed will set `user_metada
 To set or reset the admin password **without** re-running the full seed:
 
 1. In `.env.local` set (or add):
-   - `ADMIN_SEED_EMAIL=rentnowpk@gmail.com`
+   - `ADMIN_SEED_EMAIL=help@rentnowpk.com`
    - `ADMIN_SEED_PASSWORD=YourPassword`
 2. Run:
    ```bash

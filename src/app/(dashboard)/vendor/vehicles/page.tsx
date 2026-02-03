@@ -195,7 +195,7 @@ function VendorVehiclesPageInner() {
         </div>
 
         {message && (
-          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
             {message}
           </div>
         )}
@@ -294,7 +294,7 @@ function VendorVehiclesPageInner() {
                           Draft
                         </span>
                       ) : vehicle.isAvailable ? (
-                        <span className="absolute right-4 top-4 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                        <span className="absolute right-4 top-4 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-black">
                           Active
                         </span>
                       ) : (
@@ -337,14 +337,14 @@ function VendorVehiclesPageInner() {
                       {vehicle.status !== 'DRAFT' && (
                         <div className="mt-2 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
                           <div className="flex items-center gap-2">
-                            <Power className={`h-4 w-4 ${vehicle.isAvailable ? 'text-emerald-600' : 'text-slate-400'}`} />
+                            <Power className={`h-4 w-4 ${vehicle.isAvailable ? 'text-primary' : 'text-slate-400'}`} />
                             <span className="text-xs font-medium text-foreground">Available for Rent</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleToggleAvailability(vehicle)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                              vehicle.isAvailable ? 'bg-emerald-500' : 'bg-slate-300'
+                              vehicle.isAvailable ? 'bg-primary' : 'bg-slate-300'
                             }`}
                           >
                             <span
