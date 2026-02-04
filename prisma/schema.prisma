@@ -31,7 +31,6 @@ model City {
   country               Country            @relation(fields: [countryId], references: [id])
   routesAsDestination   Route[]            @relation("RouteDestinationCity")
   routesAsOrigin        Route[]            @relation("RouteOriginCity")
-  seoCityOverrides      SeoCityOverride[]
   towns                 Town[]
   vehicles              Vehicle[]
   vendors               Vendor[]
@@ -265,64 +264,7 @@ model Booking {
   @@index([createdAt])
 }
 
-model FaqGroup {
-  id            String         @id @default(uuid())
-  name          String
-  createdAt     DateTime?      @default(now())
-  updatedAt     DateTime?      @default(now()) @updatedAt
-  faqs          Faq[]
-  seoDimensions SeoDimension[]
-}
 
-model Faq {
-  id         String    @id @default(uuid())
-  faqGroupId String
-  question   String
-  answer     String
-  sortOrder  Int?      @default(0)
-  createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @default(now()) @updatedAt
-  faqGroup   FaqGroup  @relation(fields: [faqGroupId], references: [id])
-
-  @@index([faqGroupId])
-}
-
-model SeoDimension {
-  id                             String            @id @default(uuid())
-  slug                           String
-  type                           String
-  basePattern                    String
-  defaultH1Template              String
-  defaultTitleTemplate           String
-  defaultMetaDescriptionTemplate String
-  faqGroupId                     String?
-  isIndexableByDefault           Boolean           @default(true)
-  createdAt                      DateTime?         @default(now())
-  updatedAt                      DateTime?         @default(now()) @updatedAt
-  cityOverrides                  SeoCityOverride[]
-  faqGroup                       FaqGroup?         @relation(fields: [faqGroupId], references: [id])
-
-  @@unique([slug, type])
-  @@index([type])
-}
-
-model SeoCityOverride {
-  id                      String       @id @default(uuid())
-  cityId                  String
-  seoDimensionId          String
-  h1Template              String?
-  titleTemplate           String?
-  metaDescriptionTemplate String?
-  isIndexable             Boolean?
-  createdAt               DateTime?    @default(now())
-  updatedAt               DateTime?    @default(now()) @updatedAt
-  city                    City         @relation(fields: [cityId], references: [id])
-  seoDimension            SeoDimension @relation(fields: [seoDimensionId], references: [id])
-
-  @@unique([cityId, seoDimensionId])
-  @@index([cityId])
-  @@index([seoDimensionId])
-}
 
 model VendorRouteOffer {
   id                  String    @id @default(uuid())

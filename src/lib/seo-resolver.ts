@@ -1,11 +1,9 @@
+import { KEYWORDS, DEFAULT_TEMPLATES } from './routes-config'
 import {
-  getKeywordBySlug,
   getCityBySlug,
   getVehicleCategoryBySlug,
   getVehicleModelBySlug,
   getRouteBySlug,
-  getCategorySlugs,
-  getModelSlugs,
 } from './data'
 
 /** Capacity slugs for URL segments (e.g. 7-seater). */
@@ -63,7 +61,7 @@ export type FilterType = 'DRIVER' | 'SEATING' | 'PRICE'
 
 export type ResolvedResult = {
   pageType: ResolvedPageType
-  keyword?: { slug: string; defaultH1Template: string; defaultTitleTemplate: string; defaultMetaDescriptionTemplate: string }
+  keyword?: { slug: string; label: string }
   city?: { id: string; name: string; slug: string }
   model?: {
     id: string
@@ -87,10 +85,6 @@ export type ResolvedResult = {
 
 /**
  * Resolves [...segments] under (keyword) to page type and entities.
- * - [keywordSlug] → keyword_only
- * - [keywordSlug, citySlug] → keyword_city
- * - [keywordSlug, citySlug, modelSlug] → keyword_city_model
- * - [keywordSlug, filterSlug, citySlug] where filter = category or capacity → keyword_filter_city
  */
 export async function resolveKeywordSegments(segments: string[]): Promise<ResolvedResult> {
   const canonical = '/' + segments.join('/')
@@ -106,20 +100,17 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
     return notFound
   }
 
-  const keyword = await getKeywordBySlug(first)
+  const keyword = KEYWORDS[first]
   if (!keyword) {
     return notFound
   }
 
+  const keywordData = { slug: keyword.slug, label: keyword.label }
+
   if (segments.length === 1) {
     return {
       pageType: 'keyword_only',
-      keyword: {
-        slug: keyword.slug,
-        defaultH1Template: keyword.defaultH1Template,
-        defaultTitleTemplate: keyword.defaultTitleTemplate,
-        defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-      },
+      keyword: keywordData,
       canonical,
       segments,
     }
@@ -130,12 +121,7 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
     if (city) {
       return {
         pageType: 'keyword_city',
-        keyword: {
-          slug: keyword.slug,
-          defaultH1Template: keyword.defaultH1Template,
-          defaultTitleTemplate: keyword.defaultTitleTemplate,
-          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-        },
+        keyword: keywordData,
         city: {
           id: city.id,
           name: city.name,
@@ -149,12 +135,7 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
     if (route) {
       return {
         pageType: 'keyword_route',
-        keyword: {
-          slug: keyword.slug,
-          defaultH1Template: keyword.defaultH1Template,
-          defaultTitleTemplate: keyword.defaultTitleTemplate,
-          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-        },
+        keyword: keywordData,
         route,
         canonical,
         segments,
@@ -163,22 +144,10 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
 
     const model = await getVehicleModelBySlug(second)
     if (model) {
-      const m = model as {
-        id: string
-        name: string
-        slug: string
-        vehicleBrand: { name: string; slug: string }
-        vehicleType?: { name: string } | null
-        capacity?: number | null
-      }
+      const m = model as any
       return {
         pageType: 'keyword_model',
-        keyword: {
-          slug: keyword.slug,
-          defaultH1Template: keyword.defaultH1Template,
-          defaultTitleTemplate: keyword.defaultTitleTemplate,
-          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-        },
+        keyword: keywordData,
         model: {
           id: m.id,
           name: m.name,
@@ -196,7 +165,6 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
   }
 
   if (segments.length === 3) {
-    const [cityA, categoryOrCapacityA, modelOrCityB] = [second, second, third]
     const citySecond = await getCityBySlug(second)
     const categorySecond = await getVehicleCategoryBySlug(second)
     const capacitySecond = isCapacitySlug(second)
@@ -208,22 +176,10 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
     if (citySecond) {
       const model = await getVehicleModelBySlug(third)
       if (model) {
-        const m = model as {
-          id: string
-          name: string
-          slug: string
-          vehicleBrand: { name: string; slug: string }
-          vehicleType?: { name: string } | null
-          capacity?: number | null
-        }
+        const m = model as any
         return {
           pageType: 'keyword_city_model',
-          keyword: {
-            slug: keyword.slug,
-            defaultH1Template: keyword.defaultH1Template,
-            defaultTitleTemplate: keyword.defaultTitleTemplate,
-            defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-          },
+          keyword: keywordData,
           city: {
             id: citySecond.id,
             name: citySecond.name,
@@ -248,12 +204,7 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
     if (cityThird && isDriverFilterSlug(second)) {
       return {
         pageType: 'keyword_filter_city',
-        keyword: {
-          slug: keyword.slug,
-          defaultH1Template: keyword.defaultH1Template,
-          defaultTitleTemplate: keyword.defaultTitleTemplate,
-          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-        },
+        keyword: keywordData,
         filterSlug: second,
         filterType: 'DRIVER' as const,
         city: {
@@ -272,12 +223,7 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
         (isCapacitySlug(second) ? (second === '30-plus-seater' ? 30 : parseInt(second.replace(/-seater$/, ''), 10)) : undefined)
       return {
         pageType: 'keyword_filter_city',
-        keyword: {
-          slug: keyword.slug,
-          defaultH1Template: keyword.defaultH1Template,
-          defaultTitleTemplate: keyword.defaultTitleTemplate,
-          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-        },
+        keyword: keywordData,
         category: categorySecond
           ? { id: categorySecond.id, name: categorySecond.name, slug: categorySecond.slug }
           : undefined,
@@ -297,22 +243,10 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
     const routeSecond = await getRouteBySlug(second)
     const modelThird = await getVehicleModelBySlug(third)
     if (routeSecond && modelThird) {
-      const m = modelThird as {
-        id: string
-        name: string
-        slug: string
-        vehicleBrand: { name: string; slug: string }
-        vehicleType?: { name: string } | null
-        capacity?: number | null
-      }
+      const m = modelThird as any
       return {
         pageType: 'keyword_route_model',
-        keyword: {
-          slug: keyword.slug,
-          defaultH1Template: keyword.defaultH1Template,
-          defaultTitleTemplate: keyword.defaultTitleTemplate,
-          defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-        },
+        keyword: keywordData,
         route: routeSecond,
         model: {
           id: m.id,
@@ -332,12 +266,7 @@ export async function resolveKeywordSegments(segments: string[]): Promise<Resolv
       if (routeThird) {
         return {
           pageType: 'keyword_filter_route',
-          keyword: {
-            slug: keyword.slug,
-            defaultH1Template: keyword.defaultH1Template,
-            defaultTitleTemplate: keyword.defaultTitleTemplate,
-            defaultMetaDescriptionTemplate: keyword.defaultMetaDescriptionTemplate,
-          },
+          keyword: keywordData,
           filterSlug: second,
           filterType: 'DRIVER' as const,
           route: routeThird,

@@ -8,6 +8,7 @@ import { CityKeywordFilterLandingPage } from '@/components/city/city-keyword-fil
 import { CityKeywordRouteLandingPage } from '@/components/route/city-keyword-route-landing-page'
 import { CityKeywordRouteModelLandingPage } from '@/components/route/city-keyword-route-model-landing-page'
 import { KeywordModelLandingPage } from '@/components/keyword/keyword-model-landing-page'
+import { generateMetadataFromResolved } from '@/lib/seo'
 
 type PageProps = {
   params: Promise<{ segments: string[] }>
@@ -126,39 +127,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Not Found' }
   }
 
-  const canonical = resolved.canonical
-  const title =
-    resolved.pageType === 'keyword_only' && resolved.keyword
-      ? resolved.keyword.defaultTitleTemplate.replace(/\{city_name\}/g, 'Your City')
-      : resolved.pageType === 'keyword_model' && resolved.keyword && resolved.model
-      ? `${resolved.model.vehicleBrand.name} ${resolved.model.name} | Rent Now`
-      : resolved.pageType === 'keyword_city' && resolved.keyword && resolved.city
-        ? resolved.keyword.defaultTitleTemplate.replace(/\{city_name\}/g, resolved.city.name)
-        : resolved.pageType === 'keyword_city_model' && resolved.city && resolved.model
-          ? `${resolved.model.vehicleBrand.name} ${resolved.model.name} in ${resolved.city.name} | Rent Now`
-          : resolved.pageType === 'keyword_filter_city' && resolved.keyword && resolved.city
-            ? resolved.keyword.defaultTitleTemplate.replace(/\{city_name\}/g, resolved.city.name)
-            : resolved.pageType === 'keyword_route' && resolved.keyword && resolved.route
-              ? `Rent a Car from ${resolved.route.originCity.name} to ${resolved.route.destinationCity.name} | Rent Now`
-              : resolved.pageType === 'keyword_route_model' && resolved.route && resolved.model
-                ? `${resolved.model.vehicleBrand.name} ${resolved.model.name} from ${resolved.route.originCity.name} to ${resolved.route.destinationCity.name} | Rent Now`
-                : resolved.pageType === 'keyword_filter_route' && resolved.keyword && resolved.route
-                  ? `Rent a Car from ${resolved.route.originCity.name} to ${resolved.route.destinationCity.name} | Rent Now`
-                  : 'Rent Now'
-
-  const description =
-    resolved.pageType === 'keyword_route' && resolved.route
-      ? `Book reliable vehicles with drivers for the ${resolved.route.originCity.name} to ${resolved.route.destinationCity.name} route. Compare vendors and book with a small advance.`
-      : resolved.pageType === 'keyword_route_model' && resolved.route && resolved.model
-        ? `Book ${resolved.model.vehicleBrand.name} ${resolved.model.name} from ${resolved.route.originCity.name} to ${resolved.route.destinationCity.name}. Compare verified rental options.`
-        : resolved.pageType === 'keyword_filter_route' && resolved.route
-          ? `Book reliable vehicles with drivers for the ${resolved.route.originCity.name} to ${resolved.route.destinationCity.name} route. Compare vendors and book with a small advance.`
-          : resolved.keyword?.defaultMetaDescriptionTemplate?.replace(/\{city_name\}/g, resolved.city?.name ?? '') ??
-            'Compare verified car rental vendors and book with a small advance.'
-
-  return {
-    title,
-    description,
-    alternates: { canonical: canonical ? `https://${process.env.NEXT_PUBLIC_SITE_URL || 'rentnow.com'}${canonical}` : undefined },
-  }
+  return generateMetadataFromResolved(resolved)
 }

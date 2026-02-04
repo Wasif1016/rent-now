@@ -1,16 +1,15 @@
 import type { Metadata } from 'next'
-import { prisma } from './prisma'
+import { KEYWORDS, DEFAULT_TEMPLATES, FAQS } from './routes-config'
+import type { ResolvedResult } from './seo-resolver'
 
 interface SEOConfig {
   title: string
   description: string
-  city?: string
   path: string
-  vehicleCount?: number
 }
 
 const siteName = 'Rent Now'
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rentnow.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'www.rentnowpk.com'
 
 function applyTemplate(template: string, variables: Record<string, string | number | undefined | null>): string {
   return template.replace(/\{(\w+)\}/g, (_, key) => {
@@ -19,10 +18,84 @@ function applyTemplate(template: string, variables: Record<string, string | numb
   })
 }
 
+/**
+ * Generates the variables needed for template replacement.
+ */
+export function getTemplateVariables(resolved: ResolvedResult) {
+  const vars: Record<string, string | number | undefined | null> = {
+    keyword: resolved.keyword?.label || 'Rent a Car',
+    keyword_lower: (resolved.keyword?.label || 'Rent a Car').toLowerCase(),
+    city: resolved.city?.name || '',
+    from_city: resolved.route?.originCity.name || '',
+    to_city: resolved.route?.destinationCity.name || '',
+    brand: resolved.model?.vehicleBrand.name || '',
+    model: resolved.model?.name || '',
+    category: resolved.category?.name || resolved.model?.vehicleType?.name || '',
+    capacity: resolved.capacity || resolved.model?.capacity || '',
+  }
+  return vars
+}
+
+/**
+ * Resolves SEO templates based on the resolved page type and data.
+ */
+export function resolveSeoTemplates(resolved: ResolvedResult) {
+  const keywordConfig = resolved.keyword ? KEYWORDS[resolved.keyword.slug] : null
+  const pageType = resolved.pageType
+  
+  // 1. Try Keyword-specific template override
+  let template = (keywordConfig?.templates as any)?.[pageType]
+
+  // 2. Fallback to default template for the page type
+  if (!template) {
+    template = DEFAULT_TEMPLATES[pageType]
+  }
+
+  // 3. Last fallback (e.g. if pageType doesn't have a default)
+  if (!template && pageType.startsWith('keyword_')) {
+    template = DEFAULT_TEMPLATES.keyword_only
+  }
+
+  if (!template) {
+    return {
+      h1: siteName,
+      title: siteName,
+      description: 'Book reliable vehicles with drivers across Pakistan.'
+    }
+  }
+
+  const vars = getTemplateVariables(resolved)
+  
+  return {
+    h1: applyTemplate(template.h1, vars),
+    title: applyTemplate(template.title, vars),
+    description: applyTemplate(template.description, vars),
+  }
+}
+
+/**
+ * Resolves FAQ templates based on the resolved page type.
+ */
+export function resolveFaqs(resolved: ResolvedResult) {
+  let faqList = FAQS.city // Default
+  
+  if (resolved.pageType.includes('route')) {
+    faqList = FAQS.route
+  } else if (resolved.keyword?.slug.includes('airport')) {
+    faqList = FAQS.airport
+  }
+
+  const vars = getTemplateVariables(resolved)
+
+  return faqList.map(item => ({
+    q: applyTemplate(item.q, vars),
+    a: applyTemplate(item.a, vars),
+  }))
+}
+
 export function generateMetadata(config: SEOConfig): Metadata {
   const { title, description, path } = config
-  
-  const canonical = `${siteUrl}${path}`
+  const canonical = `https://${siteUrl}${path}`
   
   return {
     title,
@@ -57,88 +130,33 @@ export function generateMetadata(config: SEOConfig): Metadata {
   }
 }
 
-export async function generateCityPageMetadata(
-  city: { id: string; name: string; slug: string },
-  vehicleCount: number
-): Promise<Metadata> {
-  // Try to resolve DB-driven SEO templates first
-  try {
-    const seoDimension = await (prisma as any).seoDimension.findFirst({
-      where: {
-        slug: 'rent-a-car-city',
-        type: 'keyword_city',
-      },
-      include: {
-        cityOverrides: {
-          where: {
-            cityId: city.id,
-          },
-          take: 1,
-        },
-        faqGroup: {
-          include: {
-            faqs: {
-              orderBy: {
-                sortOrder: 'asc',
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (seoDimension) {
-      const override = seoDimension.cityOverrides[0]
-
-      const titleTemplate = override?.titleTemplate || seoDimension.defaultTitleTemplate
-      const descriptionTemplate = override?.metaDescriptionTemplate || seoDimension.defaultMetaDescriptionTemplate
-
-      const variables = {
-        city_name: city.name,
-        city_slug: city.slug,
-        vehicles_count: vehicleCount,
-      }
-
-      const title = applyTemplate(titleTemplate, variables)
-      const description = applyTemplate(descriptionTemplate, variables)
-
-      return generateMetadata({
-        title,
-        description,
-        city: city.name,
-        // Canonical city rental URL uses the `/rent-a-car/{city}` keyword pattern
-        path: `/rent-a-car/${city.slug}`,
-        vehicleCount,
-      })
-    }
-  } catch (error) {
-    // Fail gracefully and fall back to simple template
-    console.error('Error generating city SEO metadata from DB templates', error)
-  }
-
-  // Fallback: simple programmatic template
+/**
+ * The primary way to generate metadata from a ResolvedResult.
+ */
+export function generateMetadataFromResolved(resolved: ResolvedResult): Metadata {
+  const templates = resolveSeoTemplates(resolved)
   return generateMetadata({
-    title: `Rent a Car in ${city.name} | Best Car Rental Deals | ${siteName}`,
-    description: `Find the best car rental deals in ${city.name}. Browse ${vehicleCount}+ vehicles from trusted vendors. Compare vehicles, routes, and prices before booking.`,
-    city: city.name,
-    path: `/rent-a-car/${city.slug}`,
-    vehicleCount,
+    title: templates.title,
+    description: templates.description,
+    path: resolved.canonical,
   })
 }
 
-export function generateBreadcrumbs(city?: string) {
-  const items = [
-    {
-      name: 'Home',
-      url: '/',
-    },
-  ]
+export function generateBreadcrumbs(resolved: ResolvedResult) {
+  const items = [{ name: 'Home', url: '/' }]
+  const vars = getTemplateVariables(resolved)
 
-  if (city) {
+  if (resolved.keyword) {
     items.push({
-      name: `Rent a Car in ${city}`,
-      // Keep breadcrumb URLs aligned with the `/rent-a-car/{city}` keyword pattern
-      url: `/rent-a-car/${city.toLowerCase().replace(/\s+/g, '-')}`,
+      name: resolved.keyword.label,
+      url: `/${resolved.keyword.slug}`,
+    })
+  }
+
+  if (resolved.city) {
+    items.push({
+      name: resolved.city.name,
+      url: `${resolved.canonical}`,
     })
   }
 
@@ -146,7 +164,7 @@ export function generateBreadcrumbs(city?: string) {
 }
 
 export function generateStructuredData(
-  city?: string,
+  resolved: ResolvedResult,
   vehicles?: Array<{
     id: string
     title: string
@@ -156,9 +174,10 @@ export function generateStructuredData(
   }>
 ) {
   const structuredData: any[] = []
+  const vars = getTemplateVariables(resolved)
 
   // BreadcrumbList
-  const breadcrumbs = generateBreadcrumbs(city)
+  const breadcrumbs = generateBreadcrumbs(resolved)
   structuredData.push({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -166,7 +185,7 @@ export function generateStructuredData(
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: `${siteUrl}${item.url}`,
+      item: `https://${siteUrl}${item.url}`,
     })),
   })
 
@@ -175,8 +194,8 @@ export function generateStructuredData(
     structuredData.push({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      name: `Cars for Rent in ${city}`,
-      description: `Browse available cars for rent in ${city}`,
+      name: `Cars available for ${vars.keyword} in ${vars.city || 'Pakistan'}`,
+      description: `Browse available cars for ${vars.keyword}`,
       numberOfItems: vehicles.length,
       itemListElement: vehicles.map((vehicle, index) => ({
         '@type': 'ListItem',
@@ -185,8 +204,8 @@ export function generateStructuredData(
           '@type': 'Product',
           name: vehicle.title,
           description: `${vehicle.title} available for rent`,
-          url: `${siteUrl}/listings/${vehicle.slug}`,
-          image: vehicle.images?.[0] || '',
+          url: `https://${siteUrl}/listings/${vehicle.slug}`,
+          image: (vehicle.images as string[])?.[0] || '',
           brand: {
             '@type': 'Brand',
             name: vehicle.vendor.name,
@@ -199,147 +218,18 @@ export function generateStructuredData(
   return structuredData
 }
 
-export function generateCityFaqSchema(city: string) {
+export function generateFaqSchema(resolved: ResolvedResult) {
+  const faqs = resolveFaqs(resolved)
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `How much does it cost to rent a car in ${city}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Prices vary by vehicle type, distance, and duration. Within city, daily packages are common, while intercity trips from ${city} are usually priced per trip or per kilometer.`,
-        },
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
       },
-      {
-        '@type': 'Question',
-        name: `Can I book a car with driver in ${city}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes, most listings in ${city} include a professional driver who is familiar with local routes and highway safety requirements.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Is advance payment required for car rental in ${city}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Many vendors ask for a small advance to confirm bookings from ${city}, especially for outstation trips and busy dates.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Which cities can I travel to from ${city}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `You can usually book intercity routes from ${city} to major cities and tourist destinations across Pakistan. Ask your vendor for route-specific pricing and options.`,
-        },
-      },
-    ],
+    })),
   }
-}
-
-export async function generateRoutePageMetadata(params: {
-  fromCity: { id: string; name: string; slug: string }
-  toCity: { id: string; name: string; slug: string }
-}): Promise<Metadata> {
-  const { fromCity, toCity } = params
-
-  try {
-    const seoDimension = await (prisma as any).seoDimension.findFirst({
-      where: {
-        slug: 'route-rent-a-car',
-        type: 'route',
-      },
-      include: {
-        faqGroup: {
-          include: {
-            faqs: {
-              orderBy: {
-                sortOrder: 'asc',
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (seoDimension) {
-      const variables = {
-        from_city: fromCity.name,
-        to_city: toCity.name,
-        from_slug: fromCity.slug,
-        to_slug: toCity.slug,
-      }
-
-      const title = applyTemplate(seoDimension.defaultTitleTemplate, variables)
-      const description = applyTemplate(seoDimension.defaultMetaDescriptionTemplate, variables)
-
-      return generateMetadata({
-        title,
-        description,
-        path: `/routes/${fromCity.slug}-to-${toCity.slug}`,
-      })
-    }
-  } catch (error) {
-    console.error('Error generating route SEO metadata from DB templates', error)
-  }
-
-  return generateMetadata({
-    title: `Rent a Car from ${fromCity.name} to ${toCity.name} | Intercity Route | ${siteName}`,
-    description: `Book reliable vehicles with drivers for the ${fromCity.name} to ${toCity.name} route. Compare vendors, capacity, and prices before confirming your booking.`,
-    path: `/routes/${fromCity.slug}-to-${toCity.slug}`,
-  })
-}
-
-export async function generateAirportPageMetadata(city: {
-  id: string
-  name: string
-  slug: string
-}): Promise<Metadata> {
-  try {
-    const seoDimension = await (prisma as any).seoDimension.findFirst({
-      where: {
-        slug: 'airport-transfer-city',
-        type: 'airport_transfer',
-      },
-      include: {
-        faqGroup: {
-          include: {
-            faqs: {
-              orderBy: {
-                sortOrder: 'asc',
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (seoDimension) {
-      const variables = {
-        city_name: city.name,
-        city_slug: city.slug,
-      }
-
-      const title = applyTemplate(seoDimension.defaultTitleTemplate, variables)
-      const description = applyTemplate(seoDimension.defaultMetaDescriptionTemplate, variables)
-
-      return generateMetadata({
-        
-        title,
-        description,
-        path: `/airport-transfer/${city.slug}`,
-      })
-    }
-  } catch (error) {
-    console.error('Error generating airport SEO metadata from DB templates', error)
-  }
-
-  return generateMetadata({
-    title: `Airport Transfer in ${city.name} | Reliable Pick & Drop | ${siteName}`,
-    description: `Book airport transfers in ${city.name} with professional drivers and clean vehicles. Perfect for business trips, family arrivals, and late-night flights.`,
-    path: `/airport-transfer/${city.slug}`,
-  })
 }

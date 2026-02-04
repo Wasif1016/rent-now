@@ -2,18 +2,25 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Award, Camera, Share2, MessageCircle, Check, MapPin, Phone, Mail } from 'lucide-react'
 
-export async function SeoFooter() {
-  // Static content definition
-  const rentalServices = [
-    { name: 'Rent a Car with Driver', href: '/rent-a-car-with-driver' },
-    { name: 'Self Drive Car Rental', href: '/self-drive-car-rental' },
-    { name: 'Wedding Car Rental', href: '/wedding-car-rental' },
-    { name: 'Airport Transfer Services', href: '/airport-transfer' },
-    { name: 'Monthly & Daily Car Rental', href: '/monthly-car-rental' },
-    { name: 'Luxury, Economy & Budget Cars', href: '/luxury-car-rental' },
-    { name: 'Bus & Coaster Rental', href: '/rent-a-bus' },
-    { name: 'Tour & Travel Vehicles', href: '/tour-car-rental' },
+import { KEYWORDS } from '@/lib/routes-config'
+
+export function SeoFooter() {
+  // Derive services from central config to stay in sync
+  const serviceKeys = [
+    'car-rental-with-driver',
+    'self-drive-car-rental',
+    'wedding-car-rental',
+    'airport-transfer',
+    'monthly-daily-car-rental',
+    'luxury-economy-budget-cars',
+    'bus-coaster-rental',
+    'tour-travel-vehicles',
   ]
+
+  const rentalServices = serviceKeys
+    .map(key => KEYWORDS[key])
+    .filter(Boolean)
+    .map(k => ({ name: k.label, href: `/${k.slug}` }))
 
   const cityLinks = [
     { name: 'Rent a Car in Lahore', href: '/rent-a-car/lahore' },

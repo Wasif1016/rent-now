@@ -1,18 +1,18 @@
 import { MetadataRoute } from 'next'
+import { KEYWORDS } from '@/lib/routes-config'
 import {
   getAllCitiesForStatic,
-  getKeywordSlugs,
   getCategorySlugs,
   getModelSlugs,
   getRoutesForSitemap,
 } from '@/lib/data'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rentnow.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'www.rentnowpk.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [cities, keywordSlugs, categorySlugs, modelSlugs, routeSlugs] = await Promise.all([
+  const keywordSlugs = Object.keys(KEYWORDS)
+  const [cities, categorySlugs, modelSlugs, routeSlugs] = await Promise.all([
     getAllCitiesForStatic(),
-    getKeywordSlugs(),
     getCategorySlugs(),
     getModelSlugs(),
     getRoutesForSitemap(),

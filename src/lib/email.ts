@@ -90,8 +90,9 @@ export async function sendBookingEmail(payload: BookingEmailPayload) {
 
   try {
     await transporter.sendMail({
-      from: BREVO_FROM_EMAIL,
+      from: `"RentNowPk" <${BREVO_FROM_EMAIL}>`,
       to: BREVO_TO_EMAIL,
+      replyTo: BREVO_FROM_EMAIL,
       subject,
       text,
     })
@@ -259,8 +260,9 @@ Important: Please change your password after your first login for security.
     `.trim()
 
     await transporter.sendMail({
-      from: BREVO_FROM_EMAIL,
+      from: `"RentNowPk" <${BREVO_FROM_EMAIL}>`,
       to,
+      replyTo: BREVO_FROM_EMAIL,
       subject,
       text: textBody,
       html: htmlBody,

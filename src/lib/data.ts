@@ -729,31 +729,7 @@ export const getModelSlugs = cache(async () => {
   return rows.map((r) => r.slug)
 })
 
-// Keyword (SeoDimension type=keyword) for dynamic SEO URLs
-export const getKeywordBySlug = cache(async (slug: string) => {
-  return await prisma.seoDimension.findUnique({
-    where: {
-      slug_type: { slug, type: 'keyword' },
-    },
-    select: {
-      id: true,
-      slug: true,
-      type: true,
-      basePattern: true,
-      defaultH1Template: true,
-      defaultTitleTemplate: true,
-      defaultMetaDescriptionTemplate: true,
-    },
-  })
-})
-
-export const getKeywordSlugs = cache(async () => {
-  const rows = await prisma.seoDimension.findMany({
-    where: { type: 'keyword' },
-    select: { slug: true },
-  })
-  return rows.map((r) => r.slug)
-})
+// Keyword lookup moved to src/lib/routes-config.ts
 
 // Get all cities for sitemap (id + slug)
 export const getCitiesForSitemap = cache(async () => {

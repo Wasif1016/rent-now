@@ -82,7 +82,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   />
 
                   <div className="absolute bottom-2 left-2">
-                    <p className="text-sm text-white">{vehicle.name}</p>
+                    <p className="text-sm text-white">{vehicle.title}</p>
                   </div>
                 </div>
                 {otherImages.length > 0 && (
