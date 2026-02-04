@@ -1,4 +1,4 @@
-import { prisma, cache } from './prisma'
+import { prisma, cache } from "./prisma";
 
 /** All active cities (for hero dropdown, cities page, API). */
 export const getCities = cache(async () => {
@@ -10,16 +10,17 @@ export const getCities = cache(async () => {
       slug: true,
       province: true,
     },
-    orderBy: { name: 'asc' },
-  })
-})
+    orderBy: { name: "asc" },
+  });
+});
 
 // Cached functions for per-request deduplication
 export const getCitiesWithVehicles = cache(async () => {
   // First check if we have any vehicles at all
-  const hasVehicles = await prisma.vehicle.count({
-    where: { isAvailable: true },
-  }) > 0
+  const hasVehicles =
+    (await prisma.vehicle.count({
+      where: { isAvailable: true },
+    })) > 0;
 
   if (hasVehicles) {
     // Only show cities that have available vehicles
@@ -39,9 +40,9 @@ export const getCitiesWithVehicles = cache(async () => {
         province: true,
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
-    })
+    });
   }
 
   // If no vehicles exist yet, show all active cities
@@ -56,10 +57,10 @@ export const getCitiesWithVehicles = cache(async () => {
       province: true,
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
-  })
-})
+  });
+});
 
 // Get city by slug with vehicle count
 export const getCityBySlug = cache(async (slug: string) => {
@@ -81,17 +82,31 @@ export const getCityBySlug = cache(async (slug: string) => {
         },
       },
     },
-  })
+  });
 
-  return city
-})
+  return city;
+});
+
+export const getAllTownsForSitemap = cache(async () => {
+  return await prisma.town.findMany({
+    where: { isActive: true },
+    select: {
+      slug: true,
+      city: {
+        select: {
+          slug: true,
+        },
+      },
+    },
+  });
+});
 
 // Aggregate city stats (vehicles, vendors, routes) by slug
 export const getCityStatsBySlug = cache(async (slug: string) => {
-  const city = await getCityBySlug(slug)
+  const city = await getCityBySlug(slug);
 
   if (!city) {
-    return null
+    return null;
   }
 
   const [vendorsCount, routesCount] = await Promise.all([
@@ -116,15 +131,15 @@ export const getCityStatsBySlug = cache(async (slug: string) => {
         },
       },
     }),
-  ])
+  ]);
 
   return {
     city,
     vehiclesCount: city._count.vehicles,
     vendorsCount,
     routesCount,
-  }
-})
+  };
+});
 
 // Limited vendor list for a city
 export const getCityVendors = cache(async (slug: string, limit: number = 6) => {
@@ -147,13 +162,13 @@ export const getCityVendors = cache(async (slug: string, limit: number = 6) => {
       verificationStatus: true,
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     take: limit,
-  })
+  });
 
-  return vendors
-})
+  return vendors;
+});
 
 // Intercity routes starting from a given city
 export const getCityRoutes = cache(async (slug: string, limit: number = 6) => {
@@ -182,13 +197,13 @@ export const getCityRoutes = cache(async (slug: string, limit: number = 6) => {
       },
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     take: limit,
-  })
+  });
 
-  return routes
-})
+  return routes;
+});
 
 // ============================================
 // SEO Route (new Route model) – slug-based, many vehicles per route
@@ -239,52 +254,56 @@ const routeIncludeWithVehicles = {
       },
     },
   },
-} as const
+} as const;
 
 export const getRouteBySlug = cache(async (slug: string) => {
   const route = await prisma.route.findUnique({
     where: { slug },
     include: routeIncludeWithVehicles,
-  })
-  if (!route) return null
+  });
+  if (!route) return null;
   return {
     ...route,
     vehicles: route.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
-  }
-})
+  };
+});
 
-export const getRoutesByCity = cache(async (citySlug: string, limit: number = 12) => {
-  const routes = await prisma.route.findMany({
-    where: {
-      OR: [
-        { originCity: { slug: citySlug } },
-        { destinationCity: { slug: citySlug } },
-      ],
-    },
-    include: routeIncludeWithVehicles,
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-  })
-  return routes.map((r) => ({
-    ...r,
-    vehicles: r.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
-  }))
-})
-
-export const getRoutesByCities = cache(async (originSlug: string, destinationSlug: string) => {
-  const route = await prisma.route.findFirst({
-    where: {
-      originCity: { slug: originSlug },
-      destinationCity: { slug: destinationSlug },
-    },
-    include: routeIncludeWithVehicles,
-  })
-  if (!route) return null
-  return {
-    ...route,
-    vehicles: route.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
+export const getRoutesByCity = cache(
+  async (citySlug: string, limit: number = 12) => {
+    const routes = await prisma.route.findMany({
+      where: {
+        OR: [
+          { originCity: { slug: citySlug } },
+          { destinationCity: { slug: citySlug } },
+        ],
+      },
+      include: routeIncludeWithVehicles,
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return routes.map((r) => ({
+      ...r,
+      vehicles: r.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
+    }));
   }
-})
+);
+
+export const getRoutesByCities = cache(
+  async (originSlug: string, destinationSlug: string) => {
+    const route = await prisma.route.findFirst({
+      where: {
+        originCity: { slug: originSlug },
+        destinationCity: { slug: destinationSlug },
+      },
+      include: routeIncludeWithVehicles,
+    });
+    if (!route) return null;
+    return {
+      ...route,
+      vehicles: route.vehicles.map((vr) => vr.vehicle).filter((v) => v != null),
+    };
+  }
+);
 
 export const getRoutesForSitemap = cache(async () => {
   const routes = await prisma.route.findMany({
@@ -298,9 +317,9 @@ export const getRoutesForSitemap = cache(async () => {
       originCity: { select: { slug: true } },
       destinationCity: { select: { slug: true } },
     },
-  })
-  return routes
-})
+  });
+  return routes;
+});
 
 /** All routes (with or without vehicles) for routes index page, grouped by origin city. */
 export const getRoutesListGroupedByOrigin = cache(async () => {
@@ -310,16 +329,22 @@ export const getRoutesListGroupedByOrigin = cache(async () => {
       originCity: { select: { id: true, name: true, slug: true } },
       destinationCity: { select: { id: true, name: true, slug: true } },
     },
-    orderBy: [{ originCity: { name: 'asc' } }, { destinationCity: { name: 'asc' } }],
-  })
-  const grouped = new Map<string, typeof routes>()
+    orderBy: [
+      { originCity: { name: "asc" } },
+      { destinationCity: { name: "asc" } },
+    ],
+  });
+  const grouped = new Map<string, typeof routes>();
   for (const r of routes) {
-    const key = r.originCity.name
-    if (!grouped.has(key)) grouped.set(key, [])
-    grouped.get(key)!.push(r)
+    const key = r.originCity.name;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(r);
   }
-  return { routes: Object.fromEntries(grouped), sortedCities: Array.from(grouped.keys()).sort() }
-})
+  return {
+    routes: Object.fromEntries(grouped),
+    sortedCities: Array.from(grouped.keys()).sort(),
+  };
+});
 
 export const getVehiclesByRoute = cache(async (routeId: number) => {
   const rows = await prisma.vehicleRoute.findMany({
@@ -354,15 +379,15 @@ export const getVehiclesByRoute = cache(async (routeId: number) => {
         },
       },
     },
-  })
-  return rows.map((r) => r.vehicle).filter((v) => v != null)
-})
+  });
+  return rows.map((r) => r.vehicle).filter((v) => v != null);
+});
 
 // Get town by slug
 export const getTownBySlug = cache(async (slug: string, cityId?: string) => {
-  const where: any = { slug }
+  const where: any = { slug };
   if (cityId) {
-    where.cityId = cityId
+    where.cityId = cityId;
   }
 
   const town = await prisma.town.findFirst({
@@ -390,10 +415,10 @@ export const getTownBySlug = cache(async (slug: string, cityId?: string) => {
         },
       },
     },
-  })
+  });
 
-  return town
-})
+  return town;
+});
 
 // Get towns by city
 export const getTownsByCity = cache(async (cityId: string) => {
@@ -418,236 +443,235 @@ export const getTownsByCity = cache(async (cityId: string) => {
       },
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
-  })
-})
+  });
+});
 
 // Search vehicles with filters
-export const searchVehicles = cache(async (filters: {
-  citySlug?: string
-  townSlug?: string
-  brandSlug?: string
-  vehicleSlug?: string
-  modelSlug?: string
-  vehicleTypeSlug?: string
-  categorySlug?: string
-  categoryId?: string
-  typeId?: string
-  driverOption?: 'WITH_DRIVER' | 'WITHOUT_DRIVER' | 'BOTH'
-  seatingCapacity?: number
-  fuelType?: string
-  transmission?: string
-  sortBy?: 'date' | 'popularity'
-  page?: number
-  limit?: number
-}) => {
-  const {
-    citySlug,
-    townSlug,
-    brandSlug,
-    vehicleSlug,
-    modelSlug,
-    vehicleTypeSlug,
-    categorySlug,
-    categoryId,
-    typeId,
-    driverOption,
-    seatingCapacity,
-    fuelType,
-    transmission,
-    sortBy = 'popularity',
-    page = 1,
-    limit = 12,
-  } = filters
+export const searchVehicles = cache(
+  async (filters: {
+    citySlug?: string;
+    townSlug?: string;
+    brandSlug?: string;
+    vehicleSlug?: string;
+    modelSlug?: string;
+    vehicleTypeSlug?: string;
+    categorySlug?: string;
+    categoryId?: string;
+    typeId?: string;
+    driverOption?: "WITH_DRIVER" | "WITHOUT_DRIVER" | "BOTH";
+    seatingCapacity?: number;
+    fuelType?: string;
+    transmission?: string;
+    sortBy?: "date" | "popularity";
+    page?: number;
+    limit?: number;
+  }) => {
+    const {
+      citySlug,
+      townSlug,
+      brandSlug,
+      vehicleSlug,
+      modelSlug,
+      vehicleTypeSlug,
+      categorySlug,
+      categoryId,
+      typeId,
+      driverOption,
+      seatingCapacity,
+      fuelType,
+      transmission,
+      sortBy = "popularity",
+      page = 1,
+      limit = 12,
+    } = filters;
 
-  const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
-  // Build where clause
-  const where: any = {
-    isAvailable: true,
-  }
+    // Build where clause
+    const where: any = {
+      isAvailable: true,
+    };
 
-  // Filter by city
-  if (citySlug) {
-    where.city = {
-      slug: citySlug,
+    // Filter by city
+    if (citySlug) {
+      where.city = {
+        slug: citySlug,
+      };
     }
-  }
 
-  // Filter by town (if specified)
-  if (townSlug) {
-    where.town = {
-      slug: townSlug,
+    // Filter by town (if specified)
+    if (townSlug) {
+      where.town = {
+        slug: townSlug,
+      };
     }
-  }
 
-  // Filter by brand (if specified)
-  if (brandSlug) {
-    where.vehicleModel = {
-      ...(typeof where.vehicleModel === 'object' ? where.vehicleModel : {}),
-      vehicleBrand: {
-        slug: brandSlug,
-      },
-    }
-  }
-
-  // Filter by model slug (VehicleModel.slug, e.g. toyota-corolla) or listing slug
-  const slugFilter = modelSlug ?? vehicleSlug
-  if (slugFilter) {
-    const modelBranch: any = {
-      vehicleModel: {
-        slug: slugFilter,
-        ...(brandSlug ? { vehicleBrand: { slug: brandSlug } } : {}),
-      },
-    }
-    where.OR = [modelBranch, { slug: slugFilter }]
-  }
-
-  // Filter by vehicle type (if specified)
-  if (vehicleTypeSlug) {
-    where.vehicleType = {
-      slug: vehicleTypeSlug,
-    }
-  }
-
-  if (categorySlug) {
-    where.category = {
-      slug: categorySlug,
-    }
-  }
-  if (categoryId) {
-    where.categoryId = categoryId
-  }
-  if (typeId) {
-    where.vehicleTypeId = typeId
-  }
-  if (driverOption) {
-    where.driverOption = driverOption
-  }
-  if (seatingCapacity != null) {
-    where.AND = [
-      ...(Array.isArray(where.AND) ? where.AND : []),
-      {
-        OR: [
-          { seatingCapacity },
-          { seats: seatingCapacity },
-        ],
-      },
-    ]
-  }
-
-  if (fuelType) {
-    where.fuelType = fuelType
-  }
-
-  if (transmission) {
-    where.transmission = transmission
-  }
-
-  // Build orderBy
-  let orderBy: any = {}
-  if (sortBy === 'date') {
-    orderBy = { createdAt: 'desc' }
-  } else {
-    orderBy = { views: 'desc' }
-  }
-
-  const [vehicles, total] = await Promise.all([
-    prisma.vehicle.findMany({
-      where,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        year: true,
-        mileage: true,
-        fuelType: true,
-        transmission: true,
-        seats: true,
-        color: true,
-        features: true,
-        images: true,
-        views: true,
-        featured: true,
-        city: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
+    // Filter by brand (if specified)
+    if (brandSlug) {
+      where.vehicleModel = {
+        ...(typeof where.vehicleModel === "object" ? where.vehicleModel : {}),
+        vehicleBrand: {
+          slug: brandSlug,
         },
-        town: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        vendor: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            verificationStatus: true,
-            phone: true,
-            whatsappPhone: true,
-          },
-        },
-        priceWithinCity: true,
-        priceOutOfCity: true,
-        priceDaily: true,
-        priceHourly: true,
-        priceMonthly: true,
-        priceWithDriver: true,
-        priceSelfDrive: true,
-        seatingCapacity: true,
-        driverOption: true,
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        vehicleType: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
+      };
+    }
+
+    // Filter by model slug (VehicleModel.slug, e.g. toyota-corolla) or listing slug
+    const slugFilter = modelSlug ?? vehicleSlug;
+    if (slugFilter) {
+      const modelBranch: any = {
         vehicleModel: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            vehicleBrand: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
+          slug: slugFilter,
+          ...(brandSlug ? { vehicleBrand: { slug: brandSlug } } : {}),
+        },
+      };
+      where.OR = [modelBranch, { slug: slugFilter }];
+    }
+
+    // Filter by vehicle type (if specified)
+    if (vehicleTypeSlug) {
+      where.vehicleType = {
+        slug: vehicleTypeSlug,
+      };
+    }
+
+    if (categorySlug) {
+      where.category = {
+        slug: categorySlug,
+      };
+    }
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+    if (typeId) {
+      where.vehicleTypeId = typeId;
+    }
+    if (driverOption) {
+      where.driverOption = driverOption;
+    }
+    if (seatingCapacity != null) {
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        {
+          OR: [{ seatingCapacity }, { seats: seatingCapacity }],
+        },
+      ];
+    }
+
+    if (fuelType) {
+      where.fuelType = fuelType;
+    }
+
+    if (transmission) {
+      where.transmission = transmission;
+    }
+
+    // Build orderBy
+    let orderBy: any = {};
+    if (sortBy === "date") {
+      orderBy = { createdAt: "desc" };
+    } else {
+      orderBy = { views: "desc" };
+    }
+
+    const [vehicles, total] = await Promise.all([
+      prisma.vehicle.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          year: true,
+          mileage: true,
+          fuelType: true,
+          transmission: true,
+          seats: true,
+          color: true,
+          features: true,
+          images: true,
+          views: true,
+          featured: true,
+          city: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          town: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          vendor: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              verificationStatus: true,
+              phone: true,
+              whatsappPhone: true,
+            },
+          },
+          priceWithinCity: true,
+          priceOutOfCity: true,
+          priceDaily: true,
+          priceHourly: true,
+          priceMonthly: true,
+          priceWithDriver: true,
+          priceSelfDrive: true,
+          seatingCapacity: true,
+          driverOption: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          vehicleType: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          vehicleModel: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              vehicleBrand: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy,
-      skip,
-      take: limit,
-    }),
-    prisma.vehicle.count({ where }),
-  ])
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      prisma.vehicle.count({ where }),
+    ]);
 
-  return {
-    vehicles,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
+    return {
+      vehicles,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
-})
+);
 
 // Get all cities for static generation
 export const getAllCitiesForStatic = cache(async () => {
@@ -658,47 +682,51 @@ export const getAllCitiesForStatic = cache(async () => {
     select: {
       slug: true,
     },
-  })
-})
+  });
+});
 
 // Vehicle taxonomy: categories
 // Use raw queries so this works even when PrismaClient was cached before VehicleCategory existed (restart dev server after: bunx prisma generate)
-type VehicleCategoryRow = { id: string; name: string; slug: string }
+type VehicleCategoryRow = { id: string; name: string; slug: string };
 
 export const getVehicleCategoryBySlug = cache(async (slug: string) => {
   const rows = await prisma.$queryRaw<VehicleCategoryRow[]>`
     SELECT id, name, slug FROM "VehicleCategory" WHERE slug = ${slug} LIMIT 1
-  `
-  return rows[0] ?? null
-})
+  `;
+  return rows[0] ?? null;
+});
 
 export const getVehicleCategories = cache(async () => {
   return await prisma.$queryRaw<VehicleCategoryRow[]>`
     SELECT id, name, slug FROM "VehicleCategory" ORDER BY name ASC
-  `
-})
+  `;
+});
 
 export const getCategorySlugs = cache(async () => {
-  const rows = await prisma.$queryRaw<{ slug: string }[]>`SELECT slug FROM "VehicleCategory"`
-  return rows.map((r: { slug: string }) => r.slug)
-})
+  const rows = await prisma.$queryRaw<
+    { slug: string }[]
+  >`SELECT slug FROM "VehicleCategory"`;
+  return rows.map((r: { slug: string }) => r.slug);
+});
 
 // Vehicle taxonomy: types by category
 export const getVehicleTypesByCategoryId = cache(async (categoryId: string) => {
   return await prisma.vehicleType.findMany({
     where: { categoryId, isActive: true },
     select: { id: true, name: true, slug: true },
-    orderBy: { name: 'asc' },
-  })
-})
+    orderBy: { name: "asc" },
+  });
+});
 
-export const getVehicleTypesByCategorySlug = cache(async (categorySlug: string) => {
-  return await prisma.vehicleType.findMany({
-    where: { category: { slug: categorySlug }, isActive: true },
-    select: { id: true, name: true, slug: true },
-    orderBy: { name: 'asc' },
-  })
-})
+export const getVehicleTypesByCategorySlug = cache(
+  async (categorySlug: string) => {
+    return await prisma.vehicleType.findMany({
+      where: { category: { slug: categorySlug }, isActive: true },
+      select: { id: true, name: true, slug: true },
+      orderBy: { name: "asc" },
+    });
+  }
+);
 
 // Vehicle model by globally unique slug (e.g. toyota-corolla)
 export const getVehicleModelBySlug = cache(async (slug: string) => {
@@ -718,16 +746,16 @@ export const getVehicleModelBySlug = cache(async (slug: string) => {
         select: { id: true, name: true, slug: true },
       },
     },
-  })
-})
+  });
+});
 
 export const getModelSlugs = cache(async () => {
   const rows = await prisma.vehicleModel.findMany({
     where: { isActive: true },
     select: { slug: true },
-  })
-  return rows.map((r) => r.slug)
-})
+  });
+  return rows.map((r) => r.slug);
+});
 
 // Keyword lookup moved to src/lib/routes-config.ts
 
@@ -736,8 +764,8 @@ export const getCitiesForSitemap = cache(async () => {
   return await prisma.city.findMany({
     where: { isActive: true },
     select: { id: true, slug: true },
-  })
-})
+  });
+});
 
 // Get all towns for static generation (optional, for town-specific pages)
 export const getAllTownsForStatic = cache(async () => {
@@ -753,15 +781,16 @@ export const getAllTownsForStatic = cache(async () => {
         },
       },
     },
-  })
-})
+  });
+});
 
 // Get vehicle brands with vehicles
 export const getVehicleBrandsWithVehicles = cache(async () => {
   // First check if we have any vehicles at all
-  const hasVehicles = await prisma.vehicle.count({
-    where: { isAvailable: true },
-  }) > 0
+  const hasVehicles =
+    (await prisma.vehicle.count({
+      where: { isAvailable: true },
+    })) > 0;
 
   if (hasVehicles) {
     // Only show brands that have available vehicles
@@ -784,9 +813,9 @@ export const getVehicleBrandsWithVehicles = cache(async () => {
         slug: true,
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
-    })
+    });
   }
 
   // If no vehicles exist yet, show all active brands
@@ -800,10 +829,10 @@ export const getVehicleBrandsWithVehicles = cache(async () => {
       slug: true,
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
-  })
-})
+  });
+});
 
 // Get all vehicle types
 export const getVehicleTypes = cache(async () => {
@@ -817,17 +846,18 @@ export const getVehicleTypes = cache(async () => {
       slug: true,
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
-  })
-})
+  });
+});
 
 // Get vehicle types with vehicles (from VehicleType table)
 export const getVehicleTypesWithVehicles = cache(async () => {
   // First check if we have any vehicles at all
-  const hasVehicles = await prisma.vehicle.count({
-    where: { isAvailable: true },
-  }) > 0
+  const hasVehicles =
+    (await prisma.vehicle.count({
+      where: { isAvailable: true },
+    })) > 0;
 
   if (hasVehicles) {
     // Only show vehicle types that have available vehicles
@@ -846,9 +876,9 @@ export const getVehicleTypesWithVehicles = cache(async () => {
         slug: true,
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
-    })
+    });
   }
 
   // If no vehicles exist yet, show all active vehicle types
@@ -862,10 +892,10 @@ export const getVehicleTypesWithVehicles = cache(async () => {
       slug: true,
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
-  })
-})
+  });
+});
 
 // Get popular cities for homepage (cities with most vehicles)
 export const getPopularCities = cache(async (limit: number = 8) => {
@@ -895,12 +925,12 @@ export const getPopularCities = cache(async (limit: number = 8) => {
     },
     orderBy: {
       vehicles: {
-        _count: 'desc',
+        _count: "desc",
       },
     },
     take: limit,
-  })
-})
+  });
+});
 
 // Get all cities with vehicle counts for cities directory page
 export const getAllCitiesWithCounts = cache(async () => {
@@ -924,10 +954,10 @@ export const getAllCitiesWithCounts = cache(async () => {
       },
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
-  })
-})
+  });
+});
 
 /**
  * Vehicle filters helper
@@ -957,14 +987,14 @@ export const getVehicleFilters = cache(async () => {
     orderBy: [
       {
         vehicleBrand: {
-          name: 'asc',
+          name: "asc",
         },
       },
       {
-        name: 'asc',
+        name: "asc",
       },
     ],
-  })
+  });
 
   // 2) Fetch all available vehicles to capture custom ones
   const vehicles = await prisma.vehicle.findMany({
@@ -981,23 +1011,26 @@ export const getVehicleFilters = cache(async () => {
         },
       },
     },
-  })
+  });
 
   // 3) Build a map of filter options
-  const filterMap = new Map<string, {
-    id: string
-    name: string
-    slug: string
-    brand: {
-      id: string
-      name: string
-      slug: string
+  const filterMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      slug: string;
+      brand: {
+        id: string;
+        name: string;
+        slug: string;
+      };
     }
-  }>()
+  >();
 
   // Add predefined models
   for (const model of models) {
-    const key = `model-${model.id}`
+    const key = `model-${model.id}`;
     if (!filterMap.has(key)) {
       filterMap.set(key, {
         id: model.id,
@@ -1008,31 +1041,31 @@ export const getVehicleFilters = cache(async () => {
           name: model.vehicleBrand.name,
           slug: model.vehicleBrand.slug,
         },
-      })
+      });
     }
   }
 
   // Add custom vehicles (those without a vehicleModel)
   for (const vehicle of vehicles) {
     if (!vehicle.vehicleModel) {
-      const key = `custom-${vehicle.slug}`
+      const key = `custom-${vehicle.slug}`;
       if (!filterMap.has(key)) {
         filterMap.set(key, {
           id: vehicle.id,
           name: vehicle.title,
           slug: vehicle.slug,
           brand: {
-            id: 'custom',
-            name: 'Custom',
-            slug: 'custom',
+            id: "custom",
+            name: "Custom",
+            slug: "custom",
           },
-        })
+        });
       }
     }
   }
 
-  return Array.from(filterMap.values())
-})
+  return Array.from(filterMap.values());
+});
 
 // Get vehicle (listing) by slug
 export const getVehicleBySlug = cache(async (slug: string) => {
@@ -1108,22 +1141,24 @@ export const getVehicleBySlug = cache(async (slug: string) => {
         },
       },
     },
-  })
-})
+  });
+});
 
 // Booking functions
 export const createBooking = async (data: {
-  vehicleId: string
-  vendorId: string
-  userName: string
-  userPhone: string
-  userEmail?: string
-  bookingDate?: Date
-  message?: string
-  totalAmount?: number
+  vehicleId: string;
+  vendorId: string;
+  userName: string;
+  userPhone: string;
+  userEmail?: string;
+  bookingDate?: Date;
+  message?: string;
+  totalAmount?: number;
 }) => {
   // Platform commission is 2% of the total booking amount
-  const commissionAmount = data.totalAmount ? Math.round(data.totalAmount * 0.02) : null
+  const commissionAmount = data.totalAmount
+    ? Math.round(data.totalAmount * 0.02)
+    : null;
 
   return await prisma.booking.create({
     data: {
@@ -1136,23 +1171,23 @@ export const createBooking = async (data: {
       message: data.message,
       totalAmount: data.totalAmount,
       commissionAmount,
-      status: 'PENDING',
+      status: "PENDING",
     },
-  })
-}
+  });
+};
 
 export const getBookings = async (filters: {
-  vendorId?: string
-  vehicleId?: string
-  status?: string
-  page?: number
-  limit?: number
+  vendorId?: string;
+  vehicleId?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
 }) => {
-  const { vendorId, vehicleId, status, page = 1, limit = 20 } = filters
-  const skip = (page - 1) * limit
+  const { vendorId, vehicleId, status, page = 1, limit = 20 } = filters;
+  const skip = (page - 1) * limit;
 
   // Safety guard in case Prisma Client was generated without the Booking model
-  const anyPrisma = prisma as any
+  const anyPrisma = prisma as any;
   if (!anyPrisma.booking) {
     return {
       bookings: [],
@@ -1160,13 +1195,13 @@ export const getBookings = async (filters: {
       page,
       limit,
       totalPages: 0,
-    }
+    };
   }
 
-  const where: any = {}
-  if (vendorId) where.vendorId = vendorId
-  if (vehicleId) where.vehicleId = vehicleId
-  if (status) where.status = status
+  const where: any = {};
+  if (vendorId) where.vendorId = vendorId;
+  if (vehicleId) where.vehicleId = vehicleId;
+  if (status) where.status = status;
 
   const [bookings, total] = await Promise.all([
     anyPrisma.booking.findMany({
@@ -1197,13 +1232,13 @@ export const getBookings = async (filters: {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       skip,
       take: limit,
     }),
     anyPrisma.booking.count({ where }),
-  ])
+  ]);
 
   return {
     bookings,
@@ -1211,40 +1246,40 @@ export const getBookings = async (filters: {
     page,
     limit,
     totalPages: Math.ceil(total / limit),
-  }
-}
+  };
+};
 
 export const updateBookingStatus = async (
   id: string,
   status: string,
   totalAmount?: number
 ) => {
-  const updateData: any = { status: status as any }
+  const updateData: any = { status: status as any };
   if (totalAmount !== undefined) {
-    updateData.totalAmount = totalAmount
+    updateData.totalAmount = totalAmount;
     // Keep commission in sync with the 2% business rule
-    updateData.commissionAmount = Math.round(totalAmount * 0.02)
+    updateData.commissionAmount = Math.round(totalAmount * 0.02);
   }
 
   return await prisma.booking.update({
     where: { id },
     data: updateData,
-  })
-}
+  });
+};
 
 // Admin functions for vendor management
 export const getAllVendors = async (filters: {
-  isActive?: boolean
-  verificationStatus?: string
-  page?: number
-  limit?: number
+  isActive?: boolean;
+  verificationStatus?: string;
+  page?: number;
+  limit?: number;
 }) => {
-  const { isActive, verificationStatus, page = 1, limit = 20 } = filters
-  const skip = (page - 1) * limit
+  const { isActive, verificationStatus, page = 1, limit = 20 } = filters;
+  const skip = (page - 1) * limit;
 
-  const where: any = {}
-  if (isActive !== undefined) where.isActive = isActive
-  if (verificationStatus) where.verificationStatus = verificationStatus
+  const where: any = {};
+  if (isActive !== undefined) where.isActive = isActive;
+  if (verificationStatus) where.verificationStatus = verificationStatus;
 
   const [vendors, total] = await Promise.all([
     prisma.vendor.findMany({
@@ -1267,13 +1302,13 @@ export const getAllVendors = async (filters: {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       skip,
       take: limit,
     }),
     prisma.vendor.count({ where }),
-  ])
+  ]);
 
   return {
     vendors,
@@ -1281,8 +1316,8 @@ export const getAllVendors = async (filters: {
     page,
     limit,
     totalPages: Math.ceil(total / limit),
-  }
-}
+  };
+};
 
 export const getVendorById = async (id: string) => {
   return await prisma.vendor.findUnique({
@@ -1297,21 +1332,21 @@ export const getVendorById = async (id: string) => {
           createdAt: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
       },
     },
-  })
-}
+  });
+};
 
 // Get booking statistics
 export const getBookingStats = async (filters: {
-  vendorId?: string
-  startDate?: Date
-  endDate?: Date
+  vendorId?: string;
+  startDate?: Date;
+  endDate?: Date;
 }) => {
   // Safety guard in case Prisma Client was generated without the Booking model
-  const anyPrisma = prisma as any
+  const anyPrisma = prisma as any;
   if (!anyPrisma.booking) {
     return {
       total: 0,
@@ -1320,26 +1355,26 @@ export const getBookingStats = async (filters: {
       cancelled: 0,
       completed: 0,
       totalCommission: 0,
-    }
+    };
   }
 
-  const { vendorId, startDate, endDate } = filters
+  const { vendorId, startDate, endDate } = filters;
 
-  const where: any = {}
-  if (vendorId) where.vendorId = vendorId
+  const where: any = {};
+  if (vendorId) where.vendorId = vendorId;
   if (startDate || endDate) {
-    where.createdAt = {}
-    if (startDate) where.createdAt.gte = startDate
-    if (endDate) where.createdAt.lte = endDate
+    where.createdAt = {};
+    if (startDate) where.createdAt.gte = startDate;
+    if (endDate) where.createdAt.lte = endDate;
   }
 
   const [total, pending, confirmed, cancelled, completed] = await Promise.all([
     anyPrisma.booking.count({ where }),
-    anyPrisma.booking.count({ where: { ...where, status: 'PENDING' } }),
-    anyPrisma.booking.count({ where: { ...where, status: 'CONFIRMED' } }),
-    anyPrisma.booking.count({ where: { ...where, status: 'CANCELLED' } }),
-    anyPrisma.booking.count({ where: { ...where, status: 'COMPLETED' } }),
-  ])
+    anyPrisma.booking.count({ where: { ...where, status: "PENDING" } }),
+    anyPrisma.booking.count({ where: { ...where, status: "CONFIRMED" } }),
+    anyPrisma.booking.count({ where: { ...where, status: "CANCELLED" } }),
+    anyPrisma.booking.count({ where: { ...where, status: "COMPLETED" } }),
+  ]);
 
   const totalCommission = await anyPrisma.booking.aggregate({
     where: {
@@ -1349,7 +1384,7 @@ export const getBookingStats = async (filters: {
     _sum: {
       commissionAmount: true,
     },
-  })
+  });
 
   return {
     total,
@@ -1358,5 +1393,5 @@ export const getBookingStats = async (filters: {
     cancelled,
     completed,
     totalCommission: totalCommission._sum.commissionAmount || 0,
-  }
-}
+  };
+};

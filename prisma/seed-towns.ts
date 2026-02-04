@@ -1,10 +1,25 @@
 import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 
-const prisma = new PrismaClient();
+// Load env vars if not loaded
+if (!process.env.DATABASE_URL) {
+  require("dotenv").config();
+}
+
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL or DIRECT_URL is required");
+}
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  console.log("Starting town seeding...");
   const csvPath = path.join(
     process.cwd(),
     "src/constants/Pakistan_Cities_Towns.csv"
@@ -21,19 +36,18 @@ async function main() {
   const citiesRaw = lines[0].split(",");
   const cities = citiesRaw.map((c) => c.trim());
 
-  console.log(`Found ${cities.length} cities in CSV: ${cities.join(", ")}`);
+  console.log(`Found ${cities.length} cities in CSV.`);
 
-  // Get existing cities from DB to map names to IDs
+  // Get existing cities from DB
   const dbCities = await prisma.city.findMany({
     select: { id: true, name: true, slug: true },
   });
 
-  const cityMap = new Map<string, string>(); // Name -> ID
+  const cityMap = new Map<string, string>();
   for (const c of dbCities) {
     cityMap.set(c.name.toLowerCase(), c.id);
   }
 
-  // Iterate through town rows
   let townsCreated = 0;
   for (let i = 1; i < lines.length; i++) {
     const townsInRow = lines[i].split(",");
@@ -42,20 +56,19 @@ async function main() {
       const townName = townsInRow[j]?.trim();
       const cityName = cities[j]?.trim();
 
-      if (!townName || !cityName) continue;
+      if (!townName || !cityName || townName === "") continue;
 
       const cityId = cityMap.get(cityName.toLowerCase());
-      if (!cityId) {
-        // City from CSV not found in DB, skip for now or create if needed
-        // Since we want strictness, we skip but log
-        // console.warn(`City "${cityName}" not found in database. Skipping town "${townName}"`)
-        continue;
-      }
+      if (!cityId) continue;
 
       const slug = townName
         .toLowerCase()
         .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "");
+        .replace(/[^a-z0-9-]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      if (!slug) continue;
 
       try {
         await prisma.town.upsert({
@@ -66,7 +79,6 @@ async function main() {
             },
           },
           update: {
-            name: townName,
             isActive: true,
           },
           create: {
@@ -78,10 +90,7 @@ async function main() {
         });
         townsCreated++;
       } catch (error) {
-        console.error(
-          `Failed to upsert town "${townName}" for city "${cityName}":`,
-          error
-        );
+        // console.error(`Failed: ${townName}`, error)
       }
     }
   }
@@ -96,4 +105,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

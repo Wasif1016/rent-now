@@ -26,7 +26,10 @@ export function humanizeKeyword(keyword: string): string {
 
 /** Title-cases a string (e.g. "new york" → "New York"). */
 function toTitleCase(s: string): string {
-  return s.replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
+  return s.replace(
+    /\w\S*/g,
+    (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
+  );
 }
 
 /** Generates metadata for a city+keyword landing page. Use in the page's generateMetadata(). */
@@ -112,25 +115,53 @@ export type CityLandingPageProps = {
   city: string;
   /** Keyword in slug form (e.g. "Rent-a-car", "car-hire"). */
   keyword: string;
+  /** Optional town name for hyper-local pages. */
+  town?: string;
   /** Optional override for the hero H1 (e.g. "Toyota Corolla in Lahore – Book Trusted Vehicles"). */
   heroHeading?: string;
 };
 
-function replacePlaceholders(text: string, city: string, keywordNatural: string): string {
-  return text.replace(/\{city\}/g, city).replace(/\{keywordNatural\}/g, keywordNatural);
+function replacePlaceholders(
+  text: string,
+  city: string,
+  keywordNatural: string,
+  town?: string
+): string {
+  let result = text
+    .replace(/\{city\}/g, city)
+    .replace(/\{keywordNatural\}/g, keywordNatural);
+  if (town) {
+    result = result.replace(/\{town\}/g, town);
+  }
+  return result;
 }
 
-export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverride }: CityLandingPageProps) {
+export function CityLandingPage({
+  city,
+  keyword,
+  town,
+  heroHeading: heroHeadingOverride,
+}: CityLandingPageProps) {
   const keywordNatural = toTitleCase(humanizeKeyword(keyword));
   const cityDisplay = toTitleCase(humanizeCity(city));
-  const heroHeading = heroHeadingOverride ?? `${keywordNatural} in ${cityDisplay} – Book Trusted Vehicles`;
 
-  const whyChooseItems = WHY_CHOOSE_ITEMS.map((item) => replacePlaceholders(item, cityDisplay, keywordNatural));
-  const useCases = USE_CASES.map((item) => replacePlaceholders(item, cityDisplay, keywordNatural));
-  const trustItems = TRUST_ITEMS.map((item) => replacePlaceholders(item, cityDisplay, keywordNatural));
+  const locationDisplay = town ? `${town}, ${cityDisplay}` : cityDisplay;
+  const heroHeading =
+    heroHeadingOverride ??
+    `${keywordNatural} in ${locationDisplay} – Book Trusted Vehicles`;
+
+  const whyChooseItems = WHY_CHOOSE_ITEMS.map((item) =>
+    replacePlaceholders(item, cityDisplay, keywordNatural, town)
+  );
+  const useCases = USE_CASES.map((item) =>
+    replacePlaceholders(item, cityDisplay, keywordNatural, town)
+  );
+  const trustItems = TRUST_ITEMS.map((item) =>
+    replacePlaceholders(item, cityDisplay, keywordNatural, town)
+  );
   const faqs = DEFAULT_FAQS.map(({ q, a }) => ({
-    q: replacePlaceholders(q, cityDisplay, keywordNatural),
-    a: replacePlaceholders(a, cityDisplay, keywordNatural),
+    q: replacePlaceholders(q, cityDisplay, keywordNatural, town),
+    a: replacePlaceholders(a, cityDisplay, keywordNatural, town),
   }));
 
   return (
@@ -149,13 +180,18 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
               Looking for {keywordNatural} in {cityDisplay}?
             </h2>
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Our platform helps you connect with trusted local vehicle rental services in {cityDisplay}, making booking simple and reliable.
+              Our platform helps you connect with trusted local vehicle rental
+              services in {cityDisplay}, making booking simple and reliable.
             </p>
             <p className="text-normal md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Whether you need a vehicle for daily travel, family trips, business use, tours, or special occasions, you can explore verified rental options available within {cityDisplay} and nearby areas.
+              Whether you need a vehicle for daily travel, family trips,
+              business use, tours, or special occasions, you can explore
+              verified rental options available within {cityDisplay} and nearby
+              areas.
             </p>
             <p className="text-normal md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Instead of searching multiple places, you can compare vehicles, understand pricing, and book confidently through one platform.
+              Instead of searching multiple places, you can compare vehicles,
+              understand pricing, and book confidently through one platform.
             </p>
           </div>
         </div>
@@ -172,7 +208,9 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
               Why Choose {keywordNatural} in {cityDisplay} Through Us?
             </h2>
             <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Renting a vehicle locally offers better availability and faster coordination. That&apos;s why people prefer using our platform in {cityDisplay}:
+              Renting a vehicle locally offers better availability and faster
+              coordination. That&apos;s why people prefer using our platform in{" "}
+              {cityDisplay}:
             </p>
           </div>
           <div className="grid gap-6 lg:gap-8 md:grid-cols-2">
@@ -192,7 +230,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 ))}
               </ul>
               <p className="text-normal text-gray-400 mt-4">
-                Our goal is to make {keywordNatural} in {cityDisplay} smooth, affordable, and dependable.
+                Our goal is to make {keywordNatural} in {cityDisplay} smooth,
+                affordable, and dependable.
               </p>
             </div>
 
@@ -207,7 +246,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 Vehicles Available in {cityDisplay}
               </h3>
               <p className="text-gray-400 text-normal mb-4">
-                Depending on availability, you can book the following vehicles in {cityDisplay}:
+                Depending on availability, you can book the following vehicles
+                in {cityDisplay}:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {VEHICLE_TYPE_ITEMS.map(({ icon: Icon, label }, i) => (
@@ -221,7 +261,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-3">
-                Vehicle availability may vary by area and rental provider within {cityDisplay}.
+                Vehicle availability may vary by area and rental provider within{" "}
+                {cityDisplay}.
               </p>
             </div>
           </div>
@@ -240,7 +281,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 Common Reasons People Book in {cityDisplay}
               </h3>
               <p className="text-normal text-gray-400">
-                People choose {keywordNatural} in {cityDisplay} for many purposes, including:
+                People choose {keywordNatural} in {cityDisplay} for many
+                purposes, including:
               </p>
               <ul className="mt-3 grid gap-2 text-normal text-gray-400">
                 {useCases.map((item, i) => (
@@ -251,7 +293,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 ))}
               </ul>
               <p className="text-normal md:text-lg text-muted-foreground mt-3 leading-relaxed">
-                Local rental providers understand city routes, traffic, and timing better — making your experience smoother.
+                Local rental providers understand city routes, traffic, and
+                timing better — making your experience smoother.
               </p>
             </div>
 
@@ -267,24 +310,44 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
               </p>
               <ol className="mt-4 space-y-3 text-normal md:text-lg text-emerald-50/80">
                 <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">1</span>
-                  <span className="flex-1 self-center">Browse available vehicles in {cityDisplay}</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
+                    1
+                  </span>
+                  <span className="flex-1 self-center">
+                    Browse available vehicles in {cityDisplay}
+                  </span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">2</span>
-                  <span className="flex-1 self-center">Submit your booking request</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
+                    2
+                  </span>
+                  <span className="flex-1 self-center">
+                    Submit your booking request
+                  </span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">3</span>
-                  <span className="flex-1 self-center">Pay a small advance to confirm</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
+                    3
+                  </span>
+                  <span className="flex-1 self-center">
+                    Pay a small advance to confirm
+                  </span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">4</span>
-                  <span className="flex-1 self-center">Our team coordinates with the local rental provider</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
+                    4
+                  </span>
+                  <span className="flex-1 self-center">
+                    Our team coordinates with the local rental provider
+                  </span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">5</span>
-                  <span className="flex-1 self-center">Vehicle is arranged as per your requirement</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
+                    5
+                  </span>
+                  <span className="flex-1 self-center">
+                    Vehicle is arranged as per your requirement
+                  </span>
                 </li>
               </ol>
               <p className="text-normal md:text-lg text-emerald-50/80 mt-3 leading-relaxed">
@@ -307,7 +370,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 Trusted Local Rental Businesses in {cityDisplay}
               </h3>
               <p className="text-gray-400 text-normal mb-3">
-                We focus on listing genuine, locally operating rental businesses in {cityDisplay}.
+                We focus on listing genuine, locally operating rental businesses
+                in {cityDisplay}.
               </p>
               <p className="text-gray-400 text-normal mb-3">
                 Each business profile may include:
@@ -341,7 +405,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
                 ))}
               </ul>
               <p className="text-gray-400 text-normal">
-                You can find options ranging from budget-friendly rentals to premium vehicles, depending on your needs.
+                You can find options ranging from budget-friendly rentals to
+                premium vehicles, depending on your needs.
               </p>
             </div>
           </div>
@@ -359,12 +424,17 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
               If you&apos;re searching for:
             </p>
             <ul className="space-y-1 text-normal text-gray-400 mb-4">
-              <li>• {keywordNatural} near me in {cityDisplay}</li>
-              <li>• best {keywordNatural} in {cityDisplay}</li>
+              <li>
+                • {keywordNatural} near me in {cityDisplay}
+              </li>
+              <li>
+                • best {keywordNatural} in {cityDisplay}
+              </li>
               <li>• affordable vehicle rental in {cityDisplay}</li>
             </ul>
             <p className="text-gray-400 text-normal">
-              This page helps you find reliable and verified rental options available locally.
+              This page helps you find reliable and verified rental options
+              available locally.
             </p>
           </div>
         </div>
@@ -405,7 +475,8 @@ export function CityLandingPage({ city, keyword, heroHeading: heroHeadingOverrid
               Ready to proceed with {keywordNatural} in {cityDisplay}?
             </h2>
             <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-              Compare vehicles, connect with trusted local rental businesses, and book your vehicle in {cityDisplay} today.
+              Compare vehicles, connect with trusted local rental businesses,
+              and book your vehicle in {cityDisplay} today.
             </p>
             <Link href="/view-all-vehicles">
               <Button
