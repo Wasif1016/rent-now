@@ -79,9 +79,10 @@ export async function generateMetadata({
     return { title: "Not Found" };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "rentnowpk.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.rentnowpk.com";
   const path = segments.join("/");
-  const canonical = `https://${baseUrl}/vehicles/${path}`;
+  const canonical = `${baseUrl}/vehicles/${path}`;
 
   if (resolved.pageType === "vehicle_category" && resolved.category) {
     const name = resolved.category.name.replace(/-/g, " ");

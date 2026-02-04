@@ -1,15 +1,14 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'www.rentnowpk.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rentnowpk.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/api/', '/admin/'],
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/api/", "/admin/"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
-  }
+  };
 }
-

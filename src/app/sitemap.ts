@@ -8,7 +8,7 @@ import {
   getAllTownsForSitemap,
 } from "@/lib/data";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "www.rentnowpk.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rentnowpk.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const keywordSlugs = Object.keys(KEYWORDS);

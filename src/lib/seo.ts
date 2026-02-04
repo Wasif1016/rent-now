@@ -9,7 +9,7 @@ interface SEOConfig {
 }
 
 const siteName = "Rent Now";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "www.rentnowpk.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rentnowpk.com";
 
 function applyTemplate(
   template: string,
@@ -102,7 +102,7 @@ export function resolveFaqs(resolved: ResolvedResult) {
 
 export function generateMetadata(config: SEOConfig): Metadata {
   const { title, description, path } = config;
-  const canonical = `https://${siteUrl}${path}`;
+  const canonical = `${siteUrl}${path}`;
 
   return {
     title,
@@ -194,7 +194,7 @@ export function generateStructuredData(
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: `https://${siteUrl}${item.url}`,
+      item: `${siteUrl}${item.url}`,
     })),
   });
 
@@ -213,7 +213,7 @@ export function generateStructuredData(
           "@type": "Product",
           name: vehicle.title,
           description: `${vehicle.title} available for rent`,
-          url: `https://${siteUrl}/listings/${vehicle.slug}`,
+          url: `${siteUrl}/listings/${vehicle.slug}`,
           image: (vehicle.images as string[])?.[0] || "",
           brand: {
             "@type": "Brand",
