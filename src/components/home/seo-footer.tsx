@@ -111,25 +111,6 @@ export function SeoFooter() {
               tours, airport transfers, business travel, and daily use at
               affordable prices.
             </p>
-            {/* <p className="text-sm text-gray-300 mb-6 leading-relaxed">
-              Whether you need a car rental in Lahore, rent a car in Karachi, or a wedding car in Bahawalnagar, our platform makes booking easy and fast.
-            </p> */}
-
-            {/* Social Icons */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#0f1419] flex items-center justify-center hover:bg-[#0f1419]/80 transition-colors cursor-pointer">
-                <Award className="h-5 w-5 text-white" />
-              </div>
-              <div className="w-10 h-10 rounded-full bg-[#0f1419] flex items-center justify-center hover:bg-[#0f1419]/80 transition-colors cursor-pointer">
-                <Camera className="h-5 w-5 text-white" />
-              </div>
-              <div className="w-10 h-10 rounded-full bg-[#0f1419] flex items-center justify-center hover:bg-[#0f1419]/80 transition-colors cursor-pointer">
-                <Share2 className="h-5 w-5 text-white" />
-              </div>
-              <div className="w-10 h-10 rounded-full bg-[#0f1419] flex items-center justify-center hover:bg-[#0f1419]/80 transition-colors cursor-pointer">
-                <MessageCircle className="h-5 w-5 text-white" />
-              </div>
-            </div>
           </div>
 
           {/* Column 2: Car Rental Services */}
@@ -187,8 +168,7 @@ export function SeoFooter() {
                 </li>
               ))}
             </ul>
-
-                  </div>
+          </div>
 
           {/* Column 5: Quick Links & Contact */}
           <div>
@@ -232,12 +212,12 @@ export function SeoFooter() {
           <div className="flex flex-wrap items-center gap-4">
             {/* Email */}
             <a
-              href="mailto:info@rentnowpk.online"
+              href="mailto:info@rentnowpk.com"
               className="flex items-center gap-2 px-4 py-2 border border-[#C0F11C] rounded bg-[#0f1419] hover:bg-[#C0F11C]/10 transition-colors"
             >
               <Mail className="h-4 w-4 text-[#C0F11C]" />
               <span className="text-sm font-semibold text-[#C0F11C]">
-                info@rentnowpk.online
+                info@rentnowpk.com
               </span>
             </a>
 
