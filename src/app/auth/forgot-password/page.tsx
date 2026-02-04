@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { Suspense, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/auth-context'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function ForgotPasswordPageInner() {
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const { resetPassword } = useAuth()
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { resetPassword } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    const { error } = await resetPassword(email)
+    const { error } = await resetPassword(email);
 
     if (error) {
-      setError(error.message)
-      setLoading(false)
+      setError(error.message);
+      setLoading(false);
     } else {
-      setSuccess(true)
-      setLoading(false)
+      setSuccess(true);
+      setLoading(false);
     }
-  }
+  };
 
   if (success) {
     return (
@@ -53,30 +53,34 @@ function ForgotPasswordPageInner() {
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Check your email
+              </h1>
               <p className="text-gray-600 mb-2">
-                We've sent a password reset link to <strong>{email}</strong>
+                We&apos;ve sent a password reset link to{" "}
+                <strong>{email}</strong>
               </p>
               <p className="text-sm text-gray-500">
-                Please check your inbox and click the link to reset your password.
-                If you don&apos;t see it in a few minutes, check your spam or junk folder.
+                Please check your inbox and click the link to reset your
+                password. If you don&apos;t see it in a few minutes, check your
+                spam or junk folder.
               </p>
             </div>
 
             <div className="mt-6 space-y-4">
               <Button
-                onClick={() => router.push('/auth/login')}
+                onClick={() => router.push("/auth/login")}
                 className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
               >
                 Back to Login
               </Button>
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  Didn't receive the email?{' '}
+                  Didn&apos;t receive the email?{" "}
                   <button
                     onClick={() => {
-                      setSuccess(false)
-                      setEmail('')
+                      setSuccess(false);
+                      setEmail("");
                     }}
                     className="text-[#10b981] font-semibold hover:underline"
                   >
@@ -88,7 +92,7 @@ function ForgotPasswordPageInner() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -96,8 +100,13 @@ function ForgotPasswordPageInner() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password</h1>
-            <p className="text-gray-600">Enter your email address and we'll send you a link to reset your password</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Forgot Password
+            </h1>
+            <p className="text-gray-600">
+              Enter your email address and we&apos;ll send you a link to reset
+              your password
+            </p>
           </div>
 
           {error && (
@@ -125,14 +134,17 @@ function ForgotPasswordPageInner() {
               className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
               disabled={loading}
             >
-              {loading ? 'Sending...' : 'Send Reset Link'}
+              {loading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Remember your password?{' '}
-              <Link href="/auth/login" className="text-[#10b981] font-semibold hover:underline">
+              Remember your password?{" "}
+              <Link
+                href="/auth/login"
+                className="text-[#10b981] font-semibold hover:underline"
+              >
                 Sign in
               </Link>
             </p>
@@ -140,7 +152,7 @@ function ForgotPasswordPageInner() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function ForgotPasswordPage() {
@@ -157,6 +169,5 @@ export default function ForgotPasswordPage() {
     >
       <ForgotPasswordPageInner />
     </Suspense>
-  )
+  );
 }
-

@@ -37,8 +37,8 @@ export default function NotFound() {
               Page Not Found
             </h2>
             <p className="text-xl md:text-2xl text-gray-400 font-medium leading-relaxed">
-              We couldn't find the vehicle or route you're looking for. Let's
-              get you back on the right track.
+              We couldn&apos;t find the vehicle or route you&apos;re looking
+              for. Let&apos;s get you back on the right track.
             </p>
           </div>
 
@@ -49,9 +49,7 @@ export default function NotFound() {
               className="bg-[#C0F11C] text-[#0f1419] hover:bg-[#A9D718] font-black px-6 py-4 h-auto rounded-md text-xl shadow-[0_0_40px_rgba(192,241,28,0.2)] transition-all hover:scale-105"
               asChild
             >
-              <Link href="/">
-                Back to Home
-              </Link>
+              <Link href="/">Back to Home</Link>
             </Button>
             <Button
               size="lg"
@@ -59,9 +57,7 @@ export default function NotFound() {
               className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-[#C0F11C]/50 text-white font-bold px-6 py-4 h-auto rounded-full text-md transition-all"
               asChild
             >
-              <Link href="/view-all-vehicles">
-                Explore Vehicles
-              </Link>
+              <Link href="/view-all-vehicles">Explore Vehicles</Link>
             </Button>
           </div>
 

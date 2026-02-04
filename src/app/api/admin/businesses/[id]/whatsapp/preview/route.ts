@@ -5,7 +5,7 @@ import { decryptPassword } from '@/lib/services/crypto.service'
 import { replaceTemplateVariables } from '@/lib/services/template.service'
 
 function htmlToPlainText(html: string): string {
-  let text = html
+  const text = html
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
     .replace(/<\/div>/gi, '\n')

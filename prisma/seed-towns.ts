@@ -4,9 +4,11 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 
+import { config } from "dotenv";
+
 // Load env vars if not loaded
 if (!process.env.DATABASE_URL) {
-  require("dotenv").config();
+  config();
 }
 
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;

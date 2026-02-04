@@ -1,74 +1,80 @@
-'use client'
+"use client";
 
-import { Suspense, useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/auth-context'
-import { createClient } from '@/lib/supabase-client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { createClient } from "@/lib/supabase-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function LoginPageInner() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const errorParam = searchParams.get('error')
-    const messageParam = searchParams.get('message')
+    const errorParam = searchParams.get("error");
+    const messageParam = searchParams.get("message");
     if (errorParam) {
-      setError(errorParam)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(errorParam);
     }
     if (messageParam) {
-      setMessage(messageParam)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMessage(messageParam);
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(email, password);
 
     if (error) {
-      setError(error.message)
-      setLoading(false)
+      setError(error.message);
+      setLoading(false);
     } else {
       // Get the user session to check role
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session?.user) {
-        const role = session.user.user_metadata?.role
-        const redirect = searchParams.get('redirect')
-        
+        const role = session.user.user_metadata?.role;
+        const redirect = searchParams.get("redirect");
+
         if (redirect) {
-          router.push(redirect)
-        } else if (role === 'admin') {
-          router.push('/admin')
+          router.push(redirect);
+        } else if (role === "admin") {
+          router.push("/admin");
         } else {
-          router.push('/vendor')
+          router.push("/vendor");
         }
       } else {
-        router.push('/')
+        router.push("/");
       }
-      router.refresh()
+      router.refresh();
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center my-12 bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h1>
             <p className="text-gray-600">Sign in to your account to continue</p>
           </div>
 
@@ -124,14 +130,17 @@ function LoginPageInner() {
               className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-[#10b981] font-semibold hover:underline">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/auth/signup"
+                className="text-[#10b981] font-semibold hover:underline"
+              >
                 Sign up
               </Link>
             </p>
@@ -139,7 +148,7 @@ function LoginPageInner() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
@@ -156,6 +165,5 @@ export default function LoginPage() {
     >
       <LoginPageInner />
     </Suspense>
-  )
+  );
 }
-

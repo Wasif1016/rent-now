@@ -1,268 +1,280 @@
-'use client'
+"use client";
 
-import { useState, FormEvent, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { ChevronDown, X, Search } from 'lucide-react'
+import { useState, FormEvent, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ChevronDown, X, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import Image from 'next/image'
-import { Input } from '../ui/input'
+} from "@/components/ui/dialog";
+import Image from "next/image";
+import { Input } from "../ui/input";
 
 interface City {
-  id: string
-  name: string
-  slug: string
-  province: string | null
+  id: string;
+  name: string;
+  slug: string;
+  province: string | null;
 }
 
 interface VehicleModel {
-  id: string
-  name: string
-  slug: string
+  id: string;
+  name: string;
+  slug: string;
   brand: {
-    id: string
-    name: string
-    slug: string
-  }
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface HeroSearchFormProps {
-  cities: City[]
-  vehicleModels: VehicleModel[]
-  heading?: string
+  cities: City[];
+  vehicleModels: VehicleModel[];
+  heading?: string;
 }
 
-type TabType = 'vehicle' | 'route'
+type TabType = "vehicle" | "route";
 
-export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFormProps) {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState<TabType>('vehicle')
+export function HeroSearchForm({
+  cities,
+  vehicleModels,
+  heading,
+}: HeroSearchFormProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabType>("vehicle");
 
   // Vehicle tab state
-  const [city, setCity] = useState('')
-  const [town, setTown] = useState('')
-  const [towns, setTowns] = useState<Array<{ id: string; name: string; slug: string }>>([])
-  const [loadingTowns, setLoadingTowns] = useState(false)
+  const [city, setCity] = useState("");
+  const [town, setTown] = useState("");
+  const [towns, setTowns] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([]);
+  const [loadingTowns, setLoadingTowns] = useState(false);
 
   // Route tab state
-  const [fromCity, setFromCity] = useState('')
-  const [toCity, setToCity] = useState('')
+  const [fromCity, setFromCity] = useState("");
+  const [toCity, setToCity] = useState("");
 
   // Modal states - Vehicle tab
-  const [isCityModalOpen, setIsCityModalOpen] = useState(false)
-  const [isTownModalOpen, setIsTownModalOpen] = useState(false)
-  const [citySearchQuery, setCitySearchQuery] = useState('')
-  const [townSearchQuery, setTownSearchQuery] = useState('')
-  const [showAllCities, setShowAllCities] = useState(false)
-  const [showAllTowns, setShowAllTowns] = useState(false)
+  const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+  const [isTownModalOpen, setIsTownModalOpen] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [townSearchQuery, setTownSearchQuery] = useState("");
+  const [showAllCities, setShowAllCities] = useState(false);
+  const [showAllTowns, setShowAllTowns] = useState(false);
 
   // Modal states - Route tab
-  const [isFromCityModalOpen, setIsFromCityModalOpen] = useState(false)
-  const [isToCityModalOpen, setIsToCityModalOpen] = useState(false)
-  const [fromCitySearchQuery, setFromCitySearchQuery] = useState('')
-  const [toCitySearchQuery, setToCitySearchQuery] = useState('')
-  const [showAllFromCities, setShowAllFromCities] = useState(false)
-  const [showAllToCities, setShowAllToCities] = useState(false)
+  const [isFromCityModalOpen, setIsFromCityModalOpen] = useState(false);
+  const [isToCityModalOpen, setIsToCityModalOpen] = useState(false);
+  const [fromCitySearchQuery, setFromCitySearchQuery] = useState("");
+  const [toCitySearchQuery, setToCitySearchQuery] = useState("");
+  const [showAllFromCities, setShowAllFromCities] = useState(false);
+  const [showAllToCities, setShowAllToCities] = useState(false);
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch towns when city changes (for vehicle tab)
   useEffect(() => {
-    if (city && activeTab === 'vehicle') {
-      const selectedCity = cities.find(c => c.slug === city)
+    if (city && activeTab === "vehicle") {
+      const selectedCity = cities.find((c) => c.slug === city);
       if (selectedCity) {
-        setLoadingTowns(true)
+        setLoadingTowns(true);
         fetch(`/api/towns?cityId=${selectedCity.id}`)
-          .then(res => res.json())
-          .then(data => {
-            setTowns(data)
-            setLoadingTowns(false)
+          .then((res) => res.json())
+          .then((data) => {
+            setTowns(data);
+            setLoadingTowns(false);
           })
           .catch(() => {
-            setLoadingTowns(false)
-          })
+            setLoadingTowns(false);
+          });
       } else {
-        setTowns([])
+        setTowns([]);
       }
-      setTown('') // Reset town when city changes
+      setTown(""); // Reset town when city changes
     } else {
-      setTowns([])
-      setTown('')
+      setTowns([]);
+      setTown("");
     }
-  }, [city, cities, activeTab])
+  }, [city, cities, activeTab]);
 
   // Reset modal state when modals close
   useEffect(() => {
     if (!isCityModalOpen) {
-      setCitySearchQuery('')
-      setShowAllCities(false)
+      setCitySearchQuery("");
+      setShowAllCities(false);
     }
-  }, [isCityModalOpen])
+  }, [isCityModalOpen]);
 
   useEffect(() => {
     if (!isTownModalOpen) {
-      setTownSearchQuery('')
-      setShowAllTowns(false)
+      setTownSearchQuery("");
+      setShowAllTowns(false);
     }
-  }, [isTownModalOpen])
+  }, [isTownModalOpen]);
 
   useEffect(() => {
     if (!isFromCityModalOpen) {
-      setFromCitySearchQuery('')
-      setShowAllFromCities(false)
+      setFromCitySearchQuery("");
+      setShowAllFromCities(false);
     }
-  }, [isFromCityModalOpen])
+  }, [isFromCityModalOpen]);
 
   useEffect(() => {
     if (!isToCityModalOpen) {
-      setToCitySearchQuery('')
-      setShowAllToCities(false)
+      setToCitySearchQuery("");
+      setShowAllToCities(false);
     }
-  }, [isToCityModalOpen])
+  }, [isToCityModalOpen]);
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
-    if (activeTab === 'vehicle') {
+    if (activeTab === "vehicle") {
       if (!city) {
-        newErrors.city = 'Please select a city'
+        newErrors.city = "Please select a city";
       }
-    } else if (activeTab === 'route') {
+    } else if (activeTab === "route") {
       if (!fromCity) {
-        newErrors.fromCity = 'Please select a from city'
+        newErrors.fromCity = "Please select a from city";
       }
       if (!toCity) {
-        newErrors.toCity = 'Please select a to city'
+        newErrors.toCity = "Please select a to city";
       }
       if (fromCity && toCity && fromCity === toCity) {
-        newErrors.toCity = 'To city must be different from from city'
+        newErrors.toCity = "To city must be different from from city";
       }
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    if (activeTab === 'vehicle') {
+    if (activeTab === "vehicle") {
       // Redirect to search results page with city and optional town
-      const params = new URLSearchParams()
-      params.set('city', city)
-      if (town) params.set('town', town)
+      const params = new URLSearchParams();
+      params.set("city", city);
+      if (town) params.set("town", town);
 
-      const queryString = params.toString()
-      router.push(`/view-all-vehicles?${queryString}`)
-    } else if (activeTab === 'route') {
+      const queryString = params.toString();
+      router.push(`/view-all-vehicles?${queryString}`);
+    } else if (activeTab === "route") {
       // Build route URL: /routes/{fromSlug}-to-{toSlug}
-      const fromCityData = cities.find(c => c.slug === fromCity)
-      const toCityData = cities.find(c => c.slug === toCity)
+      const fromCityData = cities.find((c) => c.slug === fromCity);
+      const toCityData = cities.find((c) => c.slug === toCity);
 
       if (fromCityData && toCityData) {
-        const routeUrl = `/routes/${fromCityData.slug}-to-${toCityData.slug}`
-        router.push(routeUrl)
+        const routeUrl = `/routes/${fromCityData.slug}-to-${toCityData.slug}`;
+        router.push(routeUrl);
       }
     }
-  }
+  };
 
-  const selectedCity = cities.find(c => c.slug === city)
-  const selectedTown = towns.find(t => t.slug === town)
-  const selectedFromCity = cities.find(c => c.slug === fromCity)
-  const selectedToCity = cities.find(c => c.slug === toCity)
+  const selectedCity = cities.find((c) => c.slug === city);
+  const selectedTown = towns.find((t) => t.slug === town);
+  const selectedFromCity = cities.find((c) => c.slug === fromCity);
+  const selectedToCity = cities.find((c) => c.slug === toCity);
 
   // Filtered cities for modal
   const filteredCities = useMemo(() => {
-    if (!citySearchQuery.trim()) return cities
-    const query = citySearchQuery.toLowerCase()
-    return cities.filter(c =>
-      c.name.toLowerCase().includes(query) ||
-      (c.province && c.province.toLowerCase().includes(query))
-    )
-  }, [cities, citySearchQuery])
+    if (!citySearchQuery.trim()) return cities;
+    const query = citySearchQuery.toLowerCase();
+    return cities.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        (c.province && c.province.toLowerCase().includes(query))
+    );
+  }, [cities, citySearchQuery]);
 
   // Filtered towns for modal
   const filteredTowns = useMemo(() => {
-    if (!townSearchQuery.trim()) return towns
-    const query = townSearchQuery.toLowerCase()
-    return towns.filter(t => t.name.toLowerCase().includes(query))
-  }, [towns, townSearchQuery])
+    if (!townSearchQuery.trim()) return towns;
+    const query = townSearchQuery.toLowerCase();
+    return towns.filter((t) => t.name.toLowerCase().includes(query));
+  }, [towns, townSearchQuery]);
 
   // Filtered cities for route modals
   const filteredFromCities = useMemo(() => {
-    if (!fromCitySearchQuery.trim()) return cities
-    const query = fromCitySearchQuery.toLowerCase()
-    return cities.filter(c =>
-      c.name.toLowerCase().includes(query) ||
-      (c.province && c.province.toLowerCase().includes(query))
-    )
-  }, [cities, fromCitySearchQuery])
+    if (!fromCitySearchQuery.trim()) return cities;
+    const query = fromCitySearchQuery.toLowerCase();
+    return cities.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        (c.province && c.province.toLowerCase().includes(query))
+    );
+  }, [cities, fromCitySearchQuery]);
 
   const filteredToCities = useMemo(() => {
-    if (!toCitySearchQuery.trim()) return cities.filter(c => c.slug !== fromCity)
-    const query = toCitySearchQuery.toLowerCase()
-    return cities.filter(c =>
-      c.slug !== fromCity &&
-      (c.name.toLowerCase().includes(query) ||
-        (c.province && c.province.toLowerCase().includes(query)))
-    )
-  }, [cities, toCitySearchQuery, fromCity])
+    if (!toCitySearchQuery.trim())
+      return cities.filter((c) => c.slug !== fromCity);
+    const query = toCitySearchQuery.toLowerCase();
+    return cities.filter(
+      (c) =>
+        c.slug !== fromCity &&
+        (c.name.toLowerCase().includes(query) ||
+          (c.province && c.province.toLowerCase().includes(query)))
+    );
+  }, [cities, toCitySearchQuery, fromCity]);
 
   // Top cities (first 10)
-  const topCities = filteredCities.slice(0, 10)
-  const displayedCities = showAllCities ? filteredCities : topCities
+  const topCities = filteredCities.slice(0, 10);
+  const displayedCities = showAllCities ? filteredCities : topCities;
 
   // Top towns (first 10)
-  const topTowns = filteredTowns.slice(0, 10)
-  const displayedTowns = showAllTowns ? filteredTowns : topTowns
+  const topTowns = filteredTowns.slice(0, 10);
+  const displayedTowns = showAllTowns ? filteredTowns : topTowns;
 
   // Top route cities (first 10)
-  const topFromCities = filteredFromCities.slice(0, 10)
-  const displayedFromCities = showAllFromCities ? filteredFromCities : topFromCities
+  const topFromCities = filteredFromCities.slice(0, 10);
+  const displayedFromCities = showAllFromCities
+    ? filteredFromCities
+    : topFromCities;
 
-  const topToCities = filteredToCities.slice(0, 10)
-  const displayedToCities = showAllToCities ? filteredToCities : topToCities
+  const topToCities = filteredToCities.slice(0, 10);
+  const displayedToCities = showAllToCities ? filteredToCities : topToCities;
 
   const handleCitySelect = (citySlug: string) => {
-    setCity(citySlug)
-    setIsCityModalOpen(false)
-    setCitySearchQuery('')
-    setShowAllCities(false)
-  }
+    setCity(citySlug);
+    setIsCityModalOpen(false);
+    setCitySearchQuery("");
+    setShowAllCities(false);
+  };
 
   const handleTownSelect = (townSlug: string) => {
-    setTown(townSlug)
-    setIsTownModalOpen(false)
-    setTownSearchQuery('')
-    setShowAllTowns(false)
-  }
+    setTown(townSlug);
+    setIsTownModalOpen(false);
+    setTownSearchQuery("");
+    setShowAllTowns(false);
+  };
 
   const handleFromCitySelect = (citySlug: string) => {
-    setFromCity(citySlug)
-    setIsFromCityModalOpen(false)
-    setFromCitySearchQuery('')
-    setShowAllFromCities(false)
+    setFromCity(citySlug);
+    setIsFromCityModalOpen(false);
+    setFromCitySearchQuery("");
+    setShowAllFromCities(false);
     if (citySlug === toCity) {
-      setToCity('')
+      setToCity("");
     }
-  }
+  };
 
   const handleToCitySelect = (citySlug: string) => {
-    setToCity(citySlug)
-    setIsToCityModalOpen(false)
-    setToCitySearchQuery('')
-    setShowAllToCities(false)
-  }
+    setToCity(citySlug);
+    setIsToCityModalOpen(false);
+    setToCitySearchQuery("");
+    setShowAllToCities(false);
+  };
 
   return (
     <div className="bg-primary p-6 ">
@@ -271,46 +283,53 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
         <button
           type="button"
           onClick={() => {
-            setActiveTab('vehicle')
-            setErrors({})
+            setActiveTab("vehicle");
+            setErrors({});
           }}
-          className={`cursor-pointer bg-foreground/10 py-1.5 px-4 border text-xs font-semibold transition-colors border-b-2 ${activeTab === 'vehicle'
-              ? 'border-primary-foreground text-primary-foreground'
-              : 'border-transparent'
-            }`}
+          className={`cursor-pointer bg-foreground/10 py-1.5 px-4 border text-xs font-semibold transition-colors border-b-2 ${
+            activeTab === "vehicle"
+              ? "border-primary-foreground text-primary-foreground"
+              : "border-transparent"
+          }`}
         >
           Vehicle
         </button>
         <button
           type="button"
           onClick={() => {
-            setActiveTab('route')
-            setErrors({})
+            setActiveTab("route");
+            setErrors({});
           }}
-          className={`cursor-pointer bg-foreground/10 py-1.5 px-4 border text-xs font-semibold transition-colors border-b-2 ${activeTab === 'route'
-              ? 'border-primary-foreground text-primary-foreground'
-              : 'border-transparent'
-            }`}
+          className={`cursor-pointer bg-foreground/10 py-1.5 px-4 border text-xs font-semibold transition-colors border-b-2 ${
+            activeTab === "route"
+              ? "border-primary-foreground text-primary-foreground"
+              : "border-transparent"
+          }`}
         >
           Route
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {activeTab === 'vehicle' ? (
+        {activeTab === "vehicle" ? (
           <>
             {/* Vehicle Tab Content */}
             <div className="mb-4">
               <h1 className="text-2xl sm:text-3xl lg:text-2xl font-bold black leading-tight">
-                {heading ?? 'Book Verified Cars, Hiace, Vans & Buses Across Pakistan'}
+                {heading ??
+                  "Book Verified Cars, Hiace, Vans & Buses Across Pakistan"}
               </h1>
               <p className="text-sm text-muted-foreground mt-2">
-                Search by vehicles near you</p>
+                Search by vehicles near you
+              </p>
             </div>
             <div className="space-y-4">
               {/* City Field */}
               <div className="space-y-2">
-                <Label htmlFor="city" className="text-xs font-semibold text-foreground">
+                <Label
+                  htmlFor="city"
+                  className="text-xs font-semibold text-foreground"
+                >
                   Select city
                 </Label>
                 <Button
@@ -321,8 +340,12 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                 >
                   <span className="truncate text-sm">
                     {selectedCity
-                      ? `${selectedCity.name}${selectedCity.province ? ` (${selectedCity.province})` : ''}`
-                      : 'Select City'}
+                      ? `${selectedCity.name}${
+                          selectedCity.province
+                            ? ` (${selectedCity.province})`
+                            : ""
+                        }`
+                      : "Select City"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500 shrink-0 ml-2" />
                 </Button>
@@ -336,14 +359,16 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                 <DialogContent className="max-w-xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 [&>button]:hidden">
                   <DialogHeader className="px-5 py-3 border-b">
                     <div className="flex items-center justify-between">
-                      <DialogTitle className="text-xl font-bold">Choose City</DialogTitle>
+                      <DialogTitle className="text-xl font-bold">
+                        Choose City
+                      </DialogTitle>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => {
-                          setIsCityModalOpen(false)
-                          setCitySearchQuery('')
-                          setShowAllCities(false)
+                          setIsCityModalOpen(false);
+                          setCitySearchQuery("");
+                          setShowAllCities(false);
                         }}
                         className="h-8 w-8 rounded-full hover:bg-gray-100"
                       >
@@ -367,7 +392,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                   </div>
 
                   <div className="flex-1 overflow-y-auto px-6 pb-6">
-                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">Top Cities</h3>
+                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">
+                      Top Cities
+                    </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {displayedCities.map((cityOption) => (
                         <button
@@ -377,7 +404,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                           className="flex flex-col items-center p-4 border border-border/30 bg-primary/30 hover:bg-primary/40 transition-all cursor-pointer group"
                         >
                           <div className="w-10 h-10 mb-2 rounded-full bg-primary/70 group-hover:bg-primary/80 flex items-center justify-center">
-                            <span className="text-md">{cityOption.name.charAt(0)}</span>
+                            <span className="text-md">
+                              {cityOption.name.charAt(0)}
+                            </span>
                           </div>
                           <span className="text-xs font-medium text-center">
                             {cityOption.name}
@@ -404,7 +433,7 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
 
                     {filteredCities.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        No cities found matching "{citySearchQuery}"
+                        No cities found matching &quot;{citySearchQuery}&quot;
                       </div>
                     )}
                   </div>
@@ -413,7 +442,10 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
 
               {/* Town Field */}
               <div className="space-y-2">
-                <Label htmlFor="town" className="text-xs font-semibold text-foreground">
+                <Label
+                  htmlFor="town"
+                  className="text-xs font-semibold text-foreground"
+                >
                   Select Town
                 </Label>
                 <Button
@@ -425,10 +457,10 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                 >
                   <span className="truncate text-sm">
                     {loadingTowns
-                      ? 'Loading...'
+                      ? "Loading..."
                       : selectedTown
-                        ? selectedTown.name
-                        : 'Select Town'}
+                      ? selectedTown.name
+                      : "Select Town"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500 shrink-0 ml-2" />
                 </Button>
@@ -439,14 +471,16 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                 <DialogContent className="max-w-xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 [&>button]:hidden">
                   <DialogHeader className="px-5 py-3 border-b">
                     <div className="flex items-center justify-between">
-                      <DialogTitle className="text-xl font-bold">Choose Town</DialogTitle>
+                      <DialogTitle className="text-xl font-bold">
+                        Choose Town
+                      </DialogTitle>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => {
-                          setIsTownModalOpen(false)
-                          setTownSearchQuery('')
-                          setShowAllTowns(false)
+                          setIsTownModalOpen(false);
+                          setTownSearchQuery("");
+                          setShowAllTowns(false);
                         }}
                         className="h-8 w-8 rounded-full hover:bg-gray-100"
                       >
@@ -470,9 +504,13 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                   </div>
 
                   <div className="flex-1 overflow-y-auto px-6 pb-6">
-                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">Top Towns</h3>
+                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">
+                      Top Towns
+                    </h3>
                     {loadingTowns ? (
-                      <div className="text-center py-8 text-gray-500">Loading towns...</div>
+                      <div className="text-center py-8 text-gray-500">
+                        Loading towns...
+                      </div>
                     ) : (
                       <>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -484,7 +522,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                               className="flex flex-col items-center p-4 border border-border/30 bg-primary/30 hover:bg-primary/40 transition-all cursor-pointer group"
                             >
                               <div className="w-10 h-10 mb-2 rounded-full bg-primary/70 group-hover:bg-primary/80 flex items-center justify-center">
-                                <span className="text-md">{townOption.name.charAt(0)}</span>
+                                <span className="text-md">
+                                  {townOption.name.charAt(0)}
+                                </span>
                               </div>
                               <span className="text-xs font-medium text-center">
                                 {townOption.name}
@@ -506,7 +546,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
 
                         {filteredTowns.length === 0 && !loadingTowns && (
                           <div className="text-center py-8 text-gray-500">
-                            {townSearchQuery ? `No towns found matching "${townSearchQuery}"` : 'No towns available'}
+                            {townSearchQuery
+                              ? `No towns found matching "${townSearchQuery}"`
+                              : "No towns available"}
                           </div>
                         )}
                       </>
@@ -521,13 +563,17 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
             {/* Route Tab Content */}
             <div className="mb-4">
               <h1 className="text-2xl sm:text-3xl lg:text-2xl font-bold black leading-tight">
-                {heading ?? 'Book Verified Cars, Hiace, Vans & Buses Across Pakistan'}
+                {heading ??
+                  "Book Verified Cars, Hiace, Vans & Buses Across Pakistan"}
               </h1>
             </div>
             <div className="space-y-4">
               {/* From City Field */}
               <div className="space-y-2">
-                <Label htmlFor="fromCity" className="text-xs font-semibold text-foreground">
+                <Label
+                  htmlFor="fromCity"
+                  className="text-xs font-semibold text-foreground"
+                >
                   Select From
                 </Label>
                 <Button
@@ -538,8 +584,12 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                 >
                   <span className="truncate text-sm">
                     {selectedFromCity
-                      ? `${selectedFromCity.name}${selectedFromCity.province ? ` (${selectedFromCity.province})` : ''}`
-                      : 'Select From City'}
+                      ? `${selectedFromCity.name}${
+                          selectedFromCity.province
+                            ? ` (${selectedFromCity.province})`
+                            : ""
+                        }`
+                      : "Select From City"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500 shrink-0 ml-2" />
                 </Button>
@@ -549,18 +599,23 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
               </div>
 
               {/* From City Selection Modal */}
-              <Dialog open={isFromCityModalOpen} onOpenChange={setIsFromCityModalOpen}>
+              <Dialog
+                open={isFromCityModalOpen}
+                onOpenChange={setIsFromCityModalOpen}
+              >
                 <DialogContent className="max-w-xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 [&>button]:hidden">
                   <DialogHeader className="px-5 py-3 border-b">
                     <div className="flex items-center justify-between">
-                      <DialogTitle className="text-xl font-bold">Choose From City</DialogTitle>
+                      <DialogTitle className="text-xl font-bold">
+                        Choose From City
+                      </DialogTitle>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => {
-                          setIsFromCityModalOpen(false)
-                          setFromCitySearchQuery('')
-                          setShowAllFromCities(false)
+                          setIsFromCityModalOpen(false);
+                          setFromCitySearchQuery("");
+                          setShowAllFromCities(false);
                         }}
                         className="h-8 w-8 rounded-full hover:bg-gray-100"
                       >
@@ -584,7 +639,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                   </div>
 
                   <div className="flex-1 overflow-y-auto px-6 pb-6">
-                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">Top Cities</h3>
+                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">
+                      Top Cities
+                    </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {displayedFromCities.map((cityOption) => (
                         <button
@@ -594,7 +651,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                           className="flex flex-col items-center p-4 border border-border/30 bg-primary/30 hover:bg-primary/40 transition-all cursor-pointer group"
                         >
                           <div className="w-10 h-10 mb-2 rounded-full bg-primary/70 group-hover:bg-primary/80 flex items-center justify-center">
-                            <span className="text-md">{cityOption.name.charAt(0)}</span>
+                            <span className="text-md">
+                              {cityOption.name.charAt(0)}
+                            </span>
                           </div>
                           <span className="text-xs font-medium text-center">
                             {cityOption.name}
@@ -621,7 +680,8 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
 
                     {filteredFromCities.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        No cities found matching "{fromCitySearchQuery}"
+                        No cities found matching &quot;{fromCitySearchQuery}
+                        &quot;
                       </div>
                     )}
                   </div>
@@ -630,7 +690,10 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
 
               {/* To City Field */}
               <div className="space-y-2">
-                <Label htmlFor="toCity" className="text-xs font-semibold text-foreground">
+                <Label
+                  htmlFor="toCity"
+                  className="text-xs font-semibold text-foreground"
+                >
                   Select To
                 </Label>
                 <Button
@@ -641,8 +704,12 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                 >
                   <span className="truncate text-sm">
                     {selectedToCity
-                      ? `${selectedToCity.name}${selectedToCity.province ? ` (${selectedToCity.province})` : ''}`
-                      : 'Select To City'}
+                      ? `${selectedToCity.name}${
+                          selectedToCity.province
+                            ? ` (${selectedToCity.province})`
+                            : ""
+                        }`
+                      : "Select To City"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500 shrink-0 ml-2" />
                 </Button>
@@ -652,18 +719,23 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
               </div>
 
               {/* To City Selection Modal */}
-              <Dialog open={isToCityModalOpen} onOpenChange={setIsToCityModalOpen}>
+              <Dialog
+                open={isToCityModalOpen}
+                onOpenChange={setIsToCityModalOpen}
+              >
                 <DialogContent className="max-w-xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 [&>button]:hidden">
                   <DialogHeader className="px-5 py-3 border-b">
                     <div className="flex items-center justify-between">
-                      <DialogTitle className="text-xl font-bold">Choose To City</DialogTitle>
+                      <DialogTitle className="text-xl font-bold">
+                        Choose To City
+                      </DialogTitle>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => {
-                          setIsToCityModalOpen(false)
-                          setToCitySearchQuery('')
-                          setShowAllToCities(false)
+                          setIsToCityModalOpen(false);
+                          setToCitySearchQuery("");
+                          setShowAllToCities(false);
                         }}
                         className="h-8 w-8 rounded-full hover:bg-gray-100"
                       >
@@ -687,7 +759,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                   </div>
 
                   <div className="flex-1 overflow-y-auto px-6 pb-6">
-                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">Top Cities</h3>
+                    <h3 className="text-md font-semibold mb-1 text-muted-foreground mt-2">
+                      Top Cities
+                    </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {displayedToCities.map((cityOption) => (
                         <button
@@ -697,7 +771,9 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
                           className="flex flex-col items-center p-4 border border-border/30 bg-primary/30 hover:bg-primary/40 transition-all cursor-pointer group"
                         >
                           <div className="w-10 h-10 mb-2 rounded-full bg-primary/70 group-hover:bg-primary/80 flex items-center justify-center">
-                            <span className="text-md">{cityOption.name.charAt(0)}</span>
+                            <span className="text-md">
+                              {cityOption.name.charAt(0)}
+                            </span>
                           </div>
                           <span className="text-xs font-medium text-center">
                             {cityOption.name}
@@ -724,7 +800,7 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
 
                     {filteredToCities.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        No cities found matching "{toCitySearchQuery}"
+                        No cities found matching &quot;{toCitySearchQuery}&quot;
                       </div>
                     )}
                   </div>
@@ -741,15 +817,20 @@ export function HeroSearchForm({ cities, vehicleModels, heading }: HeroSearchFor
             size="lg"
             className="w-fit h-10 text-md font-semibold bg-foreground hover:bg-foreground/90 text-background rounded-none transition-all"
           >
-            <Image src="/icons/car.svg" alt="Search" width={20} height={20} className="w-fit h-8" 
-            style={{
-              transform: 'scaleX(-1)',
-            }}
+            <Image
+              src="/icons/car.svg"
+              alt="Search"
+              width={20}
+              height={20}
+              className="w-fit h-8"
+              style={{
+                transform: "scaleX(-1)",
+              }}
             />
             Search
           </Button>
         </div>
       </form>
     </div>
-  )
+  );
 }
