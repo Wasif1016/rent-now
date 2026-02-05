@@ -483,7 +483,7 @@ export function CityLandingPage({
                 size="lg"
                 className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-lg"
               >
-                View Available Vehicles in {cityDisplay}
+                View Available Vehicles 
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

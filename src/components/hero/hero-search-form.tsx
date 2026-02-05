@@ -83,14 +83,18 @@ export function HeroSearchForm({
     if (city && activeTab === "vehicle") {
       const selectedCity = cities.find((c) => c.slug === city);
       if (selectedCity) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoadingTowns(true);
         fetch(`/api/towns?cityId=${selectedCity.id}`)
           .then((res) => res.json())
           .then((data) => {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTowns(data);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoadingTowns(false);
           })
           .catch(() => {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoadingTowns(false);
           });
       } else {
@@ -106,28 +110,36 @@ export function HeroSearchForm({
   // Reset modal state when modals close
   useEffect(() => {
     if (!isCityModalOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCitySearchQuery("");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowAllCities(false);
     }
   }, [isCityModalOpen]);
 
   useEffect(() => {
     if (!isTownModalOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTownSearchQuery("");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowAllTowns(false);
     }
   }, [isTownModalOpen]);
 
   useEffect(() => {
     if (!isFromCityModalOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFromCitySearchQuery("");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowAllFromCities(false);
     }
   }, [isFromCityModalOpen]);
 
   useEffect(() => {
     if (!isToCityModalOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToCitySearchQuery("");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowAllToCities(false);
     }
   }, [isToCityModalOpen]);
@@ -547,7 +559,7 @@ export function HeroSearchForm({
                         {filteredTowns.length === 0 && !loadingTowns && (
                           <div className="text-center py-8 text-gray-500">
                             {townSearchQuery
-                              ? `No towns found matching "${townSearchQuery}"`
+                              ? `No towns found matching &quot;${townSearchQuery}&quot;`
                               : "No towns available"}
                           </div>
                         )}

@@ -1,42 +1,42 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select-radix'
-import { useAuth } from '@/contexts/auth-context'
+} from "@/components/ui/select-radix";
+import { useAuth } from "@/contexts/auth-context";
 
 interface EmailTemplate {
-  id: string
-  name: string
-  subject: string
-  body: string
-  isActive: boolean
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  isActive: boolean;
 }
 
 interface SendEmailModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  businessId: string
-  businessName: string
-  businessEmail: string
-  registrationStatus?: string | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  businessId: string;
+  businessName: string;
+  businessEmail: string;
+  registrationStatus?: string | null;
 }
 
 export function SendEmailModal({
@@ -47,157 +47,182 @@ export function SendEmailModal({
   businessEmail,
   registrationStatus,
 }: SendEmailModalProps) {
-  const { session } = useAuth()
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [previewMode, setPreviewMode] = useState(false)
-  const [subject, setSubject] = useState('Your Vendor Account Credentials - Rent Now')
-  const [body, setBody] = useState('')
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
-  const [templates, setTemplates] = useState<EmailTemplate[]>([])
-  const [loadingTemplates, setLoadingTemplates] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const { session } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [subject, setSubject] = useState(
+    "Your Vendor Account Credentials - Rent Now"
+  );
+  const [body, setBody] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   // Check if account is created
-  const isAccountCreated = registrationStatus === 'ACCOUNT_CREATED' || 
-                          registrationStatus === 'EMAIL_SENT' || 
-                          registrationStatus === 'ACTIVE'
+  const isAccountCreated =
+    registrationStatus === "ACCOUNT_CREATED" ||
+    registrationStatus === "EMAIL_SENT" ||
+    registrationStatus === "ACTIVE";
 
   // Fetch email templates
   useEffect(() => {
     if (open && session?.access_token) {
-      fetchTemplates()
+      fetchTemplates();
     }
-  }, [open, session?.access_token])
+  }, [open, session?.access_token, fetchTemplates]);
 
-  const fetchTemplates = async () => {
-    if (!session?.access_token) return
+  const fetchTemplates = useCallback(async () => {
+    if (!session?.access_token) return;
 
-    setLoadingTemplates(true)
+    setLoadingTemplates(true);
     try {
-      const response = await fetch('/api/admin/email-templates', {
+      const response = await fetch("/api/admin/email-templates", {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setTemplates(data.filter((t: EmailTemplate) => t.isActive))
+        const data = await response.json();
+        setTemplates(data.filter((t: EmailTemplate) => t.isActive));
       }
     } catch (err) {
-      console.error('Failed to fetch templates:', err)
+      console.error("Failed to fetch templates:", err);
     } finally {
-      setLoadingTemplates(false)
+      setLoadingTemplates(false);
     }
-  }
+  }, [session?.access_token]);
 
   // Handle template selection
   const handleTemplateSelect = (templateId: string) => {
-    if (templateId === 'custom') {
-      setSelectedTemplateId('')
+    if (templateId === "custom") {
+      setSelectedTemplateId("");
       // Reset to default values
-      setSubject('Your Vendor Account Credentials - Rent Now')
-      setBody('')
+      setSubject("Your Vendor Account Credentials - Rent Now");
+      setBody("");
     } else {
-      setSelectedTemplateId(templateId)
-      const template = templates.find((t) => t.id === templateId)
+      setSelectedTemplateId(templateId);
+      const template = templates.find((t) => t.id === templateId);
       if (template) {
-        setSubject(template.subject)
-        setBody(template.body)
+        setSubject(template.subject);
+        setBody(template.body);
       }
     }
-  }
+  };
 
   const handlePreview = async () => {
     if (!session?.access_token) {
-      setError('You must be logged in to preview emails')
-      return
+      setError("You must be logged in to preview emails");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`/api/admin/businesses/${businessId}/email/preview`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          subject: subject || undefined,
-          body: body || undefined,
-          templateId: selectedTemplateId && selectedTemplateId !== 'custom' ? selectedTemplateId : undefined,
-        }),
-      })
+      const response = await fetch(
+        `/api/admin/businesses/${businessId}/email/preview`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            subject: subject || undefined,
+            body: body || undefined,
+            templateId:
+              selectedTemplateId && selectedTemplateId !== "custom"
+                ? selectedTemplateId
+                : undefined,
+          }),
+        }
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
         // Check if error is about account not created
-        if (data.error?.includes('create account') || data.error?.includes('password not found')) {
-          throw new Error('Please create an account first before sending email. The account must be created to generate login credentials.')
+        if (
+          data.error?.includes("create account") ||
+          data.error?.includes("password not found")
+        ) {
+          throw new Error(
+            "Please create an account first before sending email. The account must be created to generate login credentials."
+          );
         }
-        throw new Error(data.error || 'Failed to generate preview')
+        throw new Error(data.error || "Failed to generate preview");
       }
 
-      setPreviewMode(true)
+      setPreviewMode(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to generate preview')
+      setError(err.message || "Failed to generate preview");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSend = async () => {
     if (!session?.access_token) {
-      setError('You must be logged in to send emails')
-      return
+      setError("You must be logged in to send emails");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`/api/admin/businesses/${businessId}/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          subject: subject || undefined,
-          body: body || undefined,
-          templateId: selectedTemplateId && selectedTemplateId !== 'custom' ? selectedTemplateId : undefined,
-        }),
-      })
+      const response = await fetch(
+        `/api/admin/businesses/${businessId}/send-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            subject: subject || undefined,
+            body: body || undefined,
+            templateId:
+              selectedTemplateId && selectedTemplateId !== "custom"
+                ? selectedTemplateId
+                : undefined,
+          }),
+        }
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
         // Check if error is about account not created
-        if (data.error?.includes('create account') || data.error?.includes('password not found')) {
-          throw new Error('Please create an account first before sending email. The account must be created to generate login credentials.')
+        if (
+          data.error?.includes("create account") ||
+          data.error?.includes("password not found")
+        ) {
+          throw new Error(
+            "Please create an account first before sending email. The account must be created to generate login credentials."
+          );
         }
-        throw new Error(data.error || 'Failed to send email')
+        throw new Error(data.error || "Failed to send email");
       }
 
-      setSuccess(true)
+      setSuccess(true);
       // Refresh the page to update business status
-      router.refresh()
+      router.refresh();
       setTimeout(() => {
-        onOpenChange(false)
-        setSuccess(false)
-        setPreviewMode(false)
-      }, 2000)
+        onOpenChange(false);
+        setSuccess(false);
+        setPreviewMode(false);
+      }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Failed to send email')
+      setError(err.message || "Failed to send email");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (success) {
     return (
@@ -219,14 +244,16 @@ export function SendEmailModal({
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Email Sent Successfully</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Email Sent Successfully
+            </h3>
             <p className="text-sm text-muted-foreground">
               Credentials have been sent to {businessEmail}
             </p>
           </div>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
@@ -242,8 +269,9 @@ export function SendEmailModal({
         {!isAccountCreated && (
           <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
             <p className="text-sm text-yellow-600 dark:text-yellow-400">
-              <strong>Note:</strong> You need to create an account first before sending email. 
-              The account must be created to generate login credentials.
+              <strong>Note:</strong> You need to create an account first before
+              sending email. The account must be created to generate login
+              credentials.
             </p>
           </div>
         )}
@@ -275,14 +303,11 @@ export function SendEmailModal({
             )}
 
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setPreviewMode(false)}
-              >
+              <Button variant="outline" onClick={() => setPreviewMode(false)}>
                 Back to Edit
               </Button>
               <Button onClick={handleSend} disabled={loading}>
-                {loading ? 'Sending...' : 'Send Email'}
+                {loading ? "Sending..." : "Send Email"}
               </Button>
             </div>
           </div>
@@ -291,15 +316,23 @@ export function SendEmailModal({
             <div className="space-y-2">
               <Label htmlFor="template">Email Template (Optional)</Label>
               <Select
-                value={selectedTemplateId || 'custom'}
+                value={selectedTemplateId || "custom"}
                 onValueChange={handleTemplateSelect}
                 disabled={loadingTemplates}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={loadingTemplates ? 'Loading templates...' : 'Select a template or use custom'} />
+                  <SelectValue
+                    placeholder={
+                      loadingTemplates
+                        ? "Loading templates..."
+                        : "Select a template or use custom"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="custom">Custom / Default Template</SelectItem>
+                  <SelectItem value="custom">
+                    Custom / Default Template
+                  </SelectItem>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}
@@ -308,7 +341,8 @@ export function SendEmailModal({
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Select a template to auto-fill subject and body, or choose "Custom" to write your own
+                Select a template to auto-fill subject and body, or choose
+                &quot;Custom&quot; to write your own
               </p>
             </div>
 
@@ -333,7 +367,8 @@ export function SendEmailModal({
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Available variables: {`{{business_name}}`}, {`{{email}}`}, {`{{password}}`}, {`{{login_url}}`}
+                Available variables: {`{{business_name}}`}, {`{{email}}`},{" "}
+                {`{{password}}`}, {`{{login_url}}`}
               </p>
             </div>
 
@@ -348,13 +383,12 @@ export function SendEmailModal({
                 Cancel
               </Button>
               <Button onClick={handlePreview} disabled={loading}>
-                {loading ? 'Loading...' : 'Preview & Send'}
+                {loading ? "Loading..." : "Preview & Send"}
               </Button>
             </div>
           </div>
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

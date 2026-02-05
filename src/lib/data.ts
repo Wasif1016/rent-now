@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma, cache } from "./prisma";
 
 /** All active cities (for hero dropdown, cities page, API). */
@@ -385,7 +386,7 @@ export const getVehiclesByRoute = cache(async (routeId: number) => {
 
 // Get town by slug
 export const getTownBySlug = cache(async (slug: string, cityId?: string) => {
-  const where: any = { slug };
+  const where: Prisma.TownWhereInput = { slug };
   if (cityId) {
     where.cityId = cityId;
   }
@@ -490,7 +491,7 @@ export const searchVehicles = cache(
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.VehicleWhereInput = {
       isAvailable: true,
     };
 
@@ -518,10 +519,9 @@ export const searchVehicles = cache(
       };
     }
 
-    // Filter by model slug (VehicleModel.slug, e.g. toyota-corolla) or listing slug
     const slugFilter = modelSlug ?? vehicleSlug;
     if (slugFilter) {
-      const modelBranch: any = {
+      const modelBranch: Prisma.VehicleWhereInput = {
         vehicleModel: {
           slug: slugFilter,
           ...(brandSlug ? { vehicleBrand: { slug: brandSlug } } : {}),
@@ -569,7 +569,7 @@ export const searchVehicles = cache(
     }
 
     // Build orderBy
-    let orderBy: any = {};
+    let orderBy: Prisma.VehicleOrderByWithRelationInput = {};
     if (sortBy === "date") {
       orderBy = { createdAt: "desc" };
     } else {
@@ -1198,10 +1198,10 @@ export const getBookings = async (filters: {
     };
   }
 
-  const where: any = {};
+  const where: Prisma.BookingWhereInput = {};
   if (vendorId) where.vendorId = vendorId;
   if (vehicleId) where.vehicleId = vehicleId;
-  if (status) where.status = status;
+  if (status) where.status = status as any;
 
   const [bookings, total] = await Promise.all([
     anyPrisma.booking.findMany({
@@ -1254,7 +1254,7 @@ export const updateBookingStatus = async (
   status: string,
   totalAmount?: number
 ) => {
-  const updateData: any = { status: status as any };
+  const updateData: Prisma.BookingUpdateInput = { status: status as any };
   if (totalAmount !== undefined) {
     updateData.totalAmount = totalAmount;
     // Keep commission in sync with the 2% business rule
@@ -1277,9 +1277,9 @@ export const getAllVendors = async (filters: {
   const { isActive, verificationStatus, page = 1, limit = 20 } = filters;
   const skip = (page - 1) * limit;
 
-  const where: any = {};
+  const where: Prisma.VendorWhereInput = {};
   if (isActive !== undefined) where.isActive = isActive;
-  if (verificationStatus) where.verificationStatus = verificationStatus;
+  if (verificationStatus) where.verificationStatus = verificationStatus as any;
 
   const [vendors, total] = await Promise.all([
     prisma.vendor.findMany({
@@ -1360,12 +1360,20 @@ export const getBookingStats = async (filters: {
 
   const { vendorId, startDate, endDate } = filters;
 
-  const where: any = {};
+  const where: Prisma.BookingWhereInput = {};
   if (vendorId) where.vendorId = vendorId;
   if (startDate || endDate) {
     where.createdAt = {};
-    if (startDate) where.createdAt.gte = startDate;
-    if (endDate) where.createdAt.lte = endDate;
+    if (startDate)
+      where.createdAt = {
+        ...((where.createdAt as Prisma.DateTimeNullableFilter) || {}),
+        gte: startDate,
+      };
+    if (endDate)
+      where.createdAt = {
+        ...((where.createdAt as Prisma.DateTimeNullableFilter) || {}),
+        lte: endDate,
+      };
   }
 
   const [total, pending, confirmed, cancelled, completed] = await Promise.all([
