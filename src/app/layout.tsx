@@ -4,6 +4,7 @@ import "./globals.css";
 import { MainHeader } from "@/components/layout/main-header";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FooterWrapper } from "@/components/layout/footer-wrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 
 const oranienbaum = Oranienbaum({
@@ -40,6 +41,7 @@ export default function RootLayout({
           {children}
           <FooterWrapper />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
