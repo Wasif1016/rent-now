@@ -173,6 +173,8 @@ model Vehicle {
   seats             Int?
   images            Json?
   views             Int                @default(0)
+  whatsappClicks    Int                @default(0)
+  callClicks        Int                @default(0)
   featured          Boolean            @default(false)
   isAvailable       Boolean?           @default(true)
   isVerified        Boolean?           @default(false)

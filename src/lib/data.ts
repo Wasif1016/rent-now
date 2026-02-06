@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, FuelType, Transmission } from "@prisma/client";
 import { prisma, cache } from "./prisma";
 
 /** All active cities (for hero dropdown, cities page, API). */
@@ -560,11 +560,11 @@ export const searchVehicles = cache(
     }
 
     if (fuelType) {
-      where.fuelType = fuelType;
+      where.fuelType = fuelType as FuelType;
     }
 
     if (transmission) {
-      where.transmission = transmission;
+      where.transmission = transmission as Transmission;
     }
 
     // Build orderBy
