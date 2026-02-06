@@ -1,53 +1,60 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { CheckCircle2, Users, MapPin, Phone, MessageCircle } from 'lucide-react'
-import { generateWhatsAppLink } from '@/lib/whatsapp'
-import { getVehicleDisplayTitle } from '@/lib/vehicle-utils'
+import Image from "next/image";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  CheckCircle2,
+  Users,
+  MapPin,
+  Phone,
+  MessageCircle,
+} from "lucide-react";
+import { generateWhatsAppLink } from "@/lib/whatsapp";
+import { getVehicleDisplayTitle } from "@/lib/vehicle-utils";
 
 interface VehicleCardRedesignedProps {
   vehicle: {
-    id: string
-    title: string
-    slug: string
-    seats?: number | null
-    images: string[] | null
-    city: { name: string; slug: string }
-    town?: { name: string; slug: string } | null
+    id: string;
+    title: string;
+    slug: string;
+    seats?: number | null;
+    images: string[] | null;
+    city: { name: string; slug: string };
+    town?: { name: string; slug: string } | null;
     vendor: {
-      name: string
-      verificationStatus?: string | null
-      phone?: string | null
-      whatsappPhone?: string | null
-    }
+      name: string;
+      verificationStatus?: string | null;
+      phone?: string | null;
+      whatsappPhone?: string | null;
+    };
     vehicleModel?: {
-      name: string
-      vehicleBrand: { name: string }
-    } | null
-    priceWithinCity?: number | null
-    priceOutOfCity?: number | null
-  }
+      name: string;
+      vehicleBrand: { name: string };
+    } | null;
+    priceWithinCity?: number | null;
+    priceOutOfCity?: number | null;
+  };
 }
 
 export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
-  const imageUrl = vehicle.images && Array.isArray(vehicle.images) && vehicle.images.length > 0
-    ? vehicle.images[0]
-    : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop'
+  const imageUrl =
+    vehicle.images && Array.isArray(vehicle.images) && vehicle.images.length > 0
+      ? vehicle.images[0]
+      : "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop";
 
-  const isVerified = vehicle.vendor.verificationStatus === 'VERIFIED'
+  const isVerified = vehicle.vendor.verificationStatus === "VERIFIED";
 
   const locationText = vehicle.town
     ? `${vehicle.town.name}, ${vehicle.city.name}`
-    : vehicle.city.name
+    : vehicle.city.name;
 
   // Format price
   const formatPrice = (price: number | null | undefined) => {
-    if (!price) return 'N/A'
-    return `Rs. ${price.toLocaleString()}`
-  }
+    if (!price) return "N/A";
+    return `Rs. ${price.toLocaleString()}`;
+  };
 
   // Generate WhatsApp link
   const whatsappUrl = generateWhatsAppLink({
@@ -55,30 +62,55 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
     city: { name: vehicle.city.name },
     town: vehicle.town ? { name: vehicle.town.name } : null,
     vehicleModel: vehicle.vehicleModel ?? undefined,
-  })
+  });
 
   // Get WhatsApp number (prefer vendor's WhatsApp, fallback to phone, then default)
   // Note: The generateWhatsAppLink uses a default number, but we can override it
-  const whatsappNumber = vehicle.vendor.whatsappPhone || 
-    vehicle.vendor.phone || 
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || 
-    '923001234567'
-  
+  const whatsappNumber =
+    vehicle.vendor.whatsappPhone ||
+    vehicle.vendor.phone ||
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
+    "923001234567";
+
   // Override WhatsApp URL with vendor's number if available
-  const cleanWhatsAppNumber = whatsappNumber.replace(/\D/g, '')
-  const displayTitle = getVehicleDisplayTitle(vehicle)
-  const vehicleName = displayTitle
+  const cleanWhatsAppNumber = whatsappNumber.replace(/\D/g, "");
+  const displayTitle = getVehicleDisplayTitle(vehicle);
+  const vehicleName = displayTitle;
   const location = vehicle.town
     ? `${vehicle.town.name}, ${vehicle.city.name}`
-    : vehicle.city.name
-  const message = `Hi, I'm interested in booking ${vehicleName} in ${location}. Please confirm availability.`
-  const encodedMessage = encodeURIComponent(message)
-  const finalWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodedMessage}`
+    : vehicle.city.name;
+  const message = `Hi, I'm interested in booking ${vehicleName} in ${location}. Please confirm availability.`;
+  const encodedMessage = encodeURIComponent(message);
+  const finalWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodedMessage}`;
 
   // Get phone number for call
-  const phoneNumber = vehicle.vendor.phone || whatsappNumber
-  const cleanPhoneNumber = phoneNumber.replace(/\D/g, '')
-  const telHref = `tel:+${cleanPhoneNumber}`
+  const phoneNumber = vehicle.vendor.phone || whatsappNumber;
+  const cleanPhoneNumber = phoneNumber.replace(/\D/g, "");
+  const telHref = `tel:+${cleanPhoneNumber}`;
+
+  // Track click function
+  const trackClick = async (type: "whatsapp" | "call") => {
+    try {
+      await fetch(`/api/vehicles/${vehicle.id}/track`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ type }),
+      });
+    } catch (error) {
+      // Silent fail - don't block user action
+      console.error("Failed to track click:", error);
+    }
+  };
+
+  const handleWhatsAppClick = () => {
+    trackClick("whatsapp");
+  };
+
+  const handleCallClick = () => {
+    trackClick("call");
+  };
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col bg-white border-gray-200">
@@ -127,13 +159,17 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
           {vehicle.priceWithinCity && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Within City:</span>
-              <span className="font-semibold text-gray-900">{formatPrice(vehicle.priceWithinCity)}</span>
+              <span className="font-semibold text-gray-900">
+                {formatPrice(vehicle.priceWithinCity)}
+              </span>
             </div>
           )}
           {vehicle.priceOutOfCity && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Out of City:</span>
-              <span className="font-semibold text-gray-900">{formatPrice(vehicle.priceOutOfCity)}</span>
+              <span className="font-semibold text-gray-900">
+                {formatPrice(vehicle.priceOutOfCity)}
+              </span>
             </div>
           )}
         </div>
@@ -149,6 +185,7 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2"
+              onClick={handleWhatsAppClick}
             >
               <MessageCircle className="h-4 w-4" />
               WhatsApp Now
@@ -162,6 +199,7 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
             <a
               href={telHref}
               className="flex items-center justify-center gap-2"
+              onClick={handleCallClick}
             >
               <Phone className="h-4 w-4 text-foreground" />
               Call Now
@@ -170,6 +208,5 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
         </div>
       </div>
     </Card>
-  )
+  );
 }
-
