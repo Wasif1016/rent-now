@@ -70,7 +70,7 @@ function ForgotPasswordPageInner() {
             <div className="mt-6 space-y-4">
               <Button
                 onClick={() => router.push("/auth/login")}
-                className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
+                className="w-full bg-primary hover:bg-primary/90 text-white"
               >
                 Back to Login
               </Button>
@@ -82,7 +82,7 @@ function ForgotPasswordPageInner() {
                       setSuccess(false);
                       setEmail("");
                     }}
-                    className="text-[#10b981] font-semibold hover:underline"
+                    className="text-primary font-semibold hover:underline"
                   >
                     Try again
                   </button>
@@ -131,7 +131,7 @@ function ForgotPasswordPageInner() {
 
             <Button
               type="submit"
-              className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-white"
               disabled={loading}
             >
               {loading ? "Sending..." : "Send Reset Link"}
@@ -143,7 +143,7 @@ function ForgotPasswordPageInner() {
               Remember your password?{" "}
               <Link
                 href="/auth/login"
-                className="text-[#10b981] font-semibold hover:underline"
+                className="text-primary font-semibold hover:underline"
               >
                 Sign in
               </Link>
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
           <div className="w-full max-w-md text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#10b981] border-r-transparent" />
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
             <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>

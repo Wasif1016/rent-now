@@ -1,96 +1,118 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/auth-context'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Upload, FileText, AlertCircle, CheckCircle, X } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
 
 interface ImportError {
-  row: number
-  error: string
-  data: any
+  row: number;
+  error: string;
+  data: any;
 }
 
 export default function ImportPage() {
-  const router = useRouter()
-  const { session, getSession, loading: authLoading } = useAuth()
-  const [file, setFile] = useState<File | null>(null)
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const { session, getSession, loading: authLoading } = useAuth();
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
-    success: number
-    errors: ImportError[]
-    total: number
-  } | null>(null)
+    success: number;
+    errors: ImportError[];
+    total: number;
+  } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-      setResult(null)
+      setFile(e.target.files[0]);
+      setResult(null);
     }
-  }
+  };
 
   const handleImport = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setLoading(true)
-    setResult(null)
+    setLoading(true);
+    setResult(null);
 
     try {
-      const currentSession = await getSession()
+      const currentSession = await getSession();
       if (!currentSession?.access_token) {
         setResult({
           success: 0,
-          errors: [{ row: 0, error: 'You must be logged in to import businesses', data: {} }],
+          errors: [
+            {
+              row: 0,
+              error: "You must be logged in to import businesses",
+              data: {},
+            },
+          ],
           total: 0,
-        })
-        setLoading(false)
-        return
+        });
+        setLoading(false);
+        return;
       }
 
-      const formData = new FormData()
-      formData.append('file', file)
+      const formData = new FormData();
+      formData.append("file", file);
 
-      const response = await fetch('/api/admin/businesses/import', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/admin/businesses/import", {
+        method: "POST",
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${currentSession.access_token}`,
         },
         body: formData,
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Your session may have expired. Please log in again.')
+          throw new Error(
+            "Your session may have expired. Please log in again."
+          );
         }
         if (response.status === 403) {
-          throw new Error('Admin access required.')
+          throw new Error("Admin access required.");
         }
-        throw new Error(data.error || 'Import failed')
+        throw new Error(data.error || "Import failed");
       }
 
-      setResult(data)
+      setResult(data);
     } catch (error: any) {
       setResult({
         success: 0,
-        errors: [{ row: 0, error: error.message || 'Failed to import businesses', data: {} }],
+        errors: [
+          {
+            row: 0,
+            error: error.message || "Failed to import businesses",
+            data: {},
+          },
+        ],
         total: 0,
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Import Businesses</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Import Businesses
+          </h1>
           <p className="text-muted-foreground mt-1">
             Upload a CSV file to import rental businesses
           </p>
@@ -104,7 +126,8 @@ export default function ImportPage() {
         <CardHeader>
           <CardTitle>CSV Import</CardTitle>
           <CardDescription>
-            Upload a CSV file with business information. Required columns: business_name, email, city
+            Upload a CSV file with business information. Columns:
+            google_maps_url, business_name, phone, email, city
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -112,7 +135,9 @@ export default function ImportPage() {
             <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <div className="space-y-2">
               <label htmlFor="file-upload" className="cursor-pointer">
-                <span className="text-primary hover:underline">Click to upload</span>
+                <span className="text-primary hover:underline">
+                  Click to upload
+                </span>
                 <span className="text-muted-foreground"> or drag and drop</span>
               </label>
               <input
@@ -146,13 +171,24 @@ export default function ImportPage() {
               Your CSV should include the following columns:
             </p>
             <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-              <li><strong>business_name</strong> (required) - Name of the rental business</li>
-              <li><strong>email</strong> (required) - Business email address</li>
-              <li><strong>phone</strong> (optional) - Contact phone number</li>
-              <li><strong>town</strong> (optional) - Town/locality</li>
-              <li><strong>city</strong> (required) - City name</li>
-              <li><strong>province</strong> (optional) - Province name</li>
-              <li><strong>google_maps_url</strong> (optional) - Google Maps URL</li>
+              <li>
+                <strong>google_maps_url</strong> (optional) - Link to Google
+                Maps
+              </li>
+              <li>
+                <strong>business_name</strong> (required) - Name of the rental
+                business
+              </li>
+              <li>
+                <strong>phone</strong> (optional) - Contact phone number
+              </li>
+              <li>
+                <strong>email</strong> (required) - Business email address
+              </li>
+              <li>
+                <strong>city</strong> (required) - City name (must match a city
+                in the system)
+              </li>
             </ul>
           </div>
 
@@ -161,7 +197,13 @@ export default function ImportPage() {
             disabled={!file || loading || authLoading || !session}
             className="w-full"
           >
-            {loading ? 'Importing...' : authLoading ? 'Loading...' : !session ? 'Please log in' : 'Import Businesses'}
+            {loading
+              ? "Importing..."
+              : authLoading
+              ? "Loading..."
+              : !session
+              ? "Please log in"
+              : "Import Businesses"}
           </Button>
 
           {result && (
@@ -170,7 +212,9 @@ export default function ImportPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle className="h-5 w-5" />
-                    <span className="font-semibold">{result.success} businesses imported</span>
+                    <span className="font-semibold">
+                      {result.success} businesses imported
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
                     Out of {result.total} total rows
@@ -179,7 +223,9 @@ export default function ImportPage() {
                 {result.errors.length > 0 && (
                   <div className="flex items-center gap-2 text-destructive">
                     <AlertCircle className="h-5 w-5" />
-                    <span className="font-semibold">{result.errors.length} errors</span>
+                    <span className="font-semibold">
+                      {result.errors.length} errors
+                    </span>
                   </div>
                 )}
               </div>
@@ -201,7 +247,9 @@ export default function ImportPage() {
                         {result.errors.map((error, idx) => (
                           <tr key={idx} className="border-b border-border">
                             <td className="p-2 font-mono">{error.row}</td>
-                            <td className="p-2 text-destructive">{error.error}</td>
+                            <td className="p-2 text-destructive">
+                              {error.error}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -222,6 +270,5 @@ export default function ImportPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

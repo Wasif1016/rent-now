@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { createClient } from '@supabase/supabase-js'
-import { logActivity } from '@/lib/services/activity-log.service'
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
+import { logActivity } from "@/lib/services/activity-log.service";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
-    const { user } = await requireAdmin(request)
-    const body = await request.json()
-    const ids = body.ids as string[] | undefined
+    const { user } = await requireAdmin(request);
+    const body = await request.json();
+    const ids = body.ids as string[] | undefined;
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
-        { error: 'Request body must include an array of business ids' },
+        { error: "Request body must include an array of business ids" },
         { status: 400 }
-      )
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
         autoRefreshToken: false,
         persistSession: false,
       },
-    })
+    });
 
-    const results: { id: string; success: boolean; error?: string }[] = []
+    const results: { id: string; success: boolean; error?: string }[] = [];
 
     for (const id of ids) {
       try {
@@ -42,17 +42,17 @@ export async function POST(request: NextRequest) {
               },
             },
           },
-        })
+        });
 
         if (!vendor) {
-          results.push({ id, success: false, error: 'Business not found' })
-          continue
+          results.push({ id, success: false, error: "Business not found" });
+          continue;
         }
 
         // Delete Supabase user if exists
         if (vendor.supabaseUserId) {
           try {
-            await supabase.auth.admin.deleteUser(vendor.supabaseUserId)
+            await supabase.auth.admin.deleteUser(vendor.supabaseUserId);
           } catch {
             // Continue even if Supabase user deletion fails
           }
@@ -61,32 +61,32 @@ export async function POST(request: NextRequest) {
         // 1. VehicleRoute links for this vendor's vehicles
         const vendorVehicleIds = await prisma.vehicle
           .findMany({ where: { vendorId: id }, select: { id: true } })
-          .then((rows) => rows.map((r) => r.id))
+          .then((rows) => rows.map((r) => r.id));
         if (vendorVehicleIds.length > 0) {
           await prisma.vehicleRoute.deleteMany({
             where: { vehicleId: { in: vendorVehicleIds } },
-          })
+          });
         }
 
-        // 2. Vehicles
+        // 2. Booking, Inquiry, VendorRouteOffer (dependent on Vehicle and Vendor)
+        await prisma.vendorRouteOffer.deleteMany({ where: { vendorId: id } });
+        await prisma.booking.deleteMany({ where: { vendorId: id } });
+        await prisma.inquiry.deleteMany({ where: { vendorId: id } });
+
+        // 3. Vehicles
         await prisma.vehicle.deleteMany({
           where: { vendorId: id },
-        })
-
-        // 3. Bookings, inquiries, vendor routes, activity logs
-        await prisma.booking.deleteMany({ where: { vendorId: id } })
-        await prisma.inquiry.deleteMany({ where: { vendorId: id } })
-        await prisma.vendorRouteOffer.deleteMany({ where: { vendorId: id } })
+        });
         await prisma.activityLog.deleteMany({
-          where: { entityType: 'VENDOR', entityId: id },
-        })
+          where: { entityType: "VENDOR", entityId: id },
+        });
 
         // 4. Vendor
-        await prisma.vendor.delete({ where: { id } })
+        await prisma.vendor.delete({ where: { id } });
 
         await logActivity({
-          action: 'BUSINESS_DELETED',
-          entityType: 'VENDOR',
+          action: "BUSINESS_DELETED",
+          entityType: "VENDOR",
           entityId: id,
           adminUserId: user.id,
           details: {
@@ -96,16 +96,20 @@ export async function POST(request: NextRequest) {
             deletedInquiries: vendor._count.inquiries,
             deletedRoutes: vendor._count.vendorRouteOffers,
           },
-        })
+        });
 
-        results.push({ id, success: true })
+        results.push({ id, success: true });
       } catch (err: any) {
-        results.push({ id, success: false, error: err.message || 'Delete failed' })
+        results.push({
+          id,
+          success: false,
+          error: err.message || "Delete failed",
+        });
       }
     }
 
-    const succeeded = results.filter((r) => r.success).length
-    const failed = results.filter((r) => !r.success)
+    const succeeded = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success);
 
     return NextResponse.json({
       success: failed.length === 0,
@@ -114,15 +118,18 @@ export async function POST(request: NextRequest) {
           ? `${succeeded} business(es) deleted successfully`
           : `${succeeded} deleted, ${failed.length} failed`,
       results,
-    })
+    });
   } catch (error: any) {
-    if (error.message === 'Unauthorized' || error.message.includes('Forbidden')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (
+      error.message === "Unauthorized" ||
+      error.message.includes("Forbidden")
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error('Bulk delete businesses error:', error)
+    console.error("Bulk delete businesses error:", error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error.message || "Internal server error" },
       { status: 500 }
-    )
+    );
   }
 }

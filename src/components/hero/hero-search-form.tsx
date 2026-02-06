@@ -436,7 +436,7 @@ export function HeroSearchForm({
                       <button
                         type="button"
                         onClick={() => setShowAllCities(true)}
-                        className="mt-6 w-full flex items-center justify-center gap-2 text-[#10b981] font-medium hover:text-[#059669] transition-colors"
+                        className="mt-6 w-full flex items-center justify-center gap-2 text-primary font-medium hover:text-[#059669] transition-colors"
                       >
                         View More
                         <ChevronDown className="h-4 w-4" />
@@ -549,7 +549,7 @@ export function HeroSearchForm({
                           <button
                             type="button"
                             onClick={() => setShowAllTowns(true)}
-                            className="mt-6 w-full flex items-center justify-center gap-2 text-[#10b981] font-medium hover:text-[#059669] transition-colors"
+                            className="mt-6 w-full flex items-center justify-center gap-2 text-primary font-medium hover:text-[#059669] transition-colors"
                           >
                             View More
                             <ChevronDown className="h-4 w-4" />
@@ -683,7 +683,7 @@ export function HeroSearchForm({
                       <button
                         type="button"
                         onClick={() => setShowAllFromCities(true)}
-                        className="mt-6 w-full flex items-center justify-center gap-2 text-[#10b981] font-medium hover:text-[#059669] transition-colors"
+                        className="mt-6 w-full flex items-center justify-center gap-2 text-primary font-medium hover:text-[#059669] transition-colors"
                       >
                         View More
                         <ChevronDown className="h-4 w-4" />
@@ -803,7 +803,7 @@ export function HeroSearchForm({
                       <button
                         type="button"
                         onClick={() => setShowAllToCities(true)}
-                        className="mt-6 w-full flex items-center justify-center gap-2 text-[#10b981] font-medium hover:text-[#059669] transition-colors"
+                        className="mt-6 w-full flex items-center justify-center gap-2 text-primary font-medium hover:text-[#059669] transition-colors"
                       >
                         View More
                         <ChevronDown className="h-4 w-4" />

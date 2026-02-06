@@ -88,6 +88,31 @@ export default function VendorLayout({
     router.refresh();
   };
 
+  // Format user display - convert dummy email to phone number format
+  const getUserDisplay = () => {
+    if (!user?.email) return "Your vendor account";
+
+    // Check if it's a dummy email (phone-XXXXXXXXXX@rentnow.local)
+    if (
+      user.email.includes("@rentnow.local") &&
+      user.email.startsWith("phone-")
+    ) {
+      // Extract phone number from dummy email
+      const phoneMatch = user.email.match(/^phone-(\d+)@rentnow\.local$/);
+      if (phoneMatch && phoneMatch[1]) {
+        const phone = phoneMatch[1];
+        // Convert 923059991234 to 03059991234
+        if (phone.startsWith("92") && phone.length === 12) {
+          return "0" + phone.substring(2);
+        }
+        return phone;
+      }
+    }
+
+    // Return actual email if not a dummy
+    return user.email;
+  };
+
   return (
     <VendorProtectedRoute>
       <div className="flex bg-slate-50 mt-16 flex-col md:flex-row md:h-[calc(100vh-64px)] md:overflow-hidden">
@@ -179,13 +204,13 @@ export default function VendorLayout({
                     className="object-cover"
                   />
                 ) : (
-                  user?.email?.charAt(0).toUpperCase() ?? "V"
+                  getUserDisplay().charAt(0).toUpperCase()
                 )}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold">Vendor Admin</span>
                 <span className="text-[11px] text-muted-foreground">
-                  {user?.email ?? "Your vendor account"}
+                  {getUserDisplay()}
                 </span>
               </div>
             </div>

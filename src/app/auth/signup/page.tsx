@@ -14,11 +14,26 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const router = useRouter();
+
+  const validatePhone = (value: string) => {
+    if (!value) {
+      setPhoneError("Phone number is required");
+      return false;
+    }
+    if (value.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+      return false;
+    }
+    setPhoneError(null);
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,11 +49,18 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!validatePhone(phone)) {
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const fullPhone = `+92${phone}`;
       const { error } = await signUp(email, password, {
         full_name: fullName,
+        phone_number: fullPhone,
+        whatsapp_number: fullPhone,
         user_type: "vendor", // Mark as vendor
       });
 
@@ -46,14 +68,23 @@ export default function SignUpPage() {
         setError(error.message);
         setLoading(false);
       } else {
-        setSuccess(true);
-        setLoading(false);
-        // Redirect to login after a short delay
-        setTimeout(() => {
-          router.push(
-            "/auth/login?message=Check your email to confirm your account"
+        // Automatically sign in after signup
+        const { error: signInError } = await signIn(email, password);
+        if (signInError) {
+          setError(
+            "Account created but failed to sign in automatically. Please sign in manually."
           );
-        }, 2000);
+          setLoading(false);
+          router.push(
+            "/auth/login?message=Account created successfully! Please sign in."
+          );
+        } else {
+          setSuccess(true);
+          setLoading(false);
+          setTimeout(() => {
+            router.push("/vendor");
+          }, 1500);
+        }
       }
     } catch (err: any) {
       setError(err.message || "An error occurred during signup");
@@ -65,19 +96,30 @@ export default function SignUpPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="h-8 w-8 text-green-600" />
+          <div className="bg-white  shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-green-100  flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="h-8 w-8 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Check your email
+              Registration Successful!
             </h2>
             <p className="text-gray-600 mb-4">
-              We&apos;ve sent you a confirmation link at{" "}
-              <strong>{email}</strong>
+              Your vendor account has been created successfully.
             </p>
             <p className="text-sm text-gray-500">
-              Please check your email and click the link to verify your account.
+              We are redirecting you to the login page...
             </p>
           </div>
         </div>
@@ -88,7 +130,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center my-12 bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white  shadow-lg p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Vendor Sign Up
@@ -132,6 +174,41 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="flex">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  +92
+                </span>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="3247651112"
+                  value={phone}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, "");
+                    if (val.startsWith("0")) {
+                      val = val.substring(1);
+                    }
+                    val = val.slice(0, 10);
+                    setPhone(val);
+                    if (phoneError) setPhoneError(null);
+                  }}
+                  onBlur={() => validatePhone(phone)}
+                  className={`rounded-l-none border-l-0 focus-visible:ring-offset-0 ${
+                    phoneError
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : "focus-visible:ring-black"
+                  }`}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              {phoneError && (
+                <p className="text-xs text-red-500 mt-1">{phoneError}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -161,7 +238,7 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
+              className="w-full bg-primary hover:bg-black/90 text-black hover:text-white"
               disabled={loading}
             >
               {loading ? "Creating account..." : "Sign Up"}
@@ -176,12 +253,12 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-12 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
               <Link
                 href="/auth/login"
-                className="text-[#10b981] font-semibold hover:underline"
+                className="text-black font-semibold hover:underline"
               >
                 Sign in
               </Link>

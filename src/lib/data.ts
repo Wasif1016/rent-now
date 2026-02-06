@@ -512,7 +512,6 @@ export const searchVehicles = cache(
     // Filter by brand (if specified)
     if (brandSlug) {
       where.vehicleModel = {
-        ...(typeof where.vehicleModel === "object" ? where.vehicleModel : {}),
         vehicleBrand: {
           slug: brandSlug,
         },

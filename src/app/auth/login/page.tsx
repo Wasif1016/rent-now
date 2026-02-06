@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 function LoginPageInner() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -37,7 +37,7 @@ function LoginPageInner() {
     setError(null);
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(identifier, password);
 
     if (error) {
       setError(error.message);
@@ -92,13 +92,13 @@ function LoginPageInner() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identifier">Email or Phone Number</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="identifier"
+                type="text"
+                placeholder="Email or phone (e.g. 0308...)"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 disabled={loading}
               />
@@ -109,7 +109,7 @@ function LoginPageInner() {
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm text-[#10b981] hover:underline"
+                  className="text-sm text-primary hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -127,7 +127,7 @@ function LoginPageInner() {
 
             <Button
               type="submit"
-              className="w-full bg-[#10b981] hover:bg-[#10b981]/90 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-white"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign In"}
@@ -139,7 +139,7 @@ function LoginPageInner() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
-                className="text-[#10b981] font-semibold hover:underline"
+                className="text-primary font-semibold hover:underline"
               >
                 Sign up
               </Link>
@@ -157,7 +157,7 @@ export default function LoginPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
           <div className="w-full max-w-md text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#10b981] border-r-transparent" />
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
             <p className="mt-4 text-gray-600">Loading login page...</p>
           </div>
         </div>

@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   MoreVertical,
   Eye,
@@ -22,52 +22,60 @@ import {
   Ban,
   CheckCircle,
   Trash2,
-} from 'lucide-react'
-import { CreateAccountModal } from './create-account-modal'
-import { SendEmailModal } from './send-email-modal'
-import { SendWhatsAppModal } from './send-whatsapp-modal'
-import { DeleteBusinessModal } from './delete-business-modal'
-import { buildWhatsAppChatLink } from '@/lib/whatsapp'
+} from "lucide-react";
+import { CreateAccountModal } from "./create-account-modal";
+import { SendEmailModal } from "./send-email-modal";
+import { SendWhatsAppModal } from "./send-whatsapp-modal";
+import { DeleteBusinessModal } from "./delete-business-modal";
+import { buildWhatsAppChatLink } from "@/lib/whatsapp";
 
-type RegistrationStatus = 'NOT_REGISTERED' | 'ACCOUNT_CREATED' | 'EMAIL_SENT' | 'ACTIVE' | 'SUSPENDED'
+type RegistrationStatus =
+  | "NOT_REGISTERED"
+  | "ACCOUNT_CREATED"
+  | "EMAIL_SENT"
+  | "ACTIVE"
+  | "SUSPENDED";
 
 interface Business {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  whatsappPhone?: string | null
-  town: string | null
-  province: string | null
-  registrationStatus: RegistrationStatus | null
-  isActive: boolean | null
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  whatsappPhone?: string | null;
+  town: string | null;
+  province: string | null;
+  registrationStatus: RegistrationStatus | null;
+  isActive: boolean | null;
+  city: {
+    name: string;
+  } | null;
   _count: {
-    vehicles: number
-    bookings: number
-  }
+    vehicles: number;
+    bookings: number;
+  };
 }
 
 interface BusinessTableProps {
-  businesses: Business[]
-  total: number
-  totalPages: number
-  currentPage: number
+  businesses: Business[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 function getStatusBadge(status: RegistrationStatus | null) {
   switch (status) {
-    case 'NOT_REGISTERED':
-      return <Badge variant="outline">Not Registered</Badge>
-    case 'ACCOUNT_CREATED':
-      return <Badge className="bg-blue-500">Account Created</Badge>
-    case 'EMAIL_SENT':
-      return <Badge className="bg-yellow-500">Email Sent</Badge>
-    case 'ACTIVE':
-      return <Badge className="bg-green-500">Active</Badge>
-    case 'SUSPENDED':
-      return <Badge variant="destructive">Suspended</Badge>
+    case "NOT_REGISTERED":
+      return <Badge variant="outline">Not Registered</Badge>;
+    case "ACCOUNT_CREATED":
+      return <Badge className="bg-blue-500">Account Created</Badge>;
+    case "EMAIL_SENT":
+      return <Badge className="bg-yellow-500">Email Sent</Badge>;
+    case "ACTIVE":
+      return <Badge className="bg-green-500">Active</Badge>;
+    case "SUSPENDED":
+      return <Badge variant="destructive">Suspended</Badge>;
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">Unknown</Badge>;
   }
 }
 
@@ -77,83 +85,88 @@ export function BusinessTable({
   totalPages,
   currentPage,
 }: BusinessTableProps) {
-  const router = useRouter()
-  const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false)
-  const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false)
-  const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false)
-  const [deleteBusinessModalOpen, setDeleteBusinessModalOpen] = useState(false)
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [isBulkDelete, setIsBulkDelete] = useState(false)
+  const router = useRouter();
+  const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false);
+  const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false);
+  const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false);
+  const [deleteBusinessModalOpen, setDeleteBusinessModalOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
+    null
+  );
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
 
   const selectedBusinesses = useMemo(
     () => businesses.filter((b) => selectedIds.has(b.id)),
     [businesses, selectedIds]
-  )
+  );
 
   const allOnPageSelected =
-    businesses.length > 0 && businesses.every((b) => selectedIds.has(b.id))
+    businesses.length > 0 && businesses.every((b) => selectedIds.has(b.id));
 
   const toggleOne = (id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const toggleAllOnPage = () => {
     if (allOnPageSelected) {
       setSelectedIds((prev) => {
-        const next = new Set(prev)
-        businesses.forEach((b) => next.delete(b.id))
-        return next
-      })
+        const next = new Set(prev);
+        businesses.forEach((b) => next.delete(b.id));
+        return next;
+      });
     } else {
       setSelectedIds((prev) => {
-        const next = new Set(prev)
-        businesses.forEach((b) => next.add(b.id))
-        return next
-      })
+        const next = new Set(prev);
+        businesses.forEach((b) => next.add(b.id));
+        return next;
+      });
     }
-  }
+  };
 
   const openBulkDeleteModal = () => {
-    setIsBulkDelete(true)
-    setSelectedBusiness(null)
-    setDeleteBusinessModalOpen(true)
-  }
+    setIsBulkDelete(true);
+    setSelectedBusiness(null);
+    setDeleteBusinessModalOpen(true);
+  };
 
   const openSingleDeleteModal = (business: Business) => {
-    setIsBulkDelete(false)
-    setSelectedBusiness(business)
-    setDeleteBusinessModalOpen(true)
-  }
+    setIsBulkDelete(false);
+    setSelectedBusiness(business);
+    setDeleteBusinessModalOpen(true);
+  };
 
   // Refresh when modals close after successful operations
-  const handleModalClose = (modalType: 'create' | 'email' | 'whatsapp' | 'delete') => {
-    if (modalType === 'create') {
-      setCreateAccountModalOpen(false)
-    } else if (modalType === 'email') {
-      setSendEmailModalOpen(false)
-    } else if (modalType === 'whatsapp') {
-      setSendWhatsAppModalOpen(false)
-    } else if (modalType === 'delete') {
-      setDeleteBusinessModalOpen(false)
-      setSelectedIds(new Set())
-      setIsBulkDelete(false)
+  const handleModalClose = (
+    modalType: "create" | "email" | "whatsapp" | "delete"
+  ) => {
+    if (modalType === "create") {
+      setCreateAccountModalOpen(false);
+    } else if (modalType === "email") {
+      setSendEmailModalOpen(false);
+    } else if (modalType === "whatsapp") {
+      setSendWhatsAppModalOpen(false);
+    } else if (modalType === "delete") {
+      setDeleteBusinessModalOpen(false);
+      setSelectedIds(new Set());
+      setIsBulkDelete(false);
     }
-    setSelectedBusiness(null)
-    router.refresh()
-  }
+    setSelectedBusiness(null);
+    router.refresh();
+  };
 
   return (
     <>
       {selectedIds.size > 0 && (
         <div className="flex items-center justify-between gap-4 p-3 mb-4 bg-muted/50 rounded-lg border border-border">
           <span className="text-sm font-medium">
-            {selectedIds.size} business{selectedIds.size !== 1 ? 'es' : ''} selected
+            {selectedIds.size} business{selectedIds.size !== 1 ? "es" : ""}{" "}
+            selected
           </span>
           <div className="flex gap-2">
             <Button
@@ -162,6 +175,17 @@ export function BusinessTable({
               onClick={() => setSelectedIds(new Set())}
             >
               Clear selection
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => {
+                setIsBulkDelete(false);
+                setCreateAccountModalOpen(true);
+              }}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Create Accounts
             </Button>
             <Button
               variant="destructive"
@@ -187,14 +211,19 @@ export function BusinessTable({
                     aria-label="Select all on page"
                   />
                 </th>
-                <th className="text-left p-4 font-semibold text-sm">Business Name</th>
+                <th className="text-left p-4 font-semibold text-sm">
+                  Business Name
+                </th>
                 <th className="text-left p-4 font-semibold text-sm">Email</th>
                 <th className="text-left p-4 font-semibold text-sm">Phone</th>
-                <th className="text-left p-4 font-semibold text-sm">Town</th>
                 <th className="text-left p-4 font-semibold text-sm">City</th>
                 <th className="text-left p-4 font-semibold text-sm">Status</th>
-                <th className="text-left p-4 font-semibold text-sm">Vehicles</th>
-                <th className="text-right p-4 font-semibold text-sm">Actions</th>
+                <th className="text-left p-4 font-semibold text-sm">
+                  Vehicles
+                </th>
+                <th className="text-right p-4 font-semibold text-sm">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -214,31 +243,30 @@ export function BusinessTable({
                     <div className="font-medium">{business.name}</div>
                   </td>
                   <td className="p-4 text-muted-foreground">
-                    {business.email || 'N/A'}
+                    {business.email || "N/A"}
                   </td>
                   <td className="p-4 text-muted-foreground">
                     {business.phone || business.whatsappPhone ? (
                       <a
                         href={buildWhatsAppChatLink(
-                          business.whatsappPhone || business.phone || ''
+                          business.whatsappPhone || business.phone || ""
                         )}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline"
                       >
-                        {business.phone || business.whatsappPhone || 'N/A'}
+                        {business.phone || business.whatsappPhone || "N/A"}
                       </a>
                     ) : (
-                      'N/A'
+                      "N/A"
                     )}
                   </td>
                   <td className="p-4 text-muted-foreground">
-                    {business.town || 'N/A'}
+                    {business.city?.name || business.province || "N/A"}
                   </td>
-                  <td className="p-4 text-muted-foreground">
-                    {business.province || 'N/A'}
+                  <td className="p-4">
+                    {getStatusBadge(business.registrationStatus)}
                   </td>
-                  <td className="p-4">{getStatusBadge(business.registrationStatus)}</td>
                   <td className="p-4">
                     <span className="text-muted-foreground">
                       {business._count.vehicles}
@@ -260,16 +288,18 @@ export function BusinessTable({
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/admin/businesses/${business.id}/edit`}>
+                            <Link
+                              href={`/admin/businesses/${business.id}/edit`}
+                            >
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
                             </Link>
                           </DropdownMenuItem>
-                          {business.registrationStatus === 'NOT_REGISTERED' && (
+                          {business.registrationStatus === "NOT_REGISTERED" && (
                             <DropdownMenuItem
                               onClick={() => {
-                                setSelectedBusiness(business)
-                                setCreateAccountModalOpen(true)
+                                setSelectedBusiness(business);
+                                setCreateAccountModalOpen(true);
                               }}
                             >
                               <UserPlus className="h-4 w-4 mr-2" />
@@ -278,8 +308,8 @@ export function BusinessTable({
                           )}
                           <DropdownMenuItem
                             onClick={() => {
-                              setSelectedBusiness(business)
-                              setSendEmailModalOpen(true)
+                              setSelectedBusiness(business);
+                              setSendEmailModalOpen(true);
                             }}
                           >
                             <Mail className="h-4 w-4 mr-2" />
@@ -287,8 +317,8 @@ export function BusinessTable({
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
-                              setSelectedBusiness(business)
-                              setSendWhatsAppModalOpen(true)
+                              setSelectedBusiness(business);
+                              setSendWhatsAppModalOpen(true);
                             }}
                           >
                             <MessageCircle className="h-4 w-4 mr-2" />
@@ -352,42 +382,54 @@ export function BusinessTable({
       </div>
 
       {/* Modals */}
+      <CreateAccountModal
+        open={createAccountModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleModalClose("create");
+          } else {
+            setCreateAccountModalOpen(true);
+          }
+        }}
+        businessId={selectedBusiness?.id}
+        businessName={selectedBusiness?.name}
+        businessEmail={selectedBusiness?.email || ""}
+        businessPhone={selectedBusiness?.phone || ""}
+        businessIds={
+          selectedIds.size > 0 && !selectedBusiness
+            ? Array.from(selectedIds)
+            : undefined
+        }
+        businessNames={
+          selectedIds.size > 0 && !selectedBusiness
+            ? selectedBusinesses.map((b) => b.name)
+            : undefined
+        }
+      />
+
       {selectedBusiness && (
         <>
-          <CreateAccountModal
-            open={createAccountModalOpen}
-            onOpenChange={(open) => {
-              if (!open) {
-                handleModalClose('create')
-              } else {
-                setCreateAccountModalOpen(true)
-              }
-            }}
-            businessId={selectedBusiness.id}
-            businessName={selectedBusiness.name}
-            businessEmail={selectedBusiness.email || ''}
-          />
           <SendEmailModal
             open={sendEmailModalOpen}
             onOpenChange={(open) => {
               if (!open) {
-                handleModalClose('email')
+                handleModalClose("email");
               } else {
-                setSendEmailModalOpen(true)
+                setSendEmailModalOpen(true);
               }
             }}
             businessId={selectedBusiness.id}
             businessName={selectedBusiness.name}
-            businessEmail={selectedBusiness.email || ''}
+            businessEmail={selectedBusiness.email || ""}
             registrationStatus={selectedBusiness.registrationStatus}
           />
           <SendWhatsAppModal
             open={sendWhatsAppModalOpen}
             onOpenChange={(open) => {
               if (!open) {
-                handleModalClose('whatsapp')
+                handleModalClose("whatsapp");
               } else {
-                setSendWhatsAppModalOpen(true)
+                setSendWhatsAppModalOpen(true);
               }
             }}
             businessId={selectedBusiness.id}
@@ -405,14 +447,22 @@ export function BusinessTable({
         open={deleteBusinessModalOpen}
         onOpenChange={(open) => {
           if (!open) {
-            handleModalClose('delete')
+            handleModalClose("delete");
           } else {
-            setDeleteBusinessModalOpen(true)
+            setDeleteBusinessModalOpen(true);
           }
         }}
-        businessId={!isBulkDelete && selectedBusiness ? selectedBusiness.id : undefined}
-        businessName={!isBulkDelete && selectedBusiness ? selectedBusiness.name : undefined}
-        businessIds={isBulkDelete && selectedIds.size > 0 ? Array.from(selectedIds) : undefined}
+        businessId={
+          !isBulkDelete && selectedBusiness ? selectedBusiness.id : undefined
+        }
+        businessName={
+          !isBulkDelete && selectedBusiness ? selectedBusiness.name : undefined
+        }
+        businessIds={
+          isBulkDelete && selectedIds.size > 0
+            ? Array.from(selectedIds)
+            : undefined
+        }
         businessNames={
           isBulkDelete && selectedBusinesses.length > 0
             ? selectedBusinesses.map((b) => b.name)
@@ -420,6 +470,5 @@ export function BusinessTable({
         }
       />
     </>
-  )
+  );
 }
-

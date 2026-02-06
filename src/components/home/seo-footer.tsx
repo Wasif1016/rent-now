@@ -102,9 +102,6 @@ export function SeoFooter() {
                 RentNow Pk
               </span>
             </Link>
-            <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-wide">
-              About RentNowPk
-            </h3>
             <p className="text-sm text-gray-300 mb-6 leading-relaxed">
               RentNowPk is Pakistan’s trusted car rental directory that connect
               customers with verified local car rental businesses for weddings,
@@ -212,12 +209,12 @@ export function SeoFooter() {
           <div className="flex flex-wrap items-center gap-4">
             {/* Email */}
             <a
-              href="mailto:info@rentnowpk.com"
+              href="mailto:help@rentnowpk.com"
               className="flex items-center gap-2 px-4 py-2 border border-[#C0F11C] rounded bg-[#0f1419] hover:bg-[#C0F11C]/10 transition-colors"
             >
               <Mail className="h-4 w-4 text-[#C0F11C]" />
               <span className="text-sm font-semibold text-[#C0F11C]">
-                info@rentnowpk.com
+                help@rentnowpk.com
               </span>
             </a>
 
@@ -228,7 +225,7 @@ export function SeoFooter() {
             >
               <Phone className="h-4 w-4 text-[#C0F11C]" />
               <span className="text-sm font-semibold text-[#C0F11C]">
-                +92 3144176625
+                +92 3144174625
               </span>
             </a>
           </div>

@@ -1,13 +1,13 @@
-import { prisma } from '@/lib/prisma'
-import { createClient } from '@supabase/supabase-js'
-import { encryptPassword, generatePassword } from './crypto.service'
-import { logActivity } from './activity-log.service'
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
+import { encryptPassword, generatePassword } from "./crypto.service";
+import { logActivity } from "./activity-log.service";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Supabase environment variables are not set')
+  throw new Error("Supabase environment variables are not set");
 }
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -15,18 +15,18 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     autoRefreshToken: false,
     persistSession: false,
   },
-})
+});
 
 interface CreateAccountParams {
-  vendorId: string
-  adminUserId?: string
+  vendorId: string;
+  adminUserId?: string;
 }
 
 interface CreateAccountResult {
-  success: boolean
-  email: string
-  password: string
-  error?: string
+  success: boolean;
+  email: string;
+  password: string;
+  error?: string;
 }
 
 /**
@@ -36,100 +36,118 @@ interface CreateAccountResult {
 export async function createVendorAccount(
   params: CreateAccountParams
 ): Promise<CreateAccountResult> {
-  const { vendorId, adminUserId } = params
+  const { vendorId, adminUserId } = params;
 
   // Get vendor
   const vendor = await prisma.vendor.findUnique({
     where: { id: vendorId },
-  })
+  });
 
   if (!vendor) {
     return {
       success: false,
-      email: '',
-      password: '',
-      error: 'Vendor not found',
-    }
+      email: "",
+      password: "",
+      error: "Vendor not found",
+    };
   }
 
-  if (!vendor.email) {
+  // Check if vendor has email or phone
+  if (!vendor.email && !vendor.phone) {
     return {
       success: false,
-      email: '',
-      password: '',
-      error: 'Vendor email is required',
-    }
+      email: "",
+      password: "",
+      error: "Vendor email or phone number is required",
+    };
   }
 
   if (vendor.supabaseUserId) {
     return {
       success: false,
-      email: vendor.email,
-      password: '',
-      error: 'Account already exists',
-    }
+      email: vendor.email || "",
+      password: "",
+      error: "Account already exists",
+    };
   }
 
   // Generate strong password
-  const password = generatePassword(16)
+  const password = generatePassword(16);
 
   try {
     // Check if user already exists in Supabase
-    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers()
-    
-    let existingUser = null
+    const { data: existingUsers, error: listError } =
+      await supabaseAdmin.auth.admin.listUsers();
+
+    let existingUser = null;
     if (!listError && existingUsers?.users) {
-      existingUser = existingUsers.users.find((u) => u.email === vendor.email)
+      // Check by email or phone
+      existingUser = existingUsers.users.find(
+        (u) =>
+          (vendor.email && u.email === vendor.email) ||
+          (vendor.phone && u.phone === vendor.phone)
+      );
     }
 
-    let authData: { user: any } | null = null
-    let authError: any = null
+    let authData: { user: any } | null = null;
+    let authError: any = null;
 
     if (existingUser) {
       // User already exists - link it to the vendor and update password
-      const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        existingUser.id,
-        {
+      const { data: updatedUser, error: updateError } =
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
           password,
           user_metadata: {
-            role: 'vendor',
+            role: "vendor",
             vendor_id: vendorId,
           },
-        }
-      )
+        });
 
       if (updateError) {
-        authError = updateError
+        authError = updateError;
       } else if (updatedUser?.user) {
-        authData = { user: updatedUser.user }
+        authData = { user: updatedUser.user };
       }
     } else {
-      // Create new Supabase user
-      const result = await supabaseAdmin.auth.admin.createUser({
-        email: vendor.email,
+      // Create new Supabase user with email or phone
+      const createUserData: any = {
         password,
         email_confirm: true,
         user_metadata: {
-          role: 'vendor',
+          role: "vendor",
           vendor_id: vendorId,
+          full_name: vendor.name,
         },
-      })
+      };
 
-      authData = result.data
-      authError = result.error
+      // Use email if available, otherwise use phone
+      if (vendor.email) {
+        createUserData.email = vendor.email;
+      } else if (vendor.phone) {
+        createUserData.phone = vendor.phone;
+        // Supabase requires an email even for phone-based auth
+        // Generate a dummy email using the phone number
+        const normalizedPhone = vendor.phone.replace(/\D/g, "");
+        createUserData.email = `phone-${normalizedPhone}@rentnow.local`;
+      }
+
+      const result = await supabaseAdmin.auth.admin.createUser(createUserData);
+
+      authData = result.data;
+      authError = result.error;
     }
 
     if (authError || !authData?.user) {
       return {
         success: false,
-        email: vendor.email,
-        password: '',
-        error: authError?.message || 'Failed to create/update user',
-      }
+        email: vendor.email || vendor.phone || "",
+        password: "",
+        error: authError?.message || "Failed to create/update user",
+      };
     }
 
     // Encrypt password
-    const encryptedPassword = encryptPassword(password)
+    const encryptedPassword = encryptPassword(password);
 
     // Update vendor with Supabase user ID and encrypted password
     await prisma.vendor.update({
@@ -137,36 +155,36 @@ export async function createVendorAccount(
       data: {
         supabaseUserId: authData.user.id,
         temporaryPasswordEncrypted: encryptedPassword,
-        registrationStatus: 'ACCOUNT_CREATED',
+        registrationStatus: "ACCOUNT_CREATED",
         accountCreatedAt: new Date(),
       },
-    })
+    });
 
     // Log activity
     await logActivity({
-      action: 'ACCOUNT_CREATED',
-      entityType: 'VENDOR',
+      action: "ACCOUNT_CREATED",
+      entityType: "VENDOR",
       entityId: vendorId,
       adminUserId,
       details: {
-        email: vendor.email,
+        email: vendor.email || vendor.phone || "",
         vendorName: vendor.name,
         linkedExistingAccount: !!existingUser,
       },
-    })
+    });
 
     return {
       success: true,
-      email: vendor.email,
+      email: vendor.email || vendor.phone || "",
       password, // Return plain password for admin display
-    }
+    };
   } catch (error: any) {
     return {
       success: false,
-      email: vendor.email,
-      password: '',
-      error: error.message || 'Unknown error',
-    }
+      email: vendor.email || vendor.phone || "",
+      password: "",
+      error: error.message || "Unknown error",
+    };
   }
 }
 
@@ -179,40 +197,38 @@ export async function resetVendorPassword(
 ): Promise<CreateAccountResult> {
   const vendor = await prisma.vendor.findUnique({
     where: { id: vendorId },
-  })
+  });
 
   if (!vendor || !vendor.supabaseUserId) {
     return {
       success: false,
-      email: vendor?.email || '',
-      password: '',
-      error: 'Vendor account not found',
-    }
+      email: vendor?.email || "",
+      password: "",
+      error: "Vendor account not found",
+    };
   }
 
   // Generate new password
-  const password = generatePassword(16)
+  const password = generatePassword(16);
 
   try {
     // Update password in Supabase
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      vendor.supabaseUserId,
-      {
+    const { error: updateError } =
+      await supabaseAdmin.auth.admin.updateUserById(vendor.supabaseUserId, {
         password,
-      }
-    )
+      });
 
     if (updateError) {
       return {
         success: false,
-        email: vendor.email || '',
-        password: '',
+        email: vendor.email || "",
+        password: "",
         error: updateError.message,
-      }
+      };
     }
 
     // Encrypt and store new password
-    const encryptedPassword = encryptPassword(password)
+    const encryptedPassword = encryptPassword(password);
 
     await prisma.vendor.update({
       where: { id: vendorId },
@@ -220,31 +236,30 @@ export async function resetVendorPassword(
         temporaryPasswordEncrypted: encryptedPassword,
         accountCreatedAt: new Date(), // Update timestamp
       },
-    })
+    });
 
     // Log activity
     await logActivity({
-      action: 'PASSWORD_RESET',
-      entityType: 'VENDOR',
+      action: "PASSWORD_RESET",
+      entityType: "VENDOR",
       entityId: vendorId,
       adminUserId,
       details: {
         email: vendor.email,
       },
-    })
+    });
 
     return {
       success: true,
-      email: vendor.email || '',
+      email: vendor.email || "",
       password,
-    }
+    };
   } catch (error: any) {
     return {
       success: false,
-      email: vendor.email || '',
-      password: '',
-      error: error.message || 'Unknown error',
-    }
+      email: vendor.email || "",
+      password: "",
+      error: error.message || "Unknown error",
+    };
   }
 }
-

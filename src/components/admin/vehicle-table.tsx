@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   MoreVertical,
   Eye,
@@ -19,51 +19,52 @@ import {
   Tag,
   Filter,
   Car,
-} from 'lucide-react'
+  Trash2,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 interface Vehicle {
-  id: string
-  title: string
-  slug: string
-  status: string
-  isAvailable: boolean | null
-  images: any
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  isAvailable: boolean | null;
+  images: any;
   vendor: {
-    id: string
-    name: string
-    email: string | null
-  }
+    id: string;
+    name: string;
+    email: string | null;
+  };
   city: {
-    id: string
-    name: string
-  } | null
+    id: string;
+    name: string;
+  } | null;
   vehicleType: {
-    id: string
-    name: string
-  } | null
+    id: string;
+    name: string;
+  } | null;
 }
 
 interface VehicleTableProps {
-  vehicles: Vehicle[]
-  total: number
-  totalPages: number
-  currentPage: number
-  cities: Array<{ id: string; name: string }>
-  vehicleTypes: Array<{ id: string; name: string }>
-  vendors: Array<{ id: string; name: string }>
+  vehicles: Vehicle[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  cities: Array<{ id: string; name: string }>;
+  vehicleTypes: Array<{ id: string; name: string }>;
+  vendors: Array<{ id: string; name: string }>;
   filters: {
-    vendorId?: string
-    cityId?: string
-    vehicleTypeId?: string
-    status?: string
-    search?: string
-  }
+    vendorId?: string;
+    cityId?: string;
+    vehicleTypeId?: string;
+    status?: string;
+    search?: string;
+  };
 }
 
 export function VehicleTable({
@@ -76,51 +77,91 @@ export function VehicleTable({
   vendors,
   filters,
 }: VehicleTableProps) {
-  const router = useRouter()
-  const { session } = useAuth()
-  const [searchTerm, setSearchTerm] = useState(filters.search || '')
+  const router = useRouter();
+  const { session } = useAuth();
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
 
   const updateFilters = (newFilters: Record<string, string | undefined>) => {
-    const params = new URLSearchParams()
-    
-    if (newFilters.vendorId) params.set('vendor', newFilters.vendorId)
-    if (newFilters.cityId) params.set('city', newFilters.cityId)
-    if (newFilters.vehicleTypeId) params.set('type', newFilters.vehicleTypeId)
-    if (newFilters.status) params.set('status', newFilters.status)
-    if (newFilters.search) params.set('search', newFilters.search)
-    if (currentPage > 1) params.set('page', currentPage.toString())
+    const params = new URLSearchParams();
 
-    router.push(`/admin/vehicles?${params.toString()}`)
-  }
+    if (newFilters.vendorId) params.set("vendor", newFilters.vendorId);
+    if (newFilters.cityId) params.set("city", newFilters.cityId);
+    if (newFilters.vehicleTypeId) params.set("type", newFilters.vehicleTypeId);
+    if (newFilters.status) params.set("status", newFilters.status);
+    if (newFilters.search) params.set("search", newFilters.search);
+    if (currentPage > 1) params.set("page", currentPage.toString());
+
+    router.push(`/admin/vehicles?${params.toString()}`);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    updateFilters({ ...filters, search: searchTerm || undefined })
-  }
+    e.preventDefault();
+    updateFilters({ ...filters, search: searchTerm || undefined });
+  };
 
-  const handleToggleAvailability = async (vehicleId: string, currentStatus: boolean | null) => {
+  const handleToggleAvailability = async (
+    vehicleId: string,
+    currentStatus: boolean | null
+  ) => {
     if (!session?.access_token) {
-      alert('You must be logged in to perform this action')
-      return
+      alert("You must be logged in to perform this action");
+      return;
     }
 
     try {
       const response = await fetch(`/api/admin/vehicles/${vehicleId}/toggle`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ isAvailable: !currentStatus }),
-      })
+      });
 
       if (response.ok) {
-        router.refresh()
+        router.refresh();
       }
     } catch (error) {
-      console.error('Error toggling vehicle availability:', error)
+      console.error("Error toggling vehicle availability:", error);
     }
-  }
+  };
+
+  const handleDeleteVehicle = async (
+    vehicleId: string,
+    vehicleTitle: string
+  ) => {
+    if (!session?.access_token) {
+      alert("You must be logged in to perform this action");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Are you sure you want to delete "${vehicleTitle}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/vehicles/${vehicleId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const error = await response.json();
+        alert(error.error || "Failed to delete vehicle");
+      }
+    } catch (error) {
+      console.error("Error deleting vehicle:", error);
+      alert("An error occurred while deleting the vehicle");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -142,8 +183,13 @@ export function VehicleTable({
           <div className="flex items-center gap-2 w-[180px]">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <Select
-              value={filters.cityId || 'all'}
-              onChange={(e) => updateFilters({ ...filters, cityId: e.target.value !== 'all' ? e.target.value : undefined })}
+              value={filters.cityId || "all"}
+              onChange={(e) =>
+                updateFilters({
+                  ...filters,
+                  cityId: e.target.value !== "all" ? e.target.value : undefined,
+                })
+              }
               className="flex-1"
             >
               <option value="all">All Cities</option>
@@ -158,8 +204,14 @@ export function VehicleTable({
           <div className="flex items-center gap-2 w-[180px]">
             <Tag className="h-4 w-4 text-muted-foreground" />
             <Select
-              value={filters.vendorId || 'all'}
-              onChange={(e) => updateFilters({ ...filters, vendorId: e.target.value !== 'all' ? e.target.value : undefined })}
+              value={filters.vendorId || "all"}
+              onChange={(e) =>
+                updateFilters({
+                  ...filters,
+                  vendorId:
+                    e.target.value !== "all" ? e.target.value : undefined,
+                })
+              }
               className="flex-1"
             >
               <option value="all">All Vendors</option>
@@ -174,8 +226,14 @@ export function VehicleTable({
           <div className="flex items-center gap-2 w-[180px]">
             <Car className="h-4 w-4 text-muted-foreground" />
             <Select
-              value={filters.vehicleTypeId || 'all'}
-              onChange={(e) => updateFilters({ ...filters, vehicleTypeId: e.target.value !== 'all' ? e.target.value : undefined })}
+              value={filters.vehicleTypeId || "all"}
+              onChange={(e) =>
+                updateFilters({
+                  ...filters,
+                  vehicleTypeId:
+                    e.target.value !== "all" ? e.target.value : undefined,
+                })
+              }
               className="flex-1"
             >
               <option value="all">All Types</option>
@@ -190,8 +248,13 @@ export function VehicleTable({
           <div className="flex items-center gap-2 w-[180px]">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select
-              value={filters.status || 'all'}
-              onChange={(e) => updateFilters({ ...filters, status: e.target.value !== 'all' ? e.target.value : undefined })}
+              value={filters.status || "all"}
+              onChange={(e) =>
+                updateFilters({
+                  ...filters,
+                  status: e.target.value !== "all" ? e.target.value : undefined,
+                })
+              }
               className="flex-1"
             >
               <option value="all">All Status</option>
@@ -209,17 +272,30 @@ export function VehicleTable({
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-4 font-semibold text-sm">Preview</th>
-                <th className="text-left p-4 font-semibold text-sm">Vehicle Details</th>
-                <th className="text-left p-4 font-semibold text-sm">Vendor Partner</th>
-                <th className="text-left p-4 font-semibold text-sm">Current Status</th>
-                <th className="text-left p-4 font-semibold text-sm">Marketplace Access</th>
-                <th className="text-right p-4 font-semibold text-sm">Actions</th>
+                <th className="text-left p-4 font-semibold text-sm">
+                  Vehicle Details
+                </th>
+                <th className="text-left p-4 font-semibold text-sm">
+                  Vendor Partner
+                </th>
+                <th className="text-left p-4 font-semibold text-sm">
+                  Current Status
+                </th>
+                <th className="text-left p-4 font-semibold text-sm">
+                  Marketplace Access
+                </th>
+                <th className="text-right p-4 font-semibold text-sm">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {vehicles.map((vehicle) => {
-                const images = Array.isArray(vehicle.images) ? vehicle.images : []
-                const mainImage = typeof images[0] === 'string' ? images[0] : null
+                const images = Array.isArray(vehicle.images)
+                  ? vehicle.images
+                  : [];
+                const mainImage =
+                  typeof images[0] === "string" ? images[0] : null;
 
                 return (
                   <tr
@@ -245,7 +321,8 @@ export function VehicleTable({
                     <td className="p-4">
                       <div className="font-medium">{vehicle.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {vehicle.city?.name || 'N/A'} • {vehicle.vehicleType?.name || 'N/A'}
+                        {vehicle.city?.name || "N/A"} •{" "}
+                        {vehicle.vehicleType?.name || "N/A"}
                       </div>
                     </td>
                     <td className="p-4">
@@ -261,23 +338,23 @@ export function VehicleTable({
                         <div
                           className={`w-2 h-2 rounded-full ${
                             vehicle.isAvailable
-                              ? 'bg-green-500'
-                              : vehicle.status === 'DRAFT'
-                              ? 'bg-gray-500'
-                              : 'bg-blue-500'
+                              ? "bg-green-500"
+                              : vehicle.status === "DRAFT"
+                              ? "bg-gray-500"
+                              : "bg-blue-500"
                           }`}
                         />
                         <span className="text-sm">
                           {vehicle.isAvailable
-                            ? 'Available'
-                            : vehicle.status === 'DRAFT'
-                            ? 'Draft'
-                            : 'Booked'}
+                            ? "Available"
+                            : vehicle.status === "DRAFT"
+                            ? "Draft"
+                            : "Booked"}
                         </span>
                       </div>
                     </td>
                     <td className="p-4">
-                      {vehicle.status === 'PUBLISHED' ? (
+                      {vehicle.status === "PUBLISHED" ? (
                         <Badge className="bg-blue-500">ENABLED</Badge>
                       ) : (
                         <Badge variant="outline">DISABLED</Badge>
@@ -299,7 +376,12 @@ export function VehicleTable({
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleToggleAvailability(vehicle.id, vehicle.isAvailable)}
+                              onClick={() =>
+                                handleToggleAvailability(
+                                  vehicle.id,
+                                  vehicle.isAvailable
+                                )
+                              }
                             >
                               {vehicle.isAvailable ? (
                                 <>
@@ -313,12 +395,21 @@ export function VehicleTable({
                                 </>
                               )}
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleDeleteVehicle(vehicle.id, vehicle.title)
+                              }
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
@@ -353,6 +444,5 @@ export function VehicleTable({
         )}
       </div>
     </div>
-  )
+  );
 }
-

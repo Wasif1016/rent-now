@@ -50,7 +50,6 @@ export function SendEmailModal({
   const { session } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
   const [subject, setSubject] = useState(
     "Your Vendor Account Credentials - Rent Now"
   );
@@ -68,12 +67,7 @@ export function SendEmailModal({
     registrationStatus === "ACTIVE";
 
   // Fetch email templates
-  useEffect(() => {
-    if (open && session?.access_token) {
-      fetchTemplates();
-    }
-  }, [open, session?.access_token, fetchTemplates]);
-
+  // Fetch email templates
   const fetchTemplates = useCallback(async () => {
     if (!session?.access_token) return;
 
@@ -96,6 +90,12 @@ export function SendEmailModal({
     }
   }, [session?.access_token]);
 
+  useEffect(() => {
+    if (open && session?.access_token) {
+      fetchTemplates();
+    }
+  }, [open, session?.access_token, fetchTemplates]);
+
   // Handle template selection
   const handleTemplateSelect = (templateId: string) => {
     if (templateId === "custom") {
@@ -110,58 +110,6 @@ export function SendEmailModal({
         setSubject(template.subject);
         setBody(template.body);
       }
-    }
-  };
-
-  const handlePreview = async () => {
-    if (!session?.access_token) {
-      setError("You must be logged in to preview emails");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/admin/businesses/${businessId}/email/preview`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            subject: subject || undefined,
-            body: body || undefined,
-            templateId:
-              selectedTemplateId && selectedTemplateId !== "custom"
-                ? selectedTemplateId
-                : undefined,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Check if error is about account not created
-        if (
-          data.error?.includes("create account") ||
-          data.error?.includes("password not found")
-        ) {
-          throw new Error(
-            "Please create an account first before sending email. The account must be created to generate login credentials."
-          );
-        }
-        throw new Error(data.error || "Failed to generate preview");
-      }
-
-      setPreviewMode(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to generate preview");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -215,7 +163,6 @@ export function SendEmailModal({
       setTimeout(() => {
         onOpenChange(false);
         setSuccess(false);
-        setPreviewMode(false);
       }, 2000);
     } catch (err: any) {
       setError(err.message || "Failed to send email");
@@ -276,118 +223,81 @@ export function SendEmailModal({
           </div>
         )}
 
-        {previewMode ? (
-          <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-semibold mb-2">Email Preview</h4>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <strong>To:</strong> {businessEmail}
-                </div>
-                <div>
-                  <strong>Subject:</strong> {subject}
-                </div>
-                <div className="mt-4 p-3 bg-background rounded border border-border">
-                  <div
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: body }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {error && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setPreviewMode(false)}>
-                Back to Edit
-              </Button>
-              <Button onClick={handleSend} disabled={loading}>
-                {loading ? "Sending..." : "Send Email"}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="template">Email Template (Optional)</Label>
-              <Select
-                value={selectedTemplateId || "custom"}
-                onValueChange={handleTemplateSelect}
-                disabled={loadingTemplates}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      loadingTemplates
-                        ? "Loading templates..."
-                        : "Select a template or use custom"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="custom">
-                    Custom / Default Template
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="template">Email Template (Optional)</Label>
+            <Select
+              value={selectedTemplateId || "custom"}
+              onValueChange={handleTemplateSelect}
+              disabled={loadingTemplates}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    loadingTemplates
+                      ? "Loading templates..."
+                      : "Select a template or use custom"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="custom">
+                  Custom / Default Template
+                </SelectItem>
+                {templates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
                   </SelectItem>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Select a template to auto-fill subject and body, or choose
-                &quot;Custom&quot; to write your own
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subject">Email Subject</Label>
-              <Input
-                id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Email subject"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="body">Email Body (HTML)</Label>
-              <Textarea
-                id="body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Leave empty to use default template. Use {{business_name}}, {{email}}, {{password}}, {{login_url}} variables."
-                rows={12}
-                className="font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Available variables: {`{{business_name}}`}, {`{{email}}`},{" "}
-                {`{{password}}`}, {`{{login_url}}`}
-              </p>
-            </div>
-
-            {error && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handlePreview} disabled={loading}>
-                {loading ? "Loading..." : "Preview & Send"}
-              </Button>
-            </div>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Select a template to auto-fill subject and body, or choose
+              &quot;Custom&quot; to write your own
+            </p>
           </div>
-        )}
+
+          <div className="space-y-2">
+            <Label htmlFor="subject">Email Subject</Label>
+            <Input
+              id="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Email subject"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="body">Email Body (HTML)</Label>
+            <Textarea
+              id="body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Leave empty to use default template. Use {{business_name}}, {{email}}, {{password}}, {{login_url}}, {{username}} variables."
+              rows={12}
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Available variables: {`{{business_name}}`}, {`{{email}}`},{" "}
+              {`{{password}}`}, {`{{login_url}}`}, {`{{username}}`}
+            </p>
+          </div>
+
+          {error && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSend} disabled={loading}>
+              {loading ? "Sending..." : "Send Email"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
