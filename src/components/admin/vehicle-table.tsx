@@ -23,6 +23,7 @@ import {
   Filter,
   Car,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -434,7 +435,13 @@ export function VehicleTable({
                             <DropdownMenuItem asChild>
                               <Link href={`/listings/${vehicle.slug}`}>
                                 <Eye className="h-4 w-4 mr-2" />
-                                View
+                                View Listing
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/vehicles/${vehicle.id}/edit`}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem
