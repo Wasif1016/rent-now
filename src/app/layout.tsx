@@ -1,10 +1,10 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { Oranienbaum, Schibsted_Grotesk } from "next/font/google";
-import "./globals.css";
 import { MainHeader } from "@/components/layout/main-header";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FooterWrapper } from "@/components/layout/footer-wrapper";
-
+import { Analytics } from "@vercel/analytics/next"
 
 const oranienbaum = Oranienbaum({
   variable: "--font-oranienbaum",
@@ -40,6 +40,7 @@ export default function RootLayout({
           {children}
           <FooterWrapper />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
