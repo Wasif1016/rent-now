@@ -15,7 +15,10 @@ import { KeywordModelLandingPage } from "@/components/keyword/keyword-model-land
 import { CategoryLandingPage } from "@/components/city/category-landing-page";
 import { ModelLandingPage } from "@/components/city/model-landing-page";
 import { TownVehicleLandingPage } from "@/components/city/town-vehicle-landing-page";
-import { generateMetadataFromResolved } from "@/lib/seo";
+import {
+  generateMetadataFromResolved,
+  generateStructuredData,
+} from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ segments: string[] }>;
@@ -32,16 +35,18 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
     notFound();
   }
 
-  if (resolved.pageType === "keyword_only" && resolved.keyword) {
-    return <KeywordLandingPage keyword={resolved.keyword.slug} />;
-  }
+  const structuredData = generateStructuredData(resolved);
 
-  if (
+  let content: React.ReactNode = null;
+
+  if (resolved.pageType === "keyword_only" && resolved.keyword) {
+    content = <KeywordLandingPage keyword={resolved.keyword.slug} />;
+  } else if (
     resolved.pageType === "keyword_model" &&
     resolved.keyword &&
     resolved.model
   ) {
-    return (
+    content = (
       <KeywordModelLandingPage
         keywordSlug={resolved.keyword.slug}
         modelSlug={resolved.model.slug}
@@ -52,43 +57,37 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
         driverOption="With Driver / Without Driver / Both"
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_city" &&
     resolved.keyword &&
     resolved.city
   ) {
-    return (
+    content = (
       <CityLandingPage
         city={resolved.city.slug}
         keyword={resolved.keyword.slug}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_city_town" &&
     resolved.keyword &&
     resolved.city &&
     resolved.town
   ) {
-    return (
+    content = (
       <TownLandingPage
         city={resolved.city.slug}
         keyword={resolved.keyword.slug}
         town={resolved.town.name}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_city_model" &&
     resolved.keyword &&
     resolved.city &&
     resolved.model
   ) {
-    return (
+    content = (
       <CityKeywordModelLandingPage
         citySlug={resolved.city.slug}
         cityName={resolved.city.name}
@@ -101,15 +100,13 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
         driverOption="With Driver / Without Driver / Both"
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_filter_city" &&
     resolved.keyword &&
     resolved.city &&
     resolved.filterSlug
   ) {
-    return (
+    content = (
       <CityKeywordFilterLandingPage
         citySlug={resolved.city.slug}
         cityName={resolved.city.name}
@@ -120,28 +117,24 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
         capacity={resolved.capacity}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_route" &&
     resolved.keyword &&
     resolved.route
   ) {
-    return (
+    content = (
       <CityKeywordRouteLandingPage
         keywordSlug={resolved.keyword.slug}
         route={resolved.route}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_route_model" &&
     resolved.keyword &&
     resolved.route &&
     resolved.model
   ) {
-    return (
+    content = (
       <CityKeywordRouteModelLandingPage
         keywordSlug={resolved.keyword.slug}
         route={resolved.route}
@@ -151,28 +144,22 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
         seatingCapacity={resolved.model.capacity}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "keyword_filter_route" &&
     resolved.keyword &&
     resolved.route &&
     resolved.filterSlug
   ) {
-    return (
+    content = (
       <CityKeywordRouteLandingPage
         keywordSlug={resolved.keyword.slug}
         route={resolved.route}
       />
     );
-  }
-
-  if (resolved.pageType === "vehicle_category" && resolved.category) {
-    return <CategoryLandingPage category={resolved.category} />;
-  }
-
-  if (resolved.pageType === "vehicle_model" && resolved.model) {
-    return (
+  } else if (resolved.pageType === "vehicle_category" && resolved.category) {
+    content = <CategoryLandingPage category={resolved.category} />;
+  } else if (resolved.pageType === "vehicle_model" && resolved.model) {
+    content = (
       <ModelLandingPage
         model={{
           id: resolved.model.id,
@@ -182,14 +169,12 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
         }}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "vehicle_model_city" &&
     resolved.model &&
     resolved.city
   ) {
-    return (
+    content = (
       <TownVehicleLandingPage
         vehicleName={`${resolved.model.vehicleBrand.name} ${resolved.model.name}`}
         city={resolved.city.name}
@@ -197,15 +182,13 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
         modelSlug={resolved.model.slug}
       />
     );
-  }
-
-  if (
+  } else if (
     resolved.pageType === "vehicle_model_city_town" &&
     resolved.model &&
     resolved.city &&
     resolved.town
   ) {
-    return (
+    content = (
       <TownVehicleLandingPage
         vehicleName={`${resolved.model.vehicleBrand.name} ${resolved.model.name}`}
         city={resolved.city.name}
@@ -215,7 +198,19 @@ export default async function DynamicKeywordPage({ params }: PageProps) {
     );
   }
 
-  notFound();
+  if (!content) {
+    notFound();
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      {content}
+    </>
+  );
 }
 
 export async function generateMetadata({

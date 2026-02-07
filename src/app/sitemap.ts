@@ -6,19 +6,21 @@ import {
   getModelSlugs,
   getRoutesForSitemap,
   getAllTownsForSitemap,
+  getAllListingSlugs,
 } from "@/lib/data";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rentnowpk.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const keywordSlugs = Object.keys(KEYWORDS);
-  const [cities, categorySlugs, modelSlugs, routeSlugs, towns] =
+  const [cities, categorySlugs, modelSlugs, routeSlugs, towns, listings] =
     await Promise.all([
       getAllCitiesForStatic(),
       getCategorySlugs(),
       getModelSlugs(),
       getRoutesForSitemap(),
       getAllTownsForSitemap(),
+      getAllListingSlugs(),
     ]);
 
   const sitemap: MetadataRoute.Sitemap = [
@@ -119,6 +121,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       });
     }
+  }
+
+  // Individual Listing Pages (Vehicles)
+  for (const listing of listings) {
+    sitemap.push({
+      url: `${siteUrl}/listings/${listing.slug}`,
+      lastModified: listing.updatedAt || new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    });
   }
 
   return sitemap;

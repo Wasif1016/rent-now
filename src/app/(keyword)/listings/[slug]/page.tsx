@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Image from "next/image";
 import { getVehicleBySlug } from "@/lib/data";
 import { getVehicleDisplayTitle } from "@/lib/vehicle-utils";
@@ -22,6 +23,47 @@ interface PageProps {
 
 function formatPrice(amount: number): string {
   return `Rs. ${amount.toLocaleString()}`;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const vehicle = await getVehicleBySlug(slug);
+
+  if (!vehicle) {
+    return {
+      title: "Vehicle Not Found",
+    };
+  }
+
+  const displayTitle = getVehicleDisplayTitle(vehicle);
+  const images = Array.isArray(vehicle.images)
+    ? (vehicle.images as string[])
+    : [];
+  const mainImage =
+    images[0] ||
+    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop";
+
+  const description = vehicle.description
+    ? vehicle.description.slice(0, 160)
+    : `Rent ${displayTitle} in ${vehicle.city.name}. Reliable car rental service with RentNowPK.`;
+
+  return {
+    title: `${displayTitle} for Rent | ${vehicle.city.name}`, // No need to append | RentNowPK as layout does it
+    description,
+    openGraph: {
+      title: `${displayTitle} for Rent | ${vehicle.city.name}`,
+      description,
+      images: [mainImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${displayTitle} for Rent | ${vehicle.city.name}`,
+      description,
+      images: [mainImage],
+    },
+  };
 }
 
 export default async function ListingDetailPage({ params }: PageProps) {

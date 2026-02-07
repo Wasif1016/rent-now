@@ -6,9 +6,11 @@ interface SEOConfig {
   title: string;
   description: string;
   path: string;
+  keywords?: string[];
+  image?: string;
 }
 
-const siteName = "Rent Now";
+const siteName = "RentNowPK";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rentnowpk.com";
 
 function applyTemplate(
@@ -101,12 +103,17 @@ export function resolveFaqs(resolved: ResolvedResult) {
 }
 
 export function generateMetadata(config: SEOConfig): Metadata {
-  const { title, description, path } = config;
+  const { title, description, path, keywords, image } = config;
   const canonical = `${siteUrl}${path}`;
+  const imageUrl = image || `${siteUrl}/hero-desktop.webp`;
 
   return {
     title,
     description,
+    keywords,
+    authors: [{ name: "RentNowPK" }],
+    creator: "RentNowPK",
+    publisher: "RentNowPK",
     alternates: {
       canonical,
     },
@@ -117,11 +124,21 @@ export function generateMetadata(config: SEOConfig): Metadata {
       siteName,
       type: "website",
       locale: "en_US",
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [imageUrl],
+      creator: "@rentnowpk",
     },
     robots: {
       index: true,
@@ -144,10 +161,21 @@ export function generateMetadataFromResolved(
   resolved: ResolvedResult
 ): Metadata {
   const templates = resolveSeoTemplates(resolved);
+  const vars = getTemplateVariables(resolved);
+
+  const keywords = [
+    vars.keyword ? `${vars.keyword} in ${vars.city || "Pakistan"}` : "",
+    vars.city ? `Car Rental ${vars.city}` : "Car Rental Pakistan",
+    vars.model ? `Rent ${vars.model}` : "",
+    "RentNowPK",
+    "Rent a Car",
+  ].filter(Boolean);
+
   return generateMetadata({
     title: templates.title,
     description: templates.description,
     path: resolved.canonical,
+    keywords: keywords as string[],
   });
 }
 
@@ -221,6 +249,34 @@ export function generateStructuredData(
           },
         },
       })),
+    });
+  }
+
+  // Single Vehicle Model Product Schema
+  if (
+    resolved.model &&
+    (resolved.pageType === "vehicle_model" ||
+      resolved.pageType === "vehicle_model_city" ||
+      resolved.pageType === "vehicle_model_city_town")
+  ) {
+    structuredData.push({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: `${resolved.model.vehicleBrand.name} ${resolved.model.name}`,
+      description: `Rent ${resolved.model.vehicleBrand.name} ${
+        resolved.model.name
+      } in ${resolved.city?.name || "Pakistan"}`,
+      image: "", // TODO: Add dynamic image if available
+      brand: {
+        "@type": "Brand",
+        name: resolved.model.vehicleBrand.name,
+      },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "PKR",
+        availability: "https://schema.org/InStock",
+        url: `${siteUrl}${resolved.canonical}`,
+      },
     });
   }
 

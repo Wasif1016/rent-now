@@ -22,62 +22,61 @@ export interface KeywordConfig {
 export const DEFAULT_TEMPLATES: Record<string, SeoTemplate> = {
   keyword_only: {
     h1: "{keyword} Services",
-    title: "{keyword} | RentNowPk",
+    title: "{keyword}",
     description:
       "Looking for {keyword_lower}? Compare verified rental vendors and book with a small advance.",
   },
   keyword_city: {
     h1: "{keyword} in {city}",
-    title: "{keyword} in {city} | Best Car Rental Deals | RentNowPk",
+    title: "{keyword} in {city} | Best Car Rental Deals",
     description:
       "Compare verified car rental vendors in {city}. Browse vehicles for city and outstation trips. Pay only a small advance to confirm.",
   },
   keyword_model: {
     h1: "{brand} {model} {keyword}",
-    title: "{brand} {model} for Rent | {keyword} | RentNowPk",
+    title: "{brand} {model} for Rent | {keyword}",
     description:
       "Book {brand} {model} through {keyword_lower}. Compare verified rental options and book with ease.",
   },
   keyword_city_model: {
     h1: "{brand} {model} {keyword} in {city}",
-    title: "{brand} {model} in {city} | {keyword} | RentNowPk",
+    title: "{brand} {model} in {city} | {keyword}",
     description:
       "Find {brand} {model} in {city} for your next trip. Compare prices and book {keyword_lower} with trusted vendors.",
   },
   route: {
     h1: "{keyword} from {from_city} to {to_city}",
-    title:
-      "{keyword} from {from_city} to {to_city} | Intercity Route | RentNowPk",
+    title: "{keyword} from {from_city} to {to_city} | Intercity Route",
     description:
       "Book reliable vehicles with drivers for the {from_city} to {to_city} route. Compare vendors and book with a small advance.",
   },
   keyword_city_town: {
     h1: "{keyword} in {town}, {city}",
-    title: "{keyword} in {town}, {city} | Best Car Rental Deals | RentNowPk",
+    title: "{keyword} in {town}, {city} | Best Car Rental Deals",
     description:
       "Looking for {keyword_lower} in {town}, {city}? Compare verified rental vendors and book with a small advance. Reliable vehicles for all your travel needs.",
   },
   vehicle_model: {
     h1: "Rent {brand} {model}",
-    title: "Rent {brand} {model} | Compare Prices & Book | RentNowPk",
+    title: "Rent {brand} {model} | Compare Prices & Book",
     description:
       "Looking to rent {brand} {model}? Compare verified local rental vendors and book with a small advance. Reliable vehicles for all your travel needs.",
   },
   vehicle_model_city: {
     h1: "{brand} {model} for Rent in {city}",
-    title: "{brand} {model} for Rent in {city} | Best Deals | RentNowPk",
+    title: "{brand} {model} for Rent in {city} | Best Deals",
     description:
       "Book {brand} {model} in {city} for your next trip. Compare prices from trusted local vendors and book with ease.",
   },
   vehicle_model_city_town: {
     h1: "{brand} {model} for Rent in {town}, {city}",
-    title: "{brand} {model} for Rent in {town}, {city} | RentNowPk",
+    title: "{brand} {model} for Rent in {town}, {city}",
     description:
       "Looking for {brand} {model} in {town}, {city}? Compare verified rental vendors and book with a small advance. Reliable vehicles for your local travel.",
   },
   vehicle_category: {
     h1: "{category} Rental Services",
-    title: "{category} for Rent | Best Car Rental Deals | RentNowPk",
+    title: "{category} for Rent | Best Car Rental Deals",
     description:
       "Browse and book {category} vehicles from verified rental vendors. Compare prices and book with a small advance.",
   },
@@ -238,7 +237,7 @@ export const KEYWORDS: Record<string, KeywordConfig> = {
     templates: {
       city: {
         h1: "Airport Transfer in {city}",
-        title: "Airport Transfer in {city} | Reliable Pick & Drop | RentNowPk",
+        title: "Airport Transfer in {city} | Reliable Pick & Drop",
         description:
           "Book airport transfers in {city} with professional drivers. Ideal for late-night arrivals and family travel. Pay only a small advance.",
       },

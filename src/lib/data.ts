@@ -1402,3 +1402,12 @@ export const getBookingStats = async (filters: {
     totalCommission: totalCommission._sum.commissionAmount || 0,
   };
 };
+
+export const getAllListingSlugs = cache(async () => {
+  const rows = await prisma.vehicle.findMany({
+    where: { isAvailable: true, status: "PUBLISHED" },
+    select: { slug: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  return rows;
+});
