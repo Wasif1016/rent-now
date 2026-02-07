@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DeleteVehicleModal } from "./delete-vehicle-modal";
 import {
   MoreVertical,
   Eye,
@@ -81,6 +81,59 @@ export function VehicleTable({
   const { session } = useAuth();
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
+
+  const selectedVehicles = useMemo(
+    () => vehicles.filter((v) => selectedIds.has(v.id)),
+    [vehicles, selectedIds]
+  );
+
+  const allOnPageSelected =
+    vehicles.length > 0 && vehicles.every((v) => selectedIds.has(v.id));
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllOnPage = () => {
+    if (allOnPageSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        vehicles.forEach((v) => next.delete(v.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        vehicles.forEach((v) => next.add(v.id));
+        return next;
+      });
+    }
+  };
+
+  const openBulkDeleteModal = () => {
+    setIsBulkDelete(true);
+    setVehicleToDelete(null);
+    setDeleteModalOpen(true);
+  };
+
+  const openSingleDeleteModal = (id: string, title: string) => {
+    setIsBulkDelete(false);
+    setVehicleToDelete({ id, title });
+    setDeleteModalOpen(true);
+  };
+
   const updateFilters = (newFilters: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
 
@@ -126,49 +179,40 @@ export function VehicleTable({
     }
   };
 
-  const handleDeleteVehicle = async (
-    vehicleId: string,
-    vehicleTitle: string
-  ) => {
-    if (!session?.access_token) {
-      alert("You must be logged in to perform this action");
-      return;
-    }
-
-    if (
-      !confirm(
-        `Are you sure you want to delete "${vehicleTitle}"? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/admin/vehicles/${vehicleId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.ok) {
-        router.refresh();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to delete vehicle");
-      }
-    } catch (error) {
-      console.error("Error deleting vehicle:", error);
-      alert("An error occurred while deleting the vehicle");
-    }
-  };
-
   return (
     <div className="space-y-4">
+      {/* Bulk actions */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-4 p-3 mb-4 bg-muted/50 rounded-lg border border-border">
+          <span className="text-sm font-medium">
+            {selectedIds.size} vehicle{selectedIds.size !== 1 ? "s" : ""}{" "}
+            selected
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear selection
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={openBulkDeleteModal}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete selected
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-card rounded-lg border border-border p-4">
         <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
+            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -180,6 +224,7 @@ export function VehicleTable({
             </div>
           </div>
 
+          {/* Filter dropdowns - same as before */}
           <div className="flex items-center gap-2 w-[180px]">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <Select
@@ -271,6 +316,13 @@ export function VehicleTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
+                <th className="w-10 p-4">
+                  <Checkbox
+                    checked={allOnPageSelected}
+                    onCheckedChange={toggleAllOnPage}
+                    aria-label="Select all on page"
+                  />
+                </th>
                 <th className="text-left p-4 font-semibold text-sm">Preview</th>
                 <th className="text-left p-4 font-semibold text-sm">
                   Vehicle Details
@@ -302,6 +354,13 @@ export function VehicleTable({
                     key={vehicle.id}
                     className="border-b border-border hover:bg-muted/50 transition-colors"
                   >
+                    <td className="w-10 p-4">
+                      <Checkbox
+                        checked={selectedIds.has(vehicle.id)}
+                        onCheckedChange={() => toggleOne(vehicle.id)}
+                        aria-label={`Select ${vehicle.title}`}
+                      />
+                    </td>
                     <td className="p-4">
                       {mainImage ? (
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted">
@@ -397,7 +456,7 @@ export function VehicleTable({
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                handleDeleteVehicle(vehicle.id, vehicle.title)
+                                openSingleDeleteModal(vehicle.id, vehicle.title)
                               }
                               className="text-destructive focus:text-destructive"
                             >
@@ -443,6 +502,35 @@ export function VehicleTable({
           </div>
         )}
       </div>
+
+      <DeleteVehicleModal
+        open={deleteModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteModalOpen(false);
+            setVehicleToDelete(null);
+            setIsBulkDelete(false);
+          } else {
+            setDeleteModalOpen(true);
+          }
+        }}
+        vehicleId={
+          !isBulkDelete && vehicleToDelete ? vehicleToDelete.id : undefined
+        }
+        vehicleTitle={
+          !isBulkDelete && vehicleToDelete ? vehicleToDelete.title : undefined
+        }
+        vehicleIds={
+          isBulkDelete && selectedIds.size > 0
+            ? Array.from(selectedIds)
+            : undefined
+        }
+        vehicleTitles={
+          isBulkDelete && selectedVehicles.length > 0
+            ? selectedVehicles.map((v) => v.title)
+            : undefined
+        }
+      />
     </div>
   );
 }
