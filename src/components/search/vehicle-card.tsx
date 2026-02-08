@@ -1,55 +1,56 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { Card } from '@/components/ui/card'
-import { CheckCircle2, Users, Gauge, Fuel, MapPin } from 'lucide-react'
-import { Button } from '../ui/button'
-import { getVehicleDisplayTitle } from '@/lib/vehicle-utils'
+import Image from "next/image";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { CheckCircle2, Users, Gauge, Fuel, MapPin } from "lucide-react";
+import { Button } from "../ui/button";
+import { getVehicleDisplayTitle } from "@/lib/vehicle-utils";
 
 interface VehicleCardProps {
   vehicle: {
-    id: string
-    title: string
-    slug: string
-    year?: number | null
-    mileage?: number | null
-    fuelType?: string | null
-    transmission?: string | null
-    seats?: number | null
-    images: string[] | null
+    id: string;
+    title: string;
+    slug: string;
+    year?: number | null;
+    mileage?: number | null;
+    fuelType?: string | null;
+    transmission?: string | null;
+    seats?: number | null;
+    images: string[] | null;
     city: {
-      name: string
-      slug: string
-    }
+      name: string;
+      slug: string;
+    };
     town?: {
-      name: string
-      slug: string
-    } | null
+      name: string;
+      slug: string;
+    } | null;
     vendor: {
-      name: string
-      verificationStatus?: string | null
-    }
+      name: string;
+      verificationStatus?: string | null;
+    };
     vehicleModel?: {
-      name: string
-      capacity?: number | null
+      name: string;
+      capacity?: number | null;
       vehicleBrand: {
-        name: string
-      }
-    } | null
-    featured?: boolean
-  }
+        name: string;
+      };
+    } | null;
+    featured?: boolean;
+  };
 }
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
-  const displayTitle = getVehicleDisplayTitle(vehicle)
-  const imageUrl = vehicle.images && Array.isArray(vehicle.images) && vehicle.images.length > 0
-    ? vehicle.images[0]
-    : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop'
+  const displayTitle = getVehicleDisplayTitle(vehicle);
+  const imageUrl =
+    vehicle.images && Array.isArray(vehicle.images) && vehicle.images.length > 0
+      ? vehicle.images[0]
+      : "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop";
 
-  const isVerified = vehicle.vendor.verificationStatus === 'VERIFIED'
+  const isVerified = vehicle.vendor.verificationStatus === "VERIFIED";
 
   const locationText = vehicle.town
     ? `${vehicle.town.name}, ${vehicle.city.name}`
-    : vehicle.city.name
+    : vehicle.city.name;
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
@@ -67,11 +68,6 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
               Featured
             </div>
           )}
-          {isVerified && (
-            <div className="absolute top-2 right-2 bg-green-500 text-white p-1.5 rounded-full">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-          )}
         </div>
       </Link>
 
@@ -84,7 +80,9 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
               </h3>
             </Link>
             {vehicle.vehicleModel && vehicle.title !== displayTitle && (
-              <p className="text-sm text-muted-foreground line-clamp-1">{vehicle.title}</p>
+              <p className="text-sm text-muted-foreground line-clamp-1">
+                {vehicle.title}
+              </p>
             )}
           </div>
         </div>
@@ -111,9 +109,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
               {vehicle.fuelType}
             </span>
           )}
-          {vehicle.transmission && (
-            <span>{vehicle.transmission}</span>
-          )}
+          {vehicle.transmission && <span>{vehicle.transmission}</span>}
         </div>
 
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
@@ -129,5 +125,5 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
         </div>
       </div>
     </Card>
-  )
+  );
 }

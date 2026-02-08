@@ -1,37 +1,40 @@
-import { VehicleCard } from './vehicle-card'
+import { VehicleCard } from "./vehicle-card";
 
 interface Vehicle {
-  id: string
-  title: string
-  slug: string
-  year?: number | null
-  mileage?: number | null
-  fuelType?: string | null
-  transmission?: string | null
-    seats?: number | null
-    images: string[] | null
-  city: { name: string; slug: string }
+  id: string;
+  title: string;
+  slug: string;
+  year?: number | null;
+  mileage?: number | null;
+  fuelType?: string | null;
+  transmission?: string | null;
+  seats?: number | null;
+  images: string[] | null;
+  city: { name: string; slug: string };
   vendor: {
-    name: string
-    verificationStatus?: string | null
-  }
+    name: string;
+    verificationStatus?: string | null;
+  };
   vehicleModel?: {
-    name: string
-    capacity?: number | null
+    name: string;
+    capacity?: number | null;
     vehicleBrand: {
-      name: string
-    }
-  } | null
-  featured?: boolean
+      name: string;
+    };
+  } | null;
+  featured?: boolean;
+  priceWithinCity?: number | null;
+  priceOutOfCity?: number | null;
+  priceSelfDrive?: number | null;
 }
 
 interface VehicleGridProps {
-  vehicles: Vehicle[]
+  vehicles: Vehicle[];
 }
 
 export function VehicleGrid({ vehicles }: VehicleGridProps) {
   if (vehicles.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -40,6 +43,5 @@ export function VehicleGrid({ vehicles }: VehicleGridProps) {
         <VehicleCard key={vehicle.id} vehicle={vehicle} />
       ))}
     </div>
-  )
+  );
 }
-

@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "farhanrentacar.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "idealrentacar.pk",
+        pathname: "/**",
+      },
     ],
   },
 };

@@ -35,6 +35,7 @@ interface VehicleCardRedesignedProps {
     } | null;
     priceWithinCity?: number | null;
     priceOutOfCity?: number | null;
+    priceSelfDrive?: number | null;
   };
 }
 
@@ -123,12 +124,6 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          {isVerified && (
-            <div className="absolute top-2 left-2 bg-primary text-foreground text-xs font-semibold px-2 py-1 rounded flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              VERIFIED VENDOR
-            </div>
-          )}
         </div>
       </Link>
 
@@ -161,6 +156,14 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
               <span className="text-gray-600">Within City:</span>
               <span className="font-semibold text-gray-900">
                 {formatPrice(vehicle.priceWithinCity)}
+              </span>
+            </div>
+          )}
+          {vehicle.priceSelfDrive && (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Self Drive:</span>
+              <span className="font-semibold text-gray-900">
+                {formatPrice(vehicle.priceSelfDrive)}
               </span>
             </div>
           )}

@@ -399,7 +399,10 @@ export async function importVehiclesFromCSV(
           driverOption: driverOption,
 
           features: data.features
-            ? data.features.split(",").map((f) => f.trim())
+            ? data.features
+                .split(/[,|]/)
+                .map((f) => f.trim())
+                .filter((f) => f)
             : undefined,
 
           priceWithDriver: data.price_with_driver

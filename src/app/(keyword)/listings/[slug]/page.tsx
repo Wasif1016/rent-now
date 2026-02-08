@@ -182,12 +182,6 @@ export default async function ListingDetailPage({ params }: PageProps) {
                       </p>
                     )}
                   </div>
-                  {vehicle.vendor.verificationStatus === "VERIFIED" && (
-                    <div className="flex items-center gap-2 text-primary shrink-0">
-                      <CheckCircle2 className="h-5 w-5" />
-                      <span className="text-sm font-medium">Verified</span>
-                    </div>
-                  )}
                 </div>
 
                 {vehicle.description && (
@@ -270,14 +264,18 @@ export default async function ListingDetailPage({ params }: PageProps) {
                         Features
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {(vehicle.features as string[]).map((feature, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1.5 bg-[#1a2332]/5 text-[#1a2332] rounded-full text-sm font-medium"
-                          >
-                            {feature}
-                          </span>
-                        ))}
+                        {(vehicle.features as string[])
+                          .flatMap((f) => f.split(/[,|]/))
+                          .map((f) => f.trim())
+                          .filter((f) => f)
+                          .map((feature, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1.5 bg-[#1a2332]/5 text-[#1a2332] rounded-full text-sm font-medium"
+                            >
+                              {feature}
+                            </span>
+                          ))}
                       </div>
                     </div>
                   )}
