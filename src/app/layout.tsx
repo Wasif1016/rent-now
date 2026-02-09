@@ -5,6 +5,7 @@ import { MainHeader } from "@/components/layout/main-header";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FooterWrapper } from "@/components/layout/footer-wrapper";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 
 const oranienbaum = Oranienbaum({
   variable: "--font-oranienbaum",
@@ -97,6 +98,19 @@ export default function RootLayout({
           <FooterWrapper />
         </AuthProvider>
         <Analytics />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-S8T1R71NDE"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-S8T1R71NDE');
+          `}
+        </Script>
       </body>
     </html>
   );
