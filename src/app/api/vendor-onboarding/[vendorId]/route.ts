@@ -94,6 +94,7 @@ export async function POST(
 
           status: "PUBLISHED", // Or DRAFT? User didn't specify. "Submit button" implies publishing.
           isAvailable: true,
+          features: vehicleData.features,
         },
       });
       createdVehicles.push(newVehicle);

@@ -46,18 +46,5 @@ export default async function VendorOnboardingPage({
     orderBy: { name: "asc" },
   });
 
-  return (
-    <div className="container py-8 max-w-4xl">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold font-serif mb-2">
-          Vendor Onboarding
-        </h1>
-        <p className="text-muted-foreground">
-          Welcome to RentNowPK. Please verify your details and list your
-          vehicles.
-        </p>
-      </div>
-      <VendorOnboardingForm vendor={vendor} brands={brands} types={types} />
-    </div>
-  );
+  return <VendorOnboardingForm vendor={vendor} brands={brands} types={types} />;
 }
