@@ -36,6 +36,7 @@ interface SendWhatsAppModalProps {
   businessPhone: string | null;
   businessEmail?: string | null;
   registrationStatus?: string | null;
+  initialMessage?: string;
 }
 
 export function SendWhatsAppModal({
@@ -46,6 +47,7 @@ export function SendWhatsAppModal({
   businessPhone,
   businessEmail,
   registrationStatus,
+  initialMessage = "",
 }: SendWhatsAppModalProps) {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -62,10 +64,19 @@ export function SendWhatsAppModal({
     registrationStatus === "ACTIVE";
 
   useEffect(() => {
-    if (open && session?.access_token) {
-      fetchTemplates();
+    if (open) {
+      if (initialMessage) {
+        setCustomMessage(initialMessage);
+        setSelectedTemplateId("custom");
+      } else {
+        setCustomMessage("");
+        setSelectedTemplateId(""); // Or default template?
+      }
+      if (session?.access_token) {
+        fetchTemplates();
+      }
     }
-  }, [open, session?.access_token]);
+  }, [open, session?.access_token, initialMessage]);
 
   const fetchTemplates = async () => {
     if (!session?.access_token) return;

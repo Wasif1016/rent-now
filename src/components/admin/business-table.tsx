@@ -22,6 +22,7 @@ import {
   Ban,
   CheckCircle,
   Trash2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { CreateAccountModal } from "./create-account-modal";
 import { SendEmailModal } from "./send-email-modal";
@@ -95,6 +96,7 @@ export function BusinessTable({
   );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDelete, setIsBulkDelete] = useState(false);
+  const [whatsappPreFillMessage, setWhatsappPreFillMessage] = useState("");
 
   const selectedBusinesses = useMemo(
     () => businesses.filter((b) => selectedIds.has(b.id)),
@@ -141,6 +143,14 @@ export function BusinessTable({
     setDeleteBusinessModalOpen(true);
   };
 
+  const handleSendVehicleLink = (business: Business) => {
+    const link = `${window.location.origin}/vendor-onboarding/${business.id}`;
+    const message = `Hello ${business.name}, please use this link to list your vehicles:\n${link}`;
+    setSelectedBusiness(business);
+    setWhatsappPreFillMessage(message);
+    setSendWhatsAppModalOpen(true);
+  };
+
   // Refresh when modals close after successful operations
   const handleModalClose = (
     modalType: "create" | "email" | "whatsapp" | "delete"
@@ -151,6 +161,7 @@ export function BusinessTable({
       setSendEmailModalOpen(false);
     } else if (modalType === "whatsapp") {
       setSendWhatsAppModalOpen(false);
+      setWhatsappPreFillMessage("");
     } else if (modalType === "delete") {
       setDeleteBusinessModalOpen(false);
       setSelectedIds(new Set());
@@ -318,11 +329,18 @@ export function BusinessTable({
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedBusiness(business);
+                              setWhatsappPreFillMessage("");
                               setSendWhatsAppModalOpen(true);
                             }}
                           >
                             <MessageCircle className="h-4 w-4 mr-2" />
                             Send WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleSendVehicleLink(business)}
+                          >
+                            <LinkIcon className="h-4 w-4 mr-2" />
+                            List Vehicle Link
                           </DropdownMenuItem>
                           {business.isActive ? (
                             <DropdownMenuItem>
@@ -439,6 +457,7 @@ export function BusinessTable({
             }
             businessEmail={selectedBusiness.email}
             registrationStatus={selectedBusiness.registrationStatus}
+            initialMessage={whatsappPreFillMessage}
           />
         </>
       )}
