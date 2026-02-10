@@ -10,9 +10,9 @@ export const metadata = {
 export default async function VendorOnboardingPage({
   params,
 }: {
-  params: { vendorId: string };
+  params: Promise<{ vendorId: string }>;
 }) {
-  const { vendorId } = params;
+  const { vendorId } = await params;
 
   if (!vendorId) {
     notFound();

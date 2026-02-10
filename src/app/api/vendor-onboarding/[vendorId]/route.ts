@@ -4,10 +4,10 @@ import { slugify } from "@/lib/utils";
 
 export async function POST(
   request: Request,
-  { params }: { params: { vendorId: string } }
+  { params }: { params: Promise<{ vendorId: string }> }
 ) {
   try {
-    const { vendorId } = params;
+    const { vendorId } = await params;
     const body = await request.json();
     const { vendor: vendorData, vehicles } = body;
 
