@@ -47,28 +47,18 @@ export async function POST(
       return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
     }
 
-    if (!vendor.temporaryPasswordEncrypted) {
-      return NextResponse.json(
-        { error: "Account not created yet" },
-        { status: 400 }
-      );
-    }
-
-    let password: string;
-    try {
-      password = decryptPassword(vendor.temporaryPasswordEncrypted);
-    } catch (decryptError: unknown) {
-      const message =
-        decryptError instanceof Error
-          ? decryptError.message
-          : "Failed to decrypt password";
-      console.error("Error decrypting password:", decryptError);
-      return NextResponse.json(
-        {
-          error: `${message}. Please check ENCRYPTION_KEY environment variable.`,
-        },
-        { status: 500 }
-      );
+    let password = "Not Generated";
+    if (vendor.temporaryPasswordEncrypted) {
+      try {
+        password = decryptPassword(vendor.temporaryPasswordEncrypted);
+      } catch (decryptError: unknown) {
+        const message =
+          decryptError instanceof Error
+            ? decryptError.message
+            : "Failed to decrypt password";
+        console.error("Error decrypting password:", decryptError);
+        password = "Error decrypting";
+      }
     }
 
     const loginUrl = "https://www.rentnowpk.com/auth/login";

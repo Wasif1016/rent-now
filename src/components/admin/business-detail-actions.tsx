@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LogIn,
   RefreshCw,
@@ -14,99 +14,121 @@ import {
   Mail,
   MessageCircle,
   UserPlus,
-} from 'lucide-react'
-import { CreateAccountModal } from './create-account-modal'
-import { SendEmailModal } from './send-email-modal'
-import { SendWhatsAppModal } from './send-whatsapp-modal'
-import { useAuth } from '@/contexts/auth-context'
+} from "lucide-react";
+import { CreateAccountModal } from "./create-account-modal";
+import { SendEmailModal } from "./send-email-modal";
+import { SendWhatsAppModal } from "./send-whatsapp-modal";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Business {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  whatsappPhone?: string | null
-  registrationStatus: string | null
-  isActive: boolean | null
-  supabaseUserId: string | null
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  whatsappPhone?: string | null;
+  registrationStatus: string | null;
+  isActive: boolean | null;
+  supabaseUserId: string | null;
 }
 
 interface BusinessDetailActionsProps {
-  business: Business
+  business: Business;
 }
 
-export function BusinessDetailActions({ business }: BusinessDetailActionsProps) {
-  const router = useRouter()
-  const { session } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false)
-  const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false)
-  const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false)
+export function BusinessDetailActions({
+  business,
+}: BusinessDetailActionsProps) {
+  const router = useRouter();
+  const { session } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false);
+  const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false);
+  const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false);
 
   const handleSuspend = async () => {
     if (!session?.access_token) {
-      alert('You must be logged in to perform this action')
-      return
+      alert("You must be logged in to perform this action");
+      return;
     }
 
-    if (!confirm(`Are you sure you want to ${business.isActive ? 'suspend' : 'activate'} this business?`)) {
-      return
+    if (
+      !confirm(
+        `Are you sure you want to ${
+          business.isActive ? "suspend" : "activate"
+        } this business?`
+      )
+    ) {
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/admin/businesses/${business.id}/${business.isActive ? 'suspend' : 'activate'}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      })
+      const response = await fetch(
+        `/api/admin/businesses/${business.id}/${
+          business.isActive ? "suspend" : "activate"
+        }`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
 
       if (response.ok) {
-        router.refresh()
+        router.refresh();
       } else {
-        alert('Failed to update business status')
+        alert("Failed to update business status");
       }
     } catch (error) {
-      alert('Error updating business status')
+      alert("Error updating business status");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleResetPassword = async () => {
     if (!session?.access_token) {
-      alert('You must be logged in to perform this action')
-      return
+      alert("You must be logged in to perform this action");
+      return;
     }
 
-    if (!confirm('Are you sure you want to reset the password? A new password will be generated.')) {
-      return
+    if (
+      !confirm(
+        "Are you sure you want to reset the password? A new password will be generated."
+      )
+    ) {
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/admin/businesses/${business.id}/reset-password`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      })
+      const response = await fetch(
+        `/api/admin/businesses/${business.id}/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        alert(`New password: ${data.password}\n\nPlease save this password securely.`)
-        router.refresh()
+        alert(
+          `New password: ${data.password}\n\nPlease save this password securely.`
+        );
+        router.refresh();
       } else {
-        alert(data.error || 'Failed to reset password')
+        alert(data.error || "Failed to reset password");
       }
     } catch (error) {
-      alert('Error resetting password')
+      alert("Error resetting password");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -115,7 +137,7 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
           <CardTitle>Management</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {business.registrationStatus === 'NOT_REGISTERED' && (
+          {business.registrationStatus === "NOT_REGISTERED" && (
             <Button
               className="w-full justify-start"
               onClick={() => setCreateAccountModalOpen(true)}
@@ -125,7 +147,7 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
             </Button>
           )}
 
-          {business.registrationStatus === 'ACCOUNT_CREATED' && (
+          {business.email && (
             <Button
               className="w-full justify-start"
               variant="default"
@@ -171,23 +193,21 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
             </>
           )}
 
-          <Button
-            className="w-full justify-start"
-            variant="outline"
-            asChild
-          >
-            <a href={`/api/admin/businesses/${business.id}/logs`} target="_blank">
+          <Button className="w-full justify-start" variant="outline" asChild>
+            <a
+              href={`/api/admin/businesses/${business.id}/logs`}
+              target="_blank"
+            >
               <Lock className="h-4 w-4 mr-2" />
               Access Logs
             </a>
           </Button>
 
-          <Button
-            className="w-full justify-start"
-            variant="outline"
-            asChild
-          >
-            <a href={`/api/admin/businesses/${business.id}/statement`} target="_blank">
+          <Button className="w-full justify-start" variant="outline" asChild>
+            <a
+              href={`/api/admin/businesses/${business.id}/statement`}
+              target="_blank"
+            >
               <FileText className="h-4 w-4 mr-2" />
               Ledger Statement
             </a>
@@ -195,7 +215,7 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
 
           <Button
             className="w-full justify-start"
-            variant={business.isActive ? 'destructive' : 'default'}
+            variant={business.isActive ? "destructive" : "default"}
             onClick={handleSuspend}
             disabled={loading}
           >
@@ -220,14 +240,14 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
         onOpenChange={setCreateAccountModalOpen}
         businessId={business.id}
         businessName={business.name}
-        businessEmail={business.email || ''}
+        businessEmail={business.email || ""}
       />
       <SendEmailModal
         open={sendEmailModalOpen}
         onOpenChange={setSendEmailModalOpen}
         businessId={business.id}
         businessName={business.name}
-        businessEmail={business.email || ''}
+        businessEmail={business.email || ""}
         registrationStatus={business.registrationStatus}
       />
       <SendWhatsAppModal
@@ -240,6 +260,5 @@ export function BusinessDetailActions({ business }: BusinessDetailActionsProps) 
         registrationStatus={business.registrationStatus}
       />
     </>
-  )
+  );
 }
-

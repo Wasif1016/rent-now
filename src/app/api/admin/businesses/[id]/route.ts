@@ -7,6 +7,76 @@ import { logActivity } from "@/lib/services/activity-log.service";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { user } = await requireAdmin(request);
+    const { id } = await params;
+    const body = await request.json();
+
+    // Validate if business exists
+    const existingBusiness = await prisma.vendor.findUnique({
+      where: { id },
+    });
+
+    if (!existingBusiness) {
+      return NextResponse.json(
+        { error: "Business not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update business details
+    const updatedBusiness = await prisma.vendor.update({
+      where: { id },
+      data: {
+        name: body.name,
+        email: body.email,
+        phone: body.phone,
+        personName: body.personName,
+        cityId: body.cityId,
+        town: body.town,
+        province: body.province,
+        address: body.address,
+        description: body.description,
+        googleMapsUrl: body.googleMapsUrl,
+      },
+    });
+
+    // Log activity
+    await logActivity({
+      action: "BUSINESS_UPDATED",
+      entityType: "VENDOR",
+      entityId: id,
+      adminUserId: user.id,
+      details: {
+        name: updatedBusiness.name,
+        updatedFields: Object.keys(body),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      business: updatedBusiness,
+    });
+  } catch (error: any) {
+    if (
+      error.message === "Unauthorized" ||
+      error.message.includes("Forbidden")
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.error("Error updating business:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

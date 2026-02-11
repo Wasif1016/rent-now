@@ -31,27 +31,16 @@ export async function POST(
       );
     }
 
-    if (!vendor.temporaryPasswordEncrypted) {
-      return NextResponse.json(
-        { error: "Account password not found. Please create account first." },
-        { status: 400 }
-      );
-    }
-
-    // Decrypt password
-    let password: string;
-    try {
-      password = decryptPassword(vendor.temporaryPasswordEncrypted);
-    } catch (decryptError: any) {
-      console.error("Error decrypting password:", decryptError);
-      return NextResponse.json(
-        {
-          error:
-            decryptError.message ||
-            "Failed to decrypt password. Please check ENCRYPTION_KEY environment variable.",
-        },
-        { status: 500 }
-      );
+    // Decrypt password if available
+    let password = "Not Generated";
+    if (vendor.temporaryPasswordEncrypted) {
+      try {
+        password = decryptPassword(vendor.temporaryPasswordEncrypted);
+      } catch (decryptError: any) {
+        console.error("Error decrypting password:", decryptError);
+        // We can continue without password if it fails, or log warning
+        password = "Error decrypting";
+      }
     }
 
     // Prepare email variables
