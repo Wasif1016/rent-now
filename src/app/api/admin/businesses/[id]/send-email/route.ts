@@ -51,6 +51,7 @@ export async function POST(
       password,
       login_url: loginUrl,
       username: vendor.phone || vendor.email || "N/A",
+      vendor_listing_url: `https://www.rentnowpk.com/vendors/${vendor.id}`,
     };
 
     // Get template if provided

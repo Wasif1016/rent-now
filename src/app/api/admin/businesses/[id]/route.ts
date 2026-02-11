@@ -35,6 +35,7 @@ export async function PATCH(
         name: body.name,
         email: body.email,
         phone: body.phone,
+        whatsappPhone: body.whatsappPhone,
         personName: body.personName,
         cityId: body.cityId,
         town: body.town,

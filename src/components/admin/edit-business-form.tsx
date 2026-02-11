@@ -29,6 +29,7 @@ interface Business {
   name: string;
   email: string | null;
   phone: string | null;
+  whatsappPhone: string | null;
   personName: string | null;
   cityId: string | null;
   town: string | null;
@@ -52,6 +53,9 @@ export function EditBusinessForm({ business }: EditBusinessFormProps) {
   const [name, setName] = useState(business.name || "");
   const [email, setEmail] = useState(business.email || "");
   const [phone, setPhone] = useState(business.phone || "");
+  const [whatsappPhone, setWhatsappPhone] = useState(
+    business.whatsappPhone || ""
+  );
   const [personName, setPersonName] = useState(business.personName || "");
   const [cityId, setCityId] = useState(business.cityId || "");
   const [town, setTown] = useState(business.town || "");
@@ -95,7 +99,7 @@ export function EditBusinessForm({ business }: EditBusinessFormProps) {
       }
 
       const response = await fetch(`/api/admin/businesses/${business.id}`, {
-        method: "PATCH", // Changed to PATCH
+        method: "PATCH",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -105,6 +109,7 @@ export function EditBusinessForm({ business }: EditBusinessFormProps) {
           name: name.trim(),
           email: email.trim() || null,
           phone: phone.trim() || null,
+          whatsappPhone: whatsappPhone.trim() || null,
           personName: personName.trim() || null,
           cityId: cityId || null,
           town: town.trim() || null,
@@ -201,14 +206,24 @@ export function EditBusinessForm({ business }: EditBusinessFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="personName">Contact person name</Label>
+                <Label htmlFor="whatsappPhone">WhatsApp Phone</Label>
                 <Input
-                  id="personName"
-                  value={personName}
-                  onChange={(e) => setPersonName(e.target.value)}
-                  placeholder="Manager name"
+                  id="whatsappPhone"
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  placeholder="+92-300-1234567"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="personName">Contact person name</Label>
+              <Input
+                id="personName"
+                value={personName}
+                onChange={(e) => setPersonName(e.target.value)}
+                placeholder="Manager name"
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

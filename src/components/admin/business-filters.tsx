@@ -141,6 +141,7 @@ export function BusinessFilters({ cities }: BusinessFiltersProps) {
                 <SelectContent>
                   <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="NOT_REGISTERED">Not Registered</SelectItem>
+                  <SelectItem value="FORM_SUBMITTED">Form Submitted</SelectItem>
                   <SelectItem value="ACCOUNT_CREATED">
                     Account Created
                   </SelectItem>

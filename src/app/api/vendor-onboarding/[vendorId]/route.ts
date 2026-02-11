@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { RegistrationStatus } from "@prisma/client";
 
 export async function POST(
   request: Request,
@@ -18,7 +19,22 @@ export async function POST(
       );
     }
 
-    // 1. Update Vendor Details
+    // 1. Fetch current vendor to check status
+    const currentVendor = await prisma.vendor.findUnique({
+      where: { id: vendorId },
+    });
+
+    if (!currentVendor) {
+      return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
+    }
+
+    // Determine if we need to update status
+    const statusUpdate =
+      currentVendor.registrationStatus === RegistrationStatus.NOT_REGISTERED
+        ? { registrationStatus: RegistrationStatus.FORM_SUBMITTED }
+        : {};
+
+    // 2. Update Vendor Details
     const updatedVendor = await prisma.vendor.update({
       where: { id: vendorId },
       data: {
@@ -27,6 +43,7 @@ export async function POST(
         whatsappPhone: vendorData.whatsappPhone,
         email: vendorData.email,
         address: vendorData.address,
+        ...statusUpdate,
         // cityId: vendorData.cityId // Assuming we might update this too if passed, but typically business city is fixed or requires more logic
       },
     });

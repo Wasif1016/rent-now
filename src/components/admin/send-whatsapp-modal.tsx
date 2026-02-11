@@ -219,7 +219,7 @@ export function SendWhatsAppModal({
               Create templates in Admin → WhatsApp Templates. Line breaks in
               templates are preserved. Variables: {`{{business_name}}`},{" "}
               {`{{email}}`}, {`{{password}}`}, {`{{login_url}}`},{" "}
-              {`{{username}}`}
+              {`{{username}}`}, {`{{vendor_listing_url}}`}
             </p>
           </div>
 
@@ -231,7 +231,7 @@ export function SendWhatsAppModal({
               id="whatsapp-custom-message"
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
-              placeholder="Leave empty when using a template. Use {{business_name}}, {{email}}, {{password}}, {{login_url}}, {{username}}."
+              placeholder="Leave empty when using a template. Use {{business_name}}, {{email}}, {{password}}, {{login_url}}, {{username}}, {{vendor_listing_url}}."
               rows={8}
               className="font-mono text-sm"
               disabled={

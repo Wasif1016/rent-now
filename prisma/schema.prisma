@@ -416,6 +416,7 @@ enum VehicleStatus {
 
 enum RegistrationStatus {
   NOT_REGISTERED
+  FORM_SUBMITTED
   ACCOUNT_CREATED
   EMAIL_SENT
   ACTIVE

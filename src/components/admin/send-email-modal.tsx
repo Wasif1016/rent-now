@@ -279,7 +279,8 @@ export function SendEmailModal({
             />
             <p className="text-xs text-muted-foreground">
               Available variables: {`{{business_name}}`}, {`{{email}}`},{" "}
-              {`{{password}}`}, {`{{login_url}}`}, {`{{username}}`}
+              {`{{password}}`}, {`{{login_url}}`}, {`{{username}}`},{" "}
+              {`{{vendor_listing_url}}`}
             </p>
           </div>
 

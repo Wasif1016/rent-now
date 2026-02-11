@@ -52,6 +52,7 @@ export const metadata: Metadata = {
     siteName: "RentNowPK",
     locale: "en_US",
     type: "website",
+    images: ["/hero-desktop.webp"],
   },
   twitter: {
     card: "summary_large_image",
@@ -59,6 +60,7 @@ export const metadata: Metadata = {
     description:
       "Rent a car in Pakistan with RentNowPK. Comparative prices, verified vendors, and reliable service.",
     creator: "@rentnowpk",
+    images: ["/hero-desktop.webp"],
   },
   robots: {
     index: true,

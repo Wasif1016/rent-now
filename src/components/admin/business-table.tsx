@@ -32,6 +32,7 @@ import { buildWhatsAppChatLink } from "@/lib/whatsapp";
 
 type RegistrationStatus =
   | "NOT_REGISTERED"
+  | "FORM_SUBMITTED"
   | "ACCOUNT_CREATED"
   | "EMAIL_SENT"
   | "ACTIVE"
@@ -67,6 +68,8 @@ function getStatusBadge(status: RegistrationStatus | null) {
   switch (status) {
     case "NOT_REGISTERED":
       return <Badge variant="outline">Not Registered</Badge>;
+    case "FORM_SUBMITTED":
+      return <Badge className="bg-purple-500">Form Submitted</Badge>;
     case "ACCOUNT_CREATED":
       return <Badge className="bg-blue-500">Account Created</Badge>;
     case "EMAIL_SENT":
