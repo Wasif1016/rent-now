@@ -94,22 +94,16 @@ export function HeroSearchForm({ cities, heading }: HeroSearchFormProps) {
   };
 
   return (
-    <div className="bg-primary p-6 ">
+    <div className="bg-primary p-4 md:p-6">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="mb-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-2xl font-bold text-foreground leading-tight">
+          <h1 className="text-xl sm:text-3xl lg:text-2xl font-bold text-foreground leading-tight">
             {heading ??
               "Book Verified Cars, Hiace, Vans & Buses Across Pakistan"}
           </h1>
         </div>
 
         <div className="space-y-2 relative">
-          {/* <Label
-            htmlFor="city"
-            className="font-medium text-foreground/70"
-          >
-            Search your city
-          </Label> */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 z-10" />
             <Input
@@ -127,8 +121,10 @@ export function HeroSearchForm({ cities, heading }: HeroSearchFormProps) {
             {isDropdownOpen && (filteredCities.length > 0 || searchQuery) && (
               <div
                 ref={dropdownRef}
-                className={`absolute left-0 right-0 top-full mt-1 p-0 bg-background border border-border shadow-lg z-50 min-h-50 max-h-50 overflow-y-auto ${
-                  filteredCities.length > 0 ? "" : "flex items-center justify-center h-full w-full"
+                className={`absolute left-0 right-0 top-full mt-1 p-0 bg-background border border-border shadow-lg z-50 md:min-h-50 md:max-h-50 min-h-42 max-h-42 overflow-y-auto ${
+                  filteredCities.length > 0
+                    ? ""
+                    : "flex items-center justify-center h-full w-full"
                 }`}
               >
                 {filteredCities.length > 0 ? (
@@ -141,7 +137,17 @@ export function HeroSearchForm({ cities, heading }: HeroSearchFormProps) {
                           ${c.slug === city ? "bg-primary/60" : ""}
                           `}
                       >
-                        <Image src={c.slug === city ? '/icons/checked-checkbox.svg' : '/icons/unchecked-checkbox.svg'} alt={c.name} width={20} height={20} className="h-5 w-5 shrink-0" />
+                        <Image
+                          src={
+                            c.slug === city
+                              ? "/icons/checked-checkbox.svg"
+                              : "/icons/unchecked-checkbox.svg"
+                          }
+                          alt={c.name}
+                          width={20}
+                          height={20}
+                          className="h-5 w-5 shrink-0"
+                        />
                         {c.name}
                       </li>
                     ))}
@@ -156,25 +162,23 @@ export function HeroSearchForm({ cities, heading }: HeroSearchFormProps) {
           </div>
         </div>
 
-        <div className="">
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full h-10 text-md font-semibold bg-foreground hover:bg-foreground/90 text-background rounded-none transition-all"
-          >
-            <Image
-              src="/icons/car.svg"
-              alt="Search"
-              width={20}
-              height={20}
-              className="w-fit h-8"
-              style={{
-                transform: "scaleX(-1)",
-              }}
-            />
-            Search
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full h-10 text-md font-semibold bg-foreground hover:bg-foreground/90 text-background rounded-none transition-all"
+        >
+          <Image
+            src="/icons/car.svg"
+            alt="Search"
+            width={20}
+            height={20}
+            className="w-fit h-8"
+            style={{
+              transform: "scaleX(-1)",
+            }}
+          />
+          Search
+        </Button>
       </form>
     </div>
   );

@@ -33,26 +33,29 @@ export async function HeroSection({ heading }: HeroSectionProps) {
   }))
 
   return (
-    <section className="relative bg-background h-[100svh] px-6 py-12 lg:py-20 overflow-hidden flex items-end pb-8 lg:pb-0 lg:items-center">
-      <div className="absolute top left-0 right-0 bottom-0 h-[100vh]">
+    <section className="relative bg-background h-svh px-4 py-12 lg:py-20 overflow-hidden flex items-end pb-24 lg:pb-0 lg:items-center">
+      {/* Desktop Image */}
+      <div className="absolute inset-0 w-full h-full lg:block hidden">
         <Image
           src="/home/hero-desktop.webp"
           alt="Car rental service"
-          width={1000}
-          height={1000}
-          className="object-cover object-top w-full h-[100vh] lg:block hidden"
+          fill
+          className="object-cover object-top"
           priority
           quality={100}
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="100vw"
         />
+      </div>
+      {/* Mobile Image */}
+      <div className="absolute inset-0 w-full h-full block lg:hidden">
         <Image
           src="/home/hero-mobile.webp"
           alt="Car rental service"
-          width={1000}
-          height={1000}
-          className="object-cover object-top h-[100vh] block lg:hidden"
+          fill
+          className="object-cover object-top"
           priority
-          sizes="(max-width: 768px) 100vw, 50vw"
+          quality={100}
+          sizes="100vw"
         />
       </div>
       <div className="w-full container mx-auto">
