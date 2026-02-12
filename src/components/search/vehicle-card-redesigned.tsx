@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { generateWhatsAppLink } from "@/lib/whatsapp";
 import { getVehicleDisplayTitle } from "@/lib/vehicle-utils";
+import { SVGIcon } from "../ui/svg-icon";
 
 interface VehicleCardRedesignedProps {
   vehicle: {
@@ -114,99 +115,121 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col bg-white border-gray-200">
+    <Card className="group overflow-hidden border-border/50 rounded-none bg-background hover:bg-foreground/5 transition-all duration-300 h-full flex flex-col ">
       <Link href={`/listings/${vehicle.slug}`} className="block relative">
-        <div className="relative aspect-video overflow-hidden bg-gray-100">
+        <div className="relative aspect-video overflow-hidden">
           <Image
             src={imageUrl}
             alt={displayTitle}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-contain group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       </Link>
 
-      <div className="p-4 flex-1 flex flex-col">
-        {/* Vehicle Name */}
-        <Link href={`/listings/${vehicle.slug}`}>
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors text-gray-900">
-            {displayTitle}
-          </h3>
-        </Link>
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <div className="space-y-3">
+          {/* Vehicle Name */}
+          <Link href={`/listings/${vehicle.slug}`}>
+            <h3 className="font-semibold text-lg mb-2 line-clamp-2 transition-colors">
+              {displayTitle}
+            </h3>
+          </Link>
 
-        {/* Seats */}
-        {vehicle.seats && (
-          <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-            <Users className="h-4 w-4" />
-            <span>{vehicle.seats} Seats</span>
+          {/* Seats */}
+          {vehicle.seats && (
+            <div className="flex items-center gap-1 text-sm ">
+              <Users className="h-4 w-4" />
+              <span>{vehicle.seats} Seats</span>
+            </div>
+          )}
+
+          {/* Location */}
+          <div className="flex items-center gap-1 text-sm ">
+            <MapPin className="h-4 w-4" />
+            <span className="line-clamp-1">{locationText}</span>
           </div>
-        )}
 
-        {/* Location */}
-        <div className="flex items-center gap-1 text-sm text-gray-600 mb-4">
-          <MapPin className="h-4 w-4" />
-          <span className="line-clamp-1">{locationText}</span>
+          {/* Pricing */}
+          <div className="mb-4 space-y-3">
+            {vehicle.priceWithinCity && (
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center gap-1">
+                  <SVGIcon
+                    src="/icons/price.svg"
+                    className="h-4 w-4 text-foreground hover:text-foreground"
+                  />
+                  <span className="">Within City:</span>
+                </div>
+                <span className="font-semibold ">
+                  {formatPrice(vehicle.priceWithinCity)}
+                </span>
+              </div>
+            )}
+            {vehicle.priceSelfDrive && (
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center gap-1">
+                  <SVGIcon
+                    src="/icons/price.svg"
+                    className="h-4 w-4 text-foreground hover:text-foreground"
+                  />
+                  <span className="">Self Drive:</span>
+                </div>
+                <span className="font-semibold ">
+                  {formatPrice(vehicle.priceSelfDrive)}
+                </span>
+              </div>
+            )}
+            {vehicle.priceOutOfCity && (
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center gap-1">
+                  <SVGIcon
+                    src="/icons/price.svg"
+                    className="h-4 w-4 text-foreground hover:text-foreground"
+                  />
+                  <span className="">Out of City:</span>
+                </div>
+                <span className="font-semibold ">
+                  {formatPrice(vehicle.priceOutOfCity)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Pricing */}
-        <div className="mb-4 space-y-1">
-          {vehicle.priceWithinCity && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Within City:</span>
-              <span className="font-semibold text-gray-900">
-                {formatPrice(vehicle.priceWithinCity)}
-              </span>
-            </div>
-          )}
-          {vehicle.priceSelfDrive && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Self Drive:</span>
-              <span className="font-semibold text-gray-900">
-                {formatPrice(vehicle.priceSelfDrive)}
-              </span>
-            </div>
-          )}
-          {vehicle.priceOutOfCity && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Out of City:</span>
-              <span className="font-semibold text-gray-900">
-                {formatPrice(vehicle.priceOutOfCity)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-auto space-y-2">
+        <div className="flex gap-1">
           <Button
             asChild
-            className="w-full bg-primary hover:bg-foreground text-foreground"
+            className="w-full text-foreground bg-[#004fd6]/5 border border-[#004fd6]/50 hover:border-[#004fd6] hover:bg-[#004fd6]/15 rounded-none h-11"
           >
-            <a
+            <Link
+              href={telHref}
+              className="flex items-center justify-center gap-2"
+              onClick={handleCallClick}
+            >
+              <SVGIcon
+                src="/icons/phone.svg"
+                className="h-5 w-5 text-[#004fd6]"
+              />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            className="w-full text-foreground bg-[#67C15E]/5 border border-[#67C15E]/50 hover:border-[#67C15E] hover:bg-[#67C15E]/20 rounded-none h-11"
+          >
+            <Link
               href={finalWhatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2"
               onClick={handleWhatsAppClick}
             >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp Now
-            </a>
-          </Button>
-          <Button
-            variant="outline"
-            asChild
-            className="w-full border-primary text-foreground hover:bg-primary hover:text-foreground"
-          >
-            <a
-              href={telHref}
-              className="flex items-center justify-center gap-2"
-              onClick={handleCallClick}
-            >
-              <Phone className="h-4 w-4 text-foreground" />
-              Call Now
-            </a>
+              <SVGIcon
+                src="/icons/whatsapp.svg"
+                className="h-5 w-5 text-[#67C15E]"
+              />
+            </Link>
           </Button>
         </div>
       </div>

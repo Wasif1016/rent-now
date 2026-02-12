@@ -20,7 +20,6 @@ import { User, LogOut, Settings, Menu, X, ChevronRight } from 'lucide-react'
 const mainLinks = [
   { href: '/', label: 'Home' },
   { href: '/view-all-vehicles', label: 'View all Vehicles' },
-  { href: '/rent-a-car/lahore', label: 'Rent in Lahore' },
 ]
 
 export function MainHeader() {
@@ -66,14 +65,14 @@ export function MainHeader() {
 
   return (
     <header className={cn(
-      "fixed w-full border-b top-0 z-40 transition-colors",
+      " w-full border-b z-40 transition-colors",
       isDashboard ? "hidden md:block" : "block",
-      "bg-black md:bg-primary-foreground/90 md:backdrop-blur-md"
+      "bg-background backdrop-blur-md"
     )}>
       <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2">
           <Image src="/logo.svg" alt="RentNow" width={100} height={100} className="h-8 w-auto" />
-          <span className="text-2xl font-bold tracking-tight text-white md:text-background">RentNow</span>
+          <span className="text-2xl font-bold tracking-tight text-foreground">RentNow</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-4 text-sm">
@@ -81,7 +80,7 @@ export function MainHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-background/90 font-semibold hover:text-background transition-colors"
+              className="text-foreground/90 font-semibold hover:text-foreground transition-colors"
             >
               {link.label}
             </Link>
