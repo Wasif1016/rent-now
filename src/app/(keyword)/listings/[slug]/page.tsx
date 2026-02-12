@@ -16,6 +16,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
+import Link from "next/link";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -126,9 +127,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
     vehicle.priceOutOfCity != null;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-foreground/5">
       {/* Top padding so content is not hidden under fixed header */}
-      <div className="pt-24 pb-8 md:pt-28 md:pb-12">
+      <div className="pb-8 pt-10 md:pb-12">
         <div className="container mx-auto px-4 sm:px-6">
           <Breadcrumbs items={breadcrumbs} />
 
@@ -136,7 +137,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
             {/* Main content */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
               <Card className="overflow-hidden border-0 shadow-md">
-                <div className="relative aspect-video bg-zinc-200">
+                <div className="relative aspect-video bg-background">
                   <Image
                     src={mainImage}
                     alt={displayTitle}
@@ -147,7 +148,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   />
 
                   <div className="absolute bottom-2 left-2">
-                    <p className="text-sm text-white">{vehicle.title}</p>
+                    <p className="text-sm text-foreground">{vehicle.title}</p>
                   </div>
                 </div>
                 {otherImages.length > 0 && (
@@ -155,7 +156,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                     {otherImages.slice(0, 4).map((img, idx) => (
                       <div
                         key={idx}
-                        className="relative aspect-video bg-zinc-100 rounded-md overflow-hidden"
+                        className="relative aspect-video bg-background rounded-md overflow-hidden"
                       >
                         <Image
                           src={img}
@@ -170,10 +171,10 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 )}
               </Card>
 
-              <Card className="p-4 sm:p-6 border-0 shadow-md bg-white">
+              <Card className="p-4 sm:p-6 border-0 bg-background rounded-none">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                   <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#1a2332] mb-1">
+                    <h1 className="text-2xl sm:text-3xl font-bold  mb-1">
                       {displayTitle}
                     </h1>
                     {vehicle.vehicleModel && vehicle.title !== displayTitle && (
@@ -186,9 +187,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
                 {vehicle.description && (
                   <div className="mb-6">
-                    <h2 className="text-lg font-semibold text-[#1a2332] mb-2">
-                      Description
-                    </h2>
+                    <h2 className="text-lg font-semibold  mb-2">Description</h2>
                     <p className="text-muted-foreground whitespace-pre-line text-sm sm:text-base">
                       {vehicle.description}
                     </p>
@@ -197,60 +196,52 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                   {capacity != null && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-[#f5f5f5]">
-                      <Users className="h-5 w-5 text-[#1a2332]" />
+                    <div className="flex items-center gap-2 p-2 bg-foreground/5">
+                      <Users className="h-5 w-5 " />
                       <div>
                         <p className="text-xs text-muted-foreground">
                           Capacity
                         </p>
-                        <p className="font-semibold text-[#1a2332]">
-                          {capacity} Passengers
-                        </p>
+                        <p className="font-semibold ">{capacity} Passengers</p>
                       </div>
                     </div>
                   )}
                   {vehicle.year && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-[#f5f5f5]">
-                      <Calendar className="h-5 w-5 text-[#1a2332]" />
+                    <div className="flex items-center gap-2 p-2 bg-foreground/5">
+                      <Calendar className="h-5 w-5 " />
                       <div>
                         <p className="text-xs text-muted-foreground">Year</p>
-                        <p className="font-semibold text-[#1a2332]">
-                          {vehicle.year}
-                        </p>
+                        <p className="font-semibold ">{vehicle.year}</p>
                       </div>
                     </div>
                   )}
                   {vehicle.mileage != null && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-[#f5f5f5]">
-                      <Gauge className="h-5 w-5 text-[#1a2332]" />
+                    <div className="flex items-center gap-2 p-2 bg-foreground/5">
+                      <Gauge className="h-5 w-5 " />
                       <div>
                         <p className="text-xs text-muted-foreground">Mileage</p>
-                        <p className="font-semibold text-[#1a2332]">
+                        <p className="font-semibold ">
                           {vehicle.mileage.toLocaleString()} km
                         </p>
                       </div>
                     </div>
                   )}
                   {vehicle.fuelType && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-[#f5f5f5]">
-                      <Fuel className="h-5 w-5 text-[#1a2332]" />
+                    <div className="flex items-center gap-2 p-2 bg-foreground/5">
+                      <Fuel className="h-5 w-5 " />
                       <div>
                         <p className="text-xs text-muted-foreground">Fuel</p>
-                        <p className="font-semibold text-[#1a2332]">
-                          {vehicle.fuelType}
-                        </p>
+                        <p className="font-semibold ">{vehicle.fuelType}</p>
                       </div>
                     </div>
                   )}
                   {vehicle.transmission && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-[#f5f5f5]">
+                    <div className="flex items-center gap-2 p-2 bg-foreground/5">
                       <div>
                         <p className="text-xs text-muted-foreground">
                           Transmission
                         </p>
-                        <p className="font-semibold text-[#1a2332]">
-                          {vehicle.transmission}
-                        </p>
+                        <p className="font-semibold ">{vehicle.transmission}</p>
                       </div>
                     </div>
                   )}
@@ -260,7 +251,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   Array.isArray(vehicle.features) &&
                   (vehicle.features as string[]).length > 0 && (
                     <div className="mt-6">
-                      <h3 className="text-base font-semibold text-[#1a2332] mb-2">
+                      <h3 className="text-base font-semibold  mb-2">
                         Features
                       </h3>
                       <div className="flex flex-wrap gap-2">
@@ -271,7 +262,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                           .map((feature, idx) => (
                             <span
                               key={idx}
-                              className="px-3 py-1.5 bg-[#1a2332]/5 text-[#1a2332] rounded-full text-sm font-medium"
+                              className="px-3 py-1.5 bg-[#1a2332]/5  rounded-full text-sm font-medium"
                             >
                               {feature}
                             </span>
@@ -289,39 +280,37 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
             {/* Sidebar: pricing + CTA */}
             <div className="lg:col-span-1">
-              <Card className="p-4 sm:p-6 border-0 shadow-md bg-white sticky top-24">
-                <h2 className="text-xl font-bold text-[#1a2332] mb-4">
-                  Quick Booking
-                </h2>
+              <Card className="p-4 sm:p-6 bg-background sticky top-8 rounded-none shadow-none border">
+                <h2 className="text-xl font-bold  mb-4">Quick Booking</h2>
 
                 {hasAnyPrice && (
                   <div className="mb-6 space-y-3">
                     {vehicle.priceWithinCity != null && (
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm ">
                           Within City (With Driver)
                         </span>
-                        <span className="font-bold text-[#1a2332]">
+                        <span className="font-bold ">
                           {formatPrice(vehicle.priceWithinCity)}/day
                         </span>
                       </div>
                     )}
                     {vehicle.priceSelfDrive != null && (
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm ">
                           Within City (Self Drive)
                         </span>
-                        <span className="font-bold text-[#1a2332]">
+                        <span className="font-bold ">
                           {formatPrice(vehicle.priceSelfDrive)}/day
                         </span>
                       </div>
                     )}
                     {vehicle.priceOutOfCity != null && (
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm ">
                           Out of City (With Driver)
                         </span>
-                        <span className="font-bold text-[#1a2332]">
+                        <span className="font-bold ">
                           {formatPrice(vehicle.priceOutOfCity)}/day
                         </span>
                       </div>
@@ -329,24 +318,12 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   </div>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Button
                     asChild
-                    className="w-full bg-primary text-black hover:bg-black hover:text-white font-semibold h-12 rounded-lg shadow-md"
+                    className="w-full text-foreground bg-primary hover:bg-primary/90 hover:text-foreground font-semibold h-11 rounded-none shadow-none"
                   >
-                    <a
-                      href={telHref}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <Phone className="h-5 w-5" />
-                      Call for Quick Booking
-                    </a>
-                  </Button>
-                  <Button
-                    asChild
-                    className="w-full text-white bg-black hover:bg-primary hover:text-black font-semibold h-12 rounded-lg shadow-md"
-                  >
-                    <a
+                    <Link
                       href={whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -354,16 +331,22 @@ export default async function ListingDetailPage({ params }: PageProps) {
                     >
                       <MessageCircle className="h-5 w-5" />
                       WhatsApp Now
-                    </a>
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="w-full bg-background text-foreground hover:bg-foreground/10 border border-border/50 hover:text-foreground font-semibold h-11 rounded-none shadow-none"
+                  >
+                    <Link
+                      href={telHref}
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <Phone className="h-5 w-5" />
+                      Call for Quick Booking
+                    </Link>
                   </Button>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <p className="text-sm text-muted-foreground mb-1">Vendor</p>
-                  <p className="font-semibold text-[#1a2332]">
-                    {vehicle.vendor.name}
-                  </p>
-                </div>
               </Card>
             </div>
           </div>
