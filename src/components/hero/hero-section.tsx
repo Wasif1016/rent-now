@@ -59,7 +59,7 @@ export async function HeroSection({ heading }: HeroSectionProps) {
         />
       </div>
       <div className="w-full container mx-auto">
-        <div className='relative z-10 max-w-[500px]'>
+        <div className='relative z-10 max-w-[450px]'>
           <HeroSearchForm
             cities={citiesData}
             vehicleModels={vehicleModelsData}
