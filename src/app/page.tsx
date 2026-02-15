@@ -68,7 +68,7 @@ export default function Home() {
       {/* <BrowseByVehicleType /> */}
       {/* <PopularRoutes /> */}
       <WhyChooseUs />
-      <PopularRoutesSection />
+      {/* <PopularRoutesSection /> */}
       <ListYourCar />
     </main>
   );

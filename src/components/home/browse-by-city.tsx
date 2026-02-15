@@ -8,26 +8,26 @@ import {
   Factory,
   Building,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
 
 // City icon mapping - using landmarks/symbols for each city
-const cityIcons: Record<string, LucideIcon> = {
-  Lahore: Landmark, // Minar-e-Pakistan (using Landmark as tower/monument icon)
-  Karachi: Building2, // Gateway/Port city
-  Islamabad: Building, // Faisal Mosque (using Building for mosque/architecture)
-  Peshawar: Building2,
-  Faisalabad: Factory, // Industrial city
-  Multan: Building2,
-  Quetta: Mountain, // Mountainous region
-  Sialkot: Building2,
-  Rawalpindi: Building2,
-  Gujranwala: Building2,
-  Hyderabad: Building2,
-  Bahawalpur: Building2,
+const cityIcons: Record<string, string> = {
+  Lahore: "/cities/lahore.jpg", // Minar-e-Pakistan (using Landmark as tower/monument icon)
+  Karachi: "/cities/karachi.jpg", // Gateway/Port city
+  Islamabad: "/cities/islamabad.jpg", // Faisal Mosque (using Building for mosque/architecture)
+  Peshawar: "/cities/peshawar.jpg",
+  Faisalabad: "/cities/islamabad.jpg", // Industrial city
+  Multan: "/cities/islamabad.jpg",
+  Quetta: "/cities/islamabad.jpg", // Mountainous region
+  Sialkot: "/cities/islamabad.jpg",
+  Rawalpindi: "/cities/islamabad.jpg",
+  Gujranwala: "/cities/islamabad.jpg",
+  Hyderabad: "/cities/islamabad.jpg",
+  Bahawalpur: "/cities/islamabad.jpg",
 };
 
 // Default icon for cities not in the mapping
-const DefaultCityIcon = Building2;
+const DefaultCityIcon = "/cities/islamabad.jpg";
 
 export async function BrowseByCity() {
   const cities = await getPopularCities(8);
@@ -74,7 +74,7 @@ export async function BrowseByCity() {
         </div>
 
         {/* City Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
           {displayCities.map((city) => {
             const CityIcon = cityIcons[city.name] || DefaultCityIcon;
             const vehicleCount = city._count?.vehicles || 0;
@@ -83,15 +83,21 @@ export async function BrowseByCity() {
               <Link
                 key={city.id}
                 href={`/rent-a-car/${city.slug}`}
-                className="group relative bg-background p-5 transition-all duration-300 border border-foreground/10 aspect-video flex flex-col justify-between"
+                className="group relative bg-background p-5 transition-all duration-300 border border-foreground/10 aspect-video flex flex-col justify-between overflow-hidden"
               >
-                {/* City Icon */}
-                <div className="flex mb-2">
-                  <CityIcon className="h-6 w-6" />
+                {/* City Image Background */}
+                <div className="absolute inset-0 z-0">
+                  <Image
+                    src={CityIcon}
+                    alt={city.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
-
+                {/* overlay */}
+                <div className="absolute inset-0 bg-foreground/50 z-9" />
                 {/* City Name */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col justify-between text-background h-full gap-1 z-10">
                   <h3 className="text-lg font-bold transition-colors">
                     {city.name}
                   </h3>
@@ -104,15 +110,15 @@ export async function BrowseByCity() {
             );
           })}
         </div>
-          <Link
-            href="/cities"
-            className="mt-8 inline-flex group relative bg-foreground/10 px-8 hover:px-10 py-3 transition-all duration-300 border border-foreground/10 items-center justify-center gap-2 text-sm font-bold"
-          >
-            <span className="flex items-center gap-3">
-              View all cities
-              <ArrowRight className="h-4 w-4" />
-            </span>
-          </Link>
+        <Link
+          href="/cities"
+          className="mt-8 inline-flex group relative bg-foreground/10 px-8 hover:px-10 py-3 transition-all duration-300 border border-foreground/10 items-center justify-center gap-2 text-sm font-bold"
+        >
+          <span className="flex items-center gap-3">
+            View all cities
+            <ArrowRight className="h-4 w-4" />
+          </span>
+        </Link>
       </div>
     </section>
   );

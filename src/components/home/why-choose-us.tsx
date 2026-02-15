@@ -1,26 +1,25 @@
-import { 
-  ShieldCheck, 
-  CreditCard, 
-  HeadphonesIcon 
-} from 'lucide-react'
+import { ShieldCheck, CreditCard, HeadphonesIcon } from "lucide-react";
 
 const benefits = [
   {
     icon: ShieldCheck,
-    title: 'Verified rental companies only',
-    description: 'All rental partners are thoroughly verified for your safety and peace of mind.',
+    title: "Verified rental companies only",
+    description:
+      "All rental partners are thoroughly verified for your safety and peace of mind.",
   },
   {
     icon: CreditCard,
-    title: 'No full payment online',
-    description: 'Pay only a small advance. Complete payment after confirming your booking.',
+    title: "No full payment online",
+    description:
+      "Pay only a small advance. Complete payment after confirming your booking.",
   },
   {
     icon: HeadphonesIcon,
-    title: 'Support before and after booking',
-    description: '24/7 customer support to assist you throughout your rental journey.',
+    title: "Support before and after booking",
+    description:
+      "24/7 customer support to assist you throughout your rental journey.",
   },
-]
+];
 
 export function WhyChooseUs() {
   return (
@@ -30,43 +29,41 @@ export function WhyChooseUs() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1),_transparent_70%)]" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-foreground mb-4">
             Why Book Through Our Platform?
           </h2>
           <p className="text-lg lg:text-xl text-foreground max-w-2xl mx-auto">
-            Experience the most trusted and reliable way to rent vehicles across Pakistan
+            Experience the most trusted and reliable way to rent vehicles across
+            Pakistan
           </p>
         </div>
 
         {/* Benefits Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {benefits.map((benefit, index) => {
-            const Icon = benefit.icon
+            const Icon = benefit.icon;
             return (
               <div
                 key={index}
-                className="group relative bg-green-100 rounded-xl p-6 lg:p-8 border border-green-200 hover:border-green-400 transition-all duration-500 ease-in-out hover:shadow-xl hover:shadow-green-500/30 hover:-translate-y-2 hover:bg-green-200 flex flex-col"
+                className="group relative bg-background p-6 border-2 border-foreground/20 hover:border-foreground/40 transition-all duration-500 ease-in-out  flex flex-col"
               >
                 {/* Icon */}
                 <div className="relative mb-4">
-                  <div className="absolute -inset-4 bg-green-400/30 blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out" />
-                  <div className="relative w-14 h-14 rounded-lg bg-white border border-green-300 group-hover:border-green-500 group-hover:bg-green-50 flex items-center justify-center transition-all duration-500 ease-in-out">
-                    <Icon className="h-7 w-7 text-black group-hover:text-green-600 transition-colors duration-500 ease-in-out" />
-                  </div>
+                  <Icon className="h-7 w-7 text-muted-foreground group-hover:text-foreground/80 transition-colors duration-500 ease-in-out" />
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold text-black mb-2 group-hover:text-green-700 transition-colors duration-500 ease-in-out">
+                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-foreground/80 transition-colors duration-500 ease-in-out">
                   {benefit.title}
                 </h3>
-                <p className="text-black/80 leading-relaxed group-hover:text-black/90 transition-colors duration-500 ease-in-out">
+                <p className="text-muted-foreground leading-relaxed group-hover:text-foreground/90 transition-colors duration-500 ease-in-out">
                   {benefit.description}
                 </p>
               </div>
-            )
+            );
           })}
         </div>
 
@@ -83,5 +80,5 @@ export function WhyChooseUs() {
         </div> */}
       </div>
     </section>
-  )
+  );
 }

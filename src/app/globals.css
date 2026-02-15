@@ -151,7 +151,7 @@
 
 
 /* thin scrollbar */
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
@@ -159,4 +159,4 @@
 }
 ::-webkit-scrollbar-thumb {
   background: #888;
-}
+} */

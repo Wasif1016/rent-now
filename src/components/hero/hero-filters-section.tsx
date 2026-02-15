@@ -268,12 +268,12 @@ export function HeroResults({ filteredVehicles }: { filteredVehicles: Vehicle[] 
     <section className="bg-foreground/10 pt-8 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Results Info */}
-        {/* <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">
             {filteredVehicles.length}{" "}
             {filteredVehicles.length === 1 ? "Result" : "Results"}
           </h2>
-        </div> */}
+        </div>
 
         {/* Grid */}
         <div className="min-h-[400px]">
