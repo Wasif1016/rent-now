@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import {
   MoreVertical,
@@ -103,15 +103,19 @@ export function RouteTable({
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.fromCityId || 'all'}
-              onChange={(e) => updateFilters({ ...filters, fromCityId: e.target.value !== 'all' ? e.target.value : undefined })}
-              className="flex-1"
+              onValueChange={(value) => updateFilters({ ...filters, fromCityId: value !== 'all' ? value : undefined })}
             >
-              <option value="all">All Departure Cities</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Departure Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departure Cities</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -119,15 +123,19 @@ export function RouteTable({
             <Compass className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.toCityId || 'all'}
-              onChange={(e) => updateFilters({ ...filters, toCityId: e.target.value !== 'all' ? e.target.value : undefined })}
-              className="flex-1"
+              onValueChange={(value) => updateFilters({ ...filters, toCityId: value !== 'all' ? value : undefined })}
             >
-              <option value="all">All Destination Cities</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Destination Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Destination Cities</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -135,15 +143,19 @@ export function RouteTable({
             <Car className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.vehicleTypeId || 'all'}
-              onChange={(e) => updateFilters({ ...filters, vehicleTypeId: e.target.value !== 'all' ? e.target.value : undefined })}
-              className="flex-1"
+              onValueChange={(value) => updateFilters({ ...filters, vehicleTypeId: value !== 'all' ? value : undefined })}
             >
-              <option value="all">All Categories</option>
-              {vehicleTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {vehicleTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 

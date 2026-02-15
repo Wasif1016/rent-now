@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Zap, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
@@ -410,24 +410,26 @@ export function VehicleForm({
           <div>
             <Label htmlFor="city">City *</Label>
             <Select
-              id="city"
               value={formData.cityId}
-              onChange={(e) => {
+              onValueChange={(value) => {
                 setFormData((prev) => ({
                   ...prev,
-                  cityId: e.target.value,
+                  cityId: value,
                   townId: "",
                 }));
                 setErrors((prev) => ({ ...prev, cityId: "" }));
               }}
-              className={errors.cityId ? "border-red-500" : ""}
             >
-              <option value="">Select city</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
+              <SelectTrigger id="city" className={errors.cityId ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select city" />
+              </SelectTrigger>
+              <SelectContent>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
             {errors.cityId && (
               <p className="text-xs text-red-600 mt-1">{errors.cityId}</p>
@@ -437,21 +439,22 @@ export function VehicleForm({
           <div>
             <Label htmlFor="town">Town</Label>
             <Select
-              id="town"
               value={formData.townId}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, townId: e.target.value }))
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, townId: value }))
               }
               disabled={!formData.cityId || loadingTowns}
             >
-              <option value="">
-                {loadingTowns ? "Loading..." : "All Towns"}
-              </option>
-              {towns.map((town) => (
-                <option key={town.id} value={town.id}>
-                  {town.name}
-                </option>
-              ))}
+              <SelectTrigger id="town">
+                <SelectValue placeholder={loadingTowns ? "Loading..." : "All Towns"} />
+              </SelectTrigger>
+              <SelectContent>
+                {towns.map((town) => (
+                  <SelectItem key={town.id} value={town.id}>
+                    {town.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
         </div>
@@ -485,21 +488,22 @@ export function VehicleForm({
           <div>
             <Label htmlFor="transmission">Transmission *</Label>
             <Select
-              id="transmission"
               value={formData.transmission}
-              onChange={(e) => {
+              onValueChange={(value) => {
                 setFormData((prev) => ({
                   ...prev,
-                  transmission: e.target.value,
+                  transmission: value,
                 }));
                 setErrors((prev) => ({ ...prev, transmission: "" }));
               }}
-              required
-              className={errors.transmission ? "border-red-500" : ""}
             >
-              <option value="">Select transmission</option>
-              <option value="MANUAL">Manual</option>
-              <option value="AUTOMATIC">Automatic</option>
+              <SelectTrigger id="transmission" className={errors.transmission ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select transmission" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTOMATIC">Automatic</SelectItem>
+              </SelectContent>
             </Select>
             {errors.transmission && (
               <p className="text-xs text-red-600 mt-1">{errors.transmission}</p>
@@ -511,44 +515,50 @@ export function VehicleForm({
               Seating capacity (for filters)
             </Label>
             <Select
-              id="seatingCapacity"
               value={formData.seatingCapacity}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
-                  seatingCapacity: e.target.value,
+                  seatingCapacity: value,
                 }))
               }
             >
-              <option value="">Any</option>
-              <option value="2">2 Seater</option>
-              <option value="4">4 Seater</option>
-              <option value="5">5 Seater</option>
-              <option value="7">7 Seater</option>
-              <option value="9">9 Seater</option>
-              <option value="12">12 Seater</option>
-              <option value="15">15 Seater</option>
-              <option value="22">22 Seater</option>
-              <option value="30">30+ Seater</option>
+              <SelectTrigger id="seatingCapacity">
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2 Seater</SelectItem>
+                <SelectItem value="4">4 Seater</SelectItem>
+                <SelectItem value="5">5 Seater</SelectItem>
+                <SelectItem value="7">7 Seater</SelectItem>
+                <SelectItem value="9">9 Seater</SelectItem>
+                <SelectItem value="12">12 Seater</SelectItem>
+                <SelectItem value="15">15 Seater</SelectItem>
+                <SelectItem value="22">22 Seater</SelectItem>
+                <SelectItem value="30">30+ Seater</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
           <div>
             <Label htmlFor="driverOption">Driver option</Label>
             <Select
-              id="driverOption"
               value={formData.driverOption}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
-                  driverOption: e.target.value,
+                  driverOption: value,
                 }))
               }
             >
-              <option value="">Not specified</option>
-              <option value="WITH_DRIVER">With driver</option>
-              <option value="WITHOUT_DRIVER">Without driver</option>
-              <option value="BOTH">Both</option>
+              <SelectTrigger id="driverOption">
+                <SelectValue placeholder="Not specified" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="WITH_DRIVER">With driver</SelectItem>
+                <SelectItem value="WITHOUT_DRIVER">Without driver</SelectItem>
+                <SelectItem value="BOTH">Both</SelectItem>
+              </SelectContent>
             </Select>
           </div>
         </div>

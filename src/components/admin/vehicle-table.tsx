@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteVehicleModal } from "./delete-vehicle-modal";
@@ -233,20 +233,24 @@ export function VehicleTable({
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.cityId || "all"}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 updateFilters({
                   ...filters,
-                  cityId: e.target.value !== "all" ? e.target.value : undefined,
+                  cityId: value !== "all" ? value : undefined,
                 })
               }
-              className="flex-1"
             >
-              <option value="all">All Cities</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -254,21 +258,24 @@ export function VehicleTable({
             <Tag className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.vendorId || "all"}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 updateFilters({
                   ...filters,
-                  vendorId:
-                    e.target.value !== "all" ? e.target.value : undefined,
+                  vendorId: value !== "all" ? value : undefined,
                 })
               }
-              className="flex-1"
             >
-              <option value="all">All Vendors</option>
-              {vendors.map((vendor) => (
-                <option key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                </option>
-              ))}
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Vendors" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vendors</SelectItem>
+                {vendors.map((vendor) => (
+                  <SelectItem key={vendor.id} value={vendor.id}>
+                    {vendor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -276,21 +283,24 @@ export function VehicleTable({
             <Car className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.vehicleTypeId || "all"}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 updateFilters({
                   ...filters,
-                  vehicleTypeId:
-                    e.target.value !== "all" ? e.target.value : undefined,
+                  vehicleTypeId: value !== "all" ? value : undefined,
                 })
               }
-              className="flex-1"
             >
-              <option value="all">All Types</option>
-              {vehicleTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {vehicleTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -298,17 +308,21 @@ export function VehicleTable({
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select
               value={filters.status || "all"}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 updateFilters({
                   ...filters,
-                  status: e.target.value !== "all" ? e.target.value : undefined,
+                  status: value !== "all" ? value : undefined,
                 })
               }
-              className="flex-1"
             >
-              <option value="all">All Status</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="DRAFT">Draft</option>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="PUBLISHED">Published</SelectItem>
+                <SelectItem value="DRAFT">Draft</SelectItem>
+              </SelectContent>
             </Select>
           </div>
         </form>

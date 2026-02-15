@@ -48,21 +48,21 @@ export function WhyChooseUs() {
             return (
               <div
                 key={index}
-                className="group relative bg-[#1a1a1a] rounded-2xl p-6 lg:p-8 border border-gray-800/50 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_30px_theme(colors.primary/0.2)] hover:-translate-y-1"
+                className="group relative bg-green-100 rounded-xl p-6 lg:p-8 border border-green-200 hover:border-green-400 transition-all duration-500 ease-in-out hover:shadow-xl hover:shadow-green-500/30 hover:-translate-y-2 hover:bg-green-200 flex flex-col"
               >
                 {/* Icon */}
                 <div className="relative mb-4">
-                  <div className="absolute -inset-4 bg-primary/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative w-14 h-14 rounded-xl bg-[#0f0f0f] border border-gray-800/50 group-hover:border-primary/50 flex items-center justify-center transition-colors">
-                    <Icon className="h-7 w-7 text-primary" />
+                  <div className="absolute -inset-4 bg-green-400/30 blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out" />
+                  <div className="relative w-14 h-14 rounded-lg bg-white border border-green-300 group-hover:border-green-500 group-hover:bg-green-50 flex items-center justify-center transition-all duration-500 ease-in-out">
+                    <Icon className="h-7 w-7 text-black group-hover:text-green-600 transition-colors duration-500 ease-in-out" />
                   </div>
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold text-black mb-2 group-hover:text-green-700 transition-colors duration-500 ease-in-out">
                   {benefit.title}
                 </h3>
-                <p className="text-gray-400 leading-relaxed">
+                <p className="text-black/80 leading-relaxed group-hover:text-black/90 transition-colors duration-500 ease-in-out">
                   {benefit.description}
                 </p>
               </div>

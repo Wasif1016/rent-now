@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 interface RouteFormProps {
@@ -93,70 +93,82 @@ export function RouteForm({ cities, vehicles, vendors, route }: RouteFormProps) 
             <div className="space-y-2">
               <Label htmlFor="fromCityId">Departure City *</Label>
               <Select
-                id="fromCityId"
                 value={formData.fromCityId}
-                onChange={(e) => setFormData({ ...formData, fromCityId: e.target.value })}
+                onValueChange={(value) => setFormData({ ...formData, fromCityId: value })}
                 required
               >
-                <option value="">Select departure city</option>
-                {cities.map((city) => (
-                  <option key={city.id} value={city.id}>
-                    {city.name}
-                  </option>
-                ))}
+                <SelectTrigger id="fromCityId" className="w-full">
+                  <SelectValue placeholder="Select departure city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city.id} value={city.id}>
+                      {city.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="toCityId">Destination City *</Label>
               <Select
-                id="toCityId"
                 value={formData.toCityId}
-                onChange={(e) => setFormData({ ...formData, toCityId: e.target.value })}
+                onValueChange={(value) => setFormData({ ...formData, toCityId: value })}
                 required
               >
-                <option value="">Select destination city</option>
-                {cities
-                  .filter((city) => city.id !== formData.fromCityId)
-                  .map((city) => (
-                    <option key={city.id} value={city.id}>
-                      {city.name}
-                    </option>
-                  ))}
+                <SelectTrigger id="toCityId" className="w-full">
+                  <SelectValue placeholder="Select destination city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities
+                    .filter((city) => city.id !== formData.fromCityId)
+                    .map((city) => (
+                      <SelectItem key={city.id} value={city.id}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="vendorId">Vendor *</Label>
               <Select
-                id="vendorId"
                 value={formData.vendorId}
-                onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
+                onValueChange={(value) => setFormData({ ...formData, vendorId: value })}
                 required
               >
-                <option value="">Select vendor</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.name}
-                  </option>
-                ))}
+                <SelectTrigger id="vendorId" className="w-full">
+                  <SelectValue placeholder="Select vendor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vendors.map((vendor) => (
+                    <SelectItem key={vendor.id} value={vendor.id}>
+                      {vendor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="vehicleId">Vehicle *</Label>
               <Select
-                id="vehicleId"
                 value={formData.vehicleId}
-                onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
+                onValueChange={(value) => setFormData({ ...formData, vehicleId: value })}
                 required
               >
-                <option value="">Select vehicle</option>
-                {filteredVehicles.map((vehicle) => (
-                  <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.title} {vehicle.city ? `(${vehicle.city.name})` : ''}
-                  </option>
-                ))}
+                <SelectTrigger id="vehicleId" className="w-full">
+                  <SelectValue placeholder="Select vehicle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredVehicles.map((vehicle) => (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.title} {vehicle.city ? `(${vehicle.city.name})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
 
@@ -175,12 +187,16 @@ export function RouteForm({ cities, vehicles, vendors, route }: RouteFormProps) 
             <div className="space-y-2">
               <Label htmlFor="isActive">Status</Label>
               <Select
-                id="isActive"
                 value={formData.isActive ? 'true' : 'false'}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'true' })}
+                onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
               >
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <SelectTrigger id="isActive" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Inactive</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
