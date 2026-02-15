@@ -8,11 +8,15 @@ import {
   Truck,
   Bus,
   CarFront,
-  ShieldCheck,
-  HelpCircle,
-  ArrowRight,
   Sparkles,
 } from "lucide-react";
+import { CTA } from '../shared/cta'
+import {
+  IntroSection,
+  WhyChooseSection,
+  UseCasesAndBookingSection,
+  FAQSection,
+} from '../shared/landing-sections'
 
 /** Converts slug form (e.g. "lahore", "new-york") to display form with spaces. */
 export function humanizeCity(city: string): string {
@@ -168,243 +172,97 @@ export function CityLandingPage({
     <main className="min-h-screen bg-background text-foreground">
       <HeroSection heading={heroHeading} />
 
-      {/* Intro */}
-      <section className="relative py-16 lg:py-24 overflow-hidden flex items-center justify-center">
-        <div className="pointer-events-none absolute inset-0 opacity-70">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.18),_transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(34,197,94,0.12),_transparent_55%)]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl flex justify-center">
-          <div className="space-y-4 flex flex-col items-center text-center w-full max-w-2xl">
-            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-foreground tracking-tight">
-              Looking for {keywordNatural} in {cityDisplay}?
-            </h2>
-            <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Our platform helps you connect with trusted local vehicle rental
-              services in {cityDisplay}, making booking simple and reliable.
-            </p>
-            <p className="text-normal md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Whether you need a vehicle for daily travel, family trips,
-              business use, tours, or special occasions, you can explore
-              verified rental options available within {cityDisplay} and nearby
-              areas.
-            </p>
-            <p className="text-normal md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-              Instead of searching multiple places, you can compare vehicles,
-              understand pricing, and book confidently through one platform.
-            </p>
-          </div>
-        </div>
-      </section>
+      <IntroSection
+        heading={`Looking for ${keywordNatural} in ${cityDisplay}?`}
+        paragraphs={[
+          `Our platform helps you connect with trusted local vehicle rental services in ${cityDisplay}, making booking simple and reliable.`,
+          `Whether you need a vehicle for daily travel, family trips, business use, tours, or special occasions, you can explore verified rental options available within ${cityDisplay} and nearby areas.`,
+          `Instead of searching multiple places, you can compare vehicles, understand pricing, and book confidently through one platform.`,
+        ]}
+      />
 
-      {/* Why Choose */}
-      <section className="relative py-16 lg:py-24 bg-[#0a0a0a] overflow-hidden">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1),_transparent_70%)]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="text-center mb-12 lg:mb-16">
-            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold text-background mb-4">
-              Why Choose {keywordNatural} in {cityDisplay} Through Us?
-            </h2>
-            <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Renting a vehicle locally offers better availability and faster
-              coordination. That&apos;s why people prefer using our platform in{" "}
-              {cityDisplay}:
-            </p>
-          </div>
-          <div className="grid gap-6 lg:gap-8 md:grid-cols-2">
-            <div className="group relative bg-[#1a1a1a] rounded-2xl p-6 lg:p-8 border border-gray-800/50 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_30px_theme(colors.primary/0.2)] hover:-translate-y-1">
-              <div className="relative mb-4">
-                <div className="absolute -inset-4 bg-primary/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative w-14 h-14 rounded-xl bg-[#0f0f0f] border border-gray-800/50 group-hover:border-primary/50 flex items-center justify-center transition-colors">
-                  <ShieldCheck className="h-7 w-7 text-primary" />
-                </div>
-              </div>
-              <ul className="grid gap-3 text-normal md:text-lg text-gray-400">
-                {whyChooseItems.map((item, i) => (
-                  <li key={i} className="flex gap-3">
-                    <Check className="h-5 w-5 shrink-0 text-primary mt-0.5" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-normal text-gray-400 mt-4">
-                Our goal is to make {keywordNatural} in {cityDisplay} smooth,
-                affordable, and dependable.
-              </p>
-            </div>
+      <WhyChooseSection
+        title={`Why Choose ${keywordNatural} in ${cityDisplay} Through Us?`}
+        subtitle={`Renting a vehicle locally offers better availability and faster coordination. That's why people prefer using our platform in ${cityDisplay}:`}
+        trustCard={{
+          items: whyChooseItems,
+          footerText: `Our goal is to make ${keywordNatural} in ${cityDisplay} smooth, affordable, and dependable.`,
+        }}
+        vehiclesCard={{
+          title: `Vehicles Available in ${cityDisplay}`,
+          description: `Depending on availability, you can book the following vehicles in ${cityDisplay}:`,
+          items: VEHICLE_TYPE_ITEMS,
+          footerText: `Vehicle availability may vary by area and rental provider within ${cityDisplay}.`,
+        }}
+      />
 
-            <div className="group relative bg-[#1a1a1a] rounded-2xl p-6 lg:p-8 border border-gray-800/50 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_30px_theme(colors.primary/0.2)] hover:-translate-y-1">
-              <div className="relative mb-4">
-                <div className="absolute -inset-4 bg-primary/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative w-14 h-14 rounded-xl bg-[#0f0f0f] border border-gray-800/50 group-hover:border-primary/50 flex items-center justify-center transition-colors">
-                  <Car className="h-7 w-7 text-primary" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
-                Vehicles Available in {cityDisplay}
-              </h3>
-              <p className="text-gray-400 text-normal mb-4">
-                Depending on availability, you can book the following vehicles
-                in {cityDisplay}:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {VEHICLE_TYPE_ITEMS.map(({ icon: Icon, label }, i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl border border-gray-800/50 bg-[#0f0f0f] px-4 py-3 flex items-center gap-3 text-gray-400"
-                  >
-                    <Icon className="h-5 w-5 text-primary shrink-0" />
-                    <span className="text-normal">{label}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-3">
-                Vehicle availability may vary by area and rental provider within{" "}
-                {cityDisplay}.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Use cases + How booking works */}
-      <section className="relative py-16 lg:py-24 bg-background overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 opacity-70">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.12),_transparent_55%)]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-8 space-y-5">
-              <h3 className="text-xl font-bold text-white">
-                Common Reasons People Book in {cityDisplay}
-              </h3>
-              <p className="text-normal text-gray-400">
-                People choose {keywordNatural} in {cityDisplay} for many
-                purposes, including:
-              </p>
-              <ul className="mt-3 grid gap-2 text-normal text-gray-400">
-                {useCases.map((item, i) => (
-                  <li key={i} className="flex gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-normal md:text-lg text-muted-foreground mt-3 leading-relaxed">
-                Local rental providers understand city routes, traffic, and
-                timing better — making your experience smoother.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-primary bg-foreground p-8 space-y-5 shadow-primary">
-              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary">
-                Simple booking steps
-              </p>
-              <h2 className="text-2xl md:text-3xl font-semibold text-white">
-                How Booking Works in {cityDisplay}
-              </h2>
-              <p className="text-normal text-emerald-50/80">
-                Booking a vehicle in {cityDisplay} is simple:
-              </p>
-              <ol className="mt-4 space-y-3 text-normal md:text-lg text-emerald-50/80">
-                <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
-                    1
-                  </span>
-                  <span className="flex-1 self-center">
-                    Browse available vehicles in {cityDisplay}
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
-                    2
-                  </span>
-                  <span className="flex-1 self-center">
-                    Submit your booking request
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
-                    3
-                  </span>
-                  <span className="flex-1 self-center">
-                    Pay a small advance to confirm
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
-                    4
-                  </span>
-                  <span className="flex-1 self-center">
-                    Our team coordinates with the local rental provider
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-normal shrink-0">
-                    5
-                  </span>
-                  <span className="flex-1 self-center">
-                    Vehicle is arranged as per your requirement
-                  </span>
-                </li>
-              </ol>
-              <p className="text-normal md:text-lg text-emerald-50/80 mt-3 leading-relaxed">
-                This ensures clarity for both customers and rental businesses.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <UseCasesAndBookingSection
+        useCases={{
+          title: `Common Reasons People Book in ${cityDisplay}`,
+          description: `People choose ${keywordNatural} in ${cityDisplay} for many purposes, including:`,
+          items: useCases,
+          footerText: "Local rental providers understand city routes, traffic, and timing better — making your experience smoother.",
+        }}
+        booking={{
+          subtitle: "Simple booking steps",
+          title: `How Booking Works in ${cityDisplay}`,
+          description: `Booking a vehicle in ${cityDisplay} is simple:`,
+          steps: [
+            { number: 1, icon: Car, text: `Browse available vehicles in ${cityDisplay}` },
+            { number: 2, icon: Car, text: "Submit your booking request" },
+            { number: 3, icon: Car, text: "Pay a small advance to confirm" },
+            { number: 4, icon: Car, text: "Our team coordinates with the local rental provider" },
+            { number: 5, icon: Car, text: "Vehicle is arranged as per your requirement" },
+          ],
+          footerText: "This ensures clarity for both customers and rental businesses.",
+        }}
+        variant="numbers"
+      />
 
       {/* Trusted local + Pricing */}
-      <section className="relative py-16 lg:py-24 bg-[#0a0a0a] overflow-hidden">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.1),_transparent_70%)]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="grid gap-8 md:grid-cols-2">
-            <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-6 lg:p-8">
-              <h3 className="text-xl font-bold text-white mb-3">
+      <section className="relative py-16 lg:py-24 bg-background overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="bg-background p-6 lg:p-8 border-2 border-foreground/20 hover:border-foreground/40 transition-all duration-500 ease-in-out flex flex-col">
+              <h3 className="text-xl font-bold text-foreground mb-3">
                 Trusted Local Rental Businesses in {cityDisplay}
               </h3>
-              <p className="text-gray-400 text-normal mb-3">
+              <p className="text-base text-foreground/70 mb-3">
                 We focus on listing genuine, locally operating rental businesses
                 in {cityDisplay}.
               </p>
-              <p className="text-gray-400 text-normal mb-3">
+              <p className="text-base text-foreground/70 mb-3">
                 Each business profile may include:
               </p>
-              <ul className="space-y-1 text-normal text-gray-400">
+              <ul className="space-y-1 text-base text-foreground/70">
                 {trustItems.map((item, i) => (
                   <li key={i} className="flex gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <Check className="h-4 w-4 text-foreground/60 shrink-0 mt-0.5" />
                     {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-gray-400 text-normal mt-3">
+              <p className="text-base text-foreground/70 mt-3">
                 This helps you compare options and book with confidence.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-6 lg:p-8">
-              <h3 className="text-xl font-bold text-white mb-3">
+            <div className="bg-background p-6 lg:p-8 border-2 border-foreground/20 hover:border-foreground/40 transition-all duration-500 ease-in-out flex flex-col">
+              <h3 className="text-xl font-bold text-foreground mb-3">
                 Pricing &amp; Availability in {cityDisplay}
               </h3>
-              <p className="text-gray-400 text-normal mb-3">
+              <p className="text-base text-foreground/70 mb-3">
                 Rental prices in {cityDisplay} depend on:
               </p>
-              <ul className="space-y-1 text-normal text-gray-400 mb-4">
+              <ul className="space-y-1 text-base text-foreground/70 mb-4">
                 {PRICING_FACTORS.map((item, i) => (
                   <li key={i} className="flex gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <Check className="h-4 w-4 text-foreground/60 shrink-0 mt-0.5" />
                     {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-gray-400 text-normal">
+              <p className="text-base text-foreground/70">
                 You can find options ranging from budget-friendly rentals to
                 premium vehicles, depending on your needs.
               </p>
@@ -414,16 +272,16 @@ export function CityLandingPage({
       </section>
 
       {/* SEO supporting paragraph */}
-      <section className="relative py-16 lg:py-24 bg-[#0a0a0a] overflow-hidden">
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-6 lg:p-8">
-            <h3 className="text-xl font-bold text-white mb-3">
+      <section className="relative py-16 lg:py-24 bg-foreground/5 overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="bg-background p-6 lg:p-8 border-2 border-foreground/20 hover:border-foreground/40 transition-all duration-500 ease-in-out">
+            <h3 className="text-xl font-bold text-foreground mb-3">
               Find {keywordNatural} in {cityDisplay}
             </h3>
-            <p className="text-gray-400 text-normal mb-3">
+            <p className="text-base text-foreground/70 mb-3">
               If you&apos;re searching for:
             </p>
-            <ul className="space-y-1 text-normal text-gray-400 mb-4">
+            <ul className="space-y-1 text-base text-foreground/70 mb-4">
               <li>
                 • {keywordNatural} near me in {cityDisplay}
               </li>
@@ -432,7 +290,7 @@ export function CityLandingPage({
               </li>
               <li>• affordable vehicle rental in {cityDisplay}</li>
             </ul>
-            <p className="text-gray-400 text-normal">
+            <p className="text-base text-foreground/70">
               This page helps you find reliable and verified rental options
               available locally.
             </p>
@@ -440,56 +298,12 @@ export function CityLandingPage({
         </div>
       </section>
 
-      {/* FAQs */}
-      <section className="relative py-16 lg:py-24 bg-[#0a0a0a] overflow-hidden">
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-background mb-4">
-              Frequently Asked Questions – {cityDisplay}
-            </h2>
-          </div>
-          <div className="grid gap-4">
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="group rounded-2xl border border-gray-800/50 bg-[#1a1a1a] p-6 hover:border-primary/40 transition-colors"
-              >
-                <h3 className="flex items-start gap-3 text-lg font-semibold text-white mb-2">
-                  <HelpCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  {faq.q}
-                </h3>
-                <p className="text-gray-400 text-normal pl-8 leading-relaxed">
-                  {faq.a}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FAQSection
+        title={`Frequently Asked Questions – ${cityDisplay}`}
+        faqs={faqs}
+      />
 
-      {/* Final CTA */}
-      <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Ready to proceed with {keywordNatural} in {cityDisplay}?
-            </h2>
-            <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-              Compare vehicles, connect with trusted local rental businesses,
-              and book your vehicle in {cityDisplay} today.
-            </p>
-            <Link href="/view-all-vehicles">
-              <Button
-                size="lg"
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-lg"
-              >
-                View Available Vehicles 
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CTA city={cityDisplay} />
     </main>
   );
 }
