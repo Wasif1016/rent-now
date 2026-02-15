@@ -111,6 +111,17 @@ export function useVehicleFiltering(
     setFilters(DEFAULT_FILTERS);
   };
 
+  // Wrapper function to handle Partial<VehicleFilterState>
+  const handleSetFilters = (
+    newFilters: Partial<VehicleFilterState> | ((prev: VehicleFilterState) => VehicleFilterState)
+  ) => {
+    if (typeof newFilters === "function") {
+      setFilters(newFilters);
+    } else {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+    }
+  };
+
   const hasActiveFilters = !!(
     (filters.selectedCity && filters.selectedCity !== "all") ||
     (filters.selectedTown && filters.selectedTown !== "all") ||
@@ -121,7 +132,7 @@ export function useVehicleFiltering(
   return {
     filteredVehicles,
     filters,
-    setFilters,
+    setFilters: handleSetFilters,
     setSearchQuery,
     setSelectedCity,
     setSelectedTown,
