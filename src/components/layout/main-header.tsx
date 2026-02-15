@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import Image from 'next/image'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { useAuth } from '@/contexts/auth-context'
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,68 +14,81 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { User, LogOut, Settings, Menu, X, ChevronRight } from 'lucide-react'
+} from "@/components/ui/dropdown-menu";
+import { User, LogOut, Settings, Menu, X, ChevronRight } from "lucide-react";
 
 const mainLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/view-all-vehicles', label: 'View all Vehicles' },
-]
+  { href: "/", label: "Home" },
+  { href: "/view-all-vehicles", label: "View all Vehicles" },
+];
 
 export function MainHeader() {
-  const { user, loading, signOut, session } = useAuth()
-  const router = useRouter()
-  const pathname = usePathname()
-  const [vendorLogo, setVendorLogo] = useState<string | null>(null)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  
-  const isDashboard = pathname.startsWith('/vendor') || pathname.startsWith('/admin')
+  const { user, loading, signOut, session } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [vendorLogo, setVendorLogo] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isDashboard =
+    pathname.startsWith("/vendor") || pathname.startsWith("/admin");
 
   useEffect(() => {
     const fetchVendorLogo = async () => {
-      if (!user || !session) return
+      if (!user || !session) return;
 
       try {
-        const res = await fetch('/api/vendor/profile', {
+        const res = await fetch("/api/vendor/profile", {
           headers: {
-            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+            ...(session?.access_token
+              ? { Authorization: `Bearer ${session.access_token}` }
+              : {}),
           },
-        })
+        });
         if (res.ok) {
-          const data = await res.json()
+          const data = await res.json();
           if (data.logo) {
-            setVendorLogo(data.logo)
+            setVendorLogo(data.logo);
           }
         }
       } catch (error) {
         // Ignore errors
       }
-    }
+    };
 
     if (!loading && user) {
-      fetchVendorLogo()
+      fetchVendorLogo();
     }
-  }, [user, session, loading])
+  }, [user, session, loading]);
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
-    router.refresh()
-  }
+    await signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
-    <header className={cn(
-      " w-full border-b z-40 transition-colors",
-      isDashboard ? "hidden md:block" : "block",
-      "bg-background backdrop-blur-md"
-    )}>
+    <header
+      className={cn(
+        "absolute w-full z-40 transition-colors",
+        isDashboard ? "hidden md:block" : "block",
+        "bg-transparent "
+      )}
+    >
       <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="RentNow" width={100} height={100} className="h-8 w-auto" />
-          <span className="text-2xl font-bold tracking-tight text-foreground">RentNow</span>
+          <Image
+            src="/logo.svg"
+            alt="RentNow"
+            width={100}
+            height={100}
+            className="h-8 w-auto"
+          />
+          <span className="text-2xl font-bold tracking-tight text-background">
+            RentNow
+          </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-4 text-sm">
+        {/* <nav className="hidden md:flex items-center gap-4 text-sm">
           {mainLinks.map(link => (
             <Link
               key={link.href}
@@ -85,7 +98,7 @@ export function MainHeader() {
               {link.label}
             </Link>
           ))}
-        </nav>
+        </nav> */}
 
         <div className="flex items-center gap-2">
           {loading ? (
@@ -154,7 +167,6 @@ export function MainHeader() {
             </>
           )}
 
-          {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-md text-white hover:bg-slate-800 transition-colors"
@@ -166,7 +178,7 @@ export function MainHeader() {
       </div>
 
       {/* Mobile Menu Drawer */}
-      <div className={cn(
+      {/* <div className={cn(
         "fixed inset-0 z-[100] bg-white transition-transform duration-300 ease-in-out md:hidden",
         isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
@@ -247,9 +259,7 @@ export function MainHeader() {
             © {new Date().getFullYear()} RentNow. All rights reserved.
           </div>
         </div>
-      </div>
+      </div> */}  
     </header>
-  )
+  );
 }
-
-

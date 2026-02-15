@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { VehicleCard } from "@/components/search/vehicle-card-redesigned";
 import { EmptyState } from "@/components/search/empty-state";
 import { Input } from "@/components/ui/input";
@@ -12,70 +11,47 @@ import {
   ComboboxContent,
   ComboboxList,
   ComboboxItem,
-  ComboboxEmpty,
 } from "@/components/ui/combobox";
-import { Search, X, MapPin, Car } from "lucide-react";
+import { Search, X, Car } from "lucide-react";
 import Image from "next/image";
+import type { Vehicle, LocationOption, Town } from "@/types";
+import { useVehicleFiltering } from "@/hooks/use-vehicle-filtering";
+import { useTownsLoader } from "@/hooks/use-towns-loader";
 
-interface Vehicle {
-  id: string;
-  title: string;
-  slug: string;
-  seats?: number | null;
-  images: string[] | null;
-  city: { name: string; slug: string };
-  town?: { name: string; slug: string } | null;
-  vehicleType?: { id: string; name: string; slug: string } | null;
-  vehicleModel?: { name: string; vehicleBrand: { name: string } } | null;
-  vendor: {
-    name: string;
-    verificationStatus?: string | null;
-    phone?: string | null;
-    whatsappPhone?: string | null;
-  };
-  priceWithinCity?: number | null;
-  priceOutOfCity?: number | null;
-}
-
-interface SearchPageInnerProps {
+interface HeroFiltersSectionProps {
   initialVehicles: Vehicle[];
-  cities: Array<{ id: string; name: string; slug: string }>;
-  initialTowns: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    cityId: string;
-  }>;
+  cities: LocationOption[];
   vehicleTypes: Array<{ id: string; name: string; slug: string }>;
+  onFilteredVehiclesChange?: (vehicles: Vehicle[]) => void;
 }
 
-export function SearchPageInner({
+export function HeroFiltersSection({
   initialVehicles,
   cities,
-  initialTowns,
   vehicleTypes,
-}: SearchPageInnerProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
-  const [filteredVehicles, setFilteredVehicles] =
-    useState<Vehicle[]>(initialVehicles);
-  const [towns, setTowns] =
-    useState<Array<{ id: string; name: string; slug: string; cityId: string }>>(
-      initialTowns
-    );
+  onFilteredVehiclesChange,
+}: HeroFiltersSectionProps) {
+  // Use centralized filtering hook
+  const {
+    filteredVehicles,
+    filters,
+    setSearchQuery,
+    setSelectedCity,
+    setSelectedTown,
+    setSelectedVehicleType,
+    resetFilters,
+    hasActiveFilters,
+  } = useVehicleFiltering({
+    vehicles: initialVehicles,
+    onFilteredChange: onFilteredVehiclesChange,
+  });
 
-  // Filter states - initialize from URL params
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<string>(
-    searchParams.get("city") || "all"
-  );
-  const [selectedTown, setSelectedTown] = useState<string>(
-    searchParams.get("town") || "all"
-  );
-  const [selectedVehicleType, setSelectedVehicleType] = useState<string>(
-    searchParams.get("vehicleType") || "all"
-  );
+  // Use centralized towns loader hook
+  const { towns } = useTownsLoader({
+    citySlug: filters.selectedCity !== "all" ? filters.selectedCity : undefined,
+    cities,
+    enabled: filters.selectedCity !== "all",
+  });
 
   // Combobox search states
   const [citySearch, setCitySearch] = useState("");
@@ -97,19 +73,19 @@ export function SearchPageInner({
 
   // Get display values
   const getCityDisplayValue = () => {
-    if (selectedCity === "all") return "All Cities";
-    return cities.find((c) => c.slug === selectedCity)?.name || "City";
+    if (filters.selectedCity === "all") return "All Cities";
+    return cities.find((c) => c.slug === filters.selectedCity)?.name || "City";
   };
 
   const getTownDisplayValue = () => {
-    if (selectedTown === "all") return "All Towns";
-    return towns.find((t) => t.slug === selectedTown)?.name || "Town";
+    if (filters.selectedTown === "all") return "All Towns";
+    return towns.find((t) => t.slug === filters.selectedTown)?.name || "Town";
   };
 
   const getVehicleTypeDisplayValue = () => {
-    if (selectedVehicleType === "all") return "All Types";
+    if (filters.selectedVehicleType === "all") return "All Types";
     return (
-      vehicleTypes.find((t) => t.slug === selectedVehicleType)?.name ||
+      vehicleTypes.find((t) => t.slug === filters.selectedVehicleType)?.name ||
       "Vehicle Type"
     );
   };
@@ -117,7 +93,6 @@ export function SearchPageInner({
   // Vehicle type icon mapper
   const getVehicleTypeIcon = (typeName: string) => {
     const normalizedName = typeName.toLowerCase();
-    // Map vehicle types to icons - you can add more mappings as needed
     const iconMap: Record<string, string> = {
       sedan: "/icons/car.svg",
       suv: "/icons/car.svg",
@@ -127,154 +102,23 @@ export function SearchPageInner({
       wagon: "/icons/car.svg",
       default: "/icons/car.svg",
     };
-
     return iconMap[normalizedName] || iconMap.default;
   };
 
-  // Sync state when URL or server data changes
-  useEffect(() => {
-    setVehicles(initialVehicles);
-    setFilteredVehicles(initialVehicles);
-  }, [initialVehicles]);
-
-  // Sync filter state from URL
-  const paramsString = searchParams.toString();
-  useEffect(() => {
-    setSelectedCity(searchParams.get("city") || "all");
-    setSelectedTown(searchParams.get("town") || "all");
-    setSelectedVehicleType(searchParams.get("vehicleType") || "all");
-  }, [paramsString, searchParams]);
-
-  // Load towns when city changes via API
-  useEffect(() => {
-    const loadTowns = async () => {
-      if (selectedCity === "all" || !selectedCity) {
-        setTowns([]);
-        if (selectedTown !== "all") setSelectedTown("all");
-        return;
-      }
-
-      const city = cities.find((c) => c.slug === selectedCity);
-      if (!city) {
-        setTowns([]);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/towns?cityId=${city.id}`);
-        if (response.ok) {
-          const townsData = await response.json();
-          setTowns(
-            townsData.map((t: any) => ({
-              id: t.id,
-              name: t.name,
-              slug: t.slug,
-              cityId: t.cityId,
-            }))
-          );
-          // Reset town selection if it's not in the new city's towns
-          if (
-            selectedTown !== "all" &&
-            !townsData.find((t: any) => t.slug === selectedTown)
-          ) {
-            setSelectedTown("all");
-          }
-        }
-      } catch (error) {
-        console.error("Error loading towns:", error);
-        setTowns([]);
-      }
-    };
-
-    loadTowns();
-  }, [selectedCity, cities, selectedTown]);
-
-  // Filter vehicles in real-time
-  useEffect(() => {
-    let filtered = [...vehicles];
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (v) =>
-          v.title.toLowerCase().includes(query) ||
-          v.vehicleModel?.name.toLowerCase().includes(query) ||
-          v.vehicleModel?.vehicleBrand.name.toLowerCase().includes(query) ||
-          v.town?.name.toLowerCase().includes(query) ||
-          v.city.name.toLowerCase().includes(query)
-      );
-    }
-
-    // Filter by city
-    if (selectedCity && selectedCity !== "all") {
-      filtered = filtered.filter((v) => v.city.slug === selectedCity);
-    }
-
-    // Filter by town
-    if (selectedTown && selectedTown !== "all") {
-      filtered = filtered.filter((v) => v.town?.slug === selectedTown);
-    }
-
-    // Filter by vehicle type
-    if (selectedVehicleType && selectedVehicleType !== "all") {
-      filtered = filtered.filter(
-        (v) => v.vehicleType?.slug === selectedVehicleType
-      );
-    }
-
-    setFilteredVehicles(filtered);
-  }, [selectedCity, selectedTown, selectedVehicleType, searchQuery, vehicles]);
-
-  // Update URL params when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (selectedCity && selectedCity !== "all")
-      params.set("city", selectedCity);
-    if (selectedTown && selectedTown !== "all")
-      params.set("town", selectedTown);
-    if (selectedVehicleType && selectedVehicleType !== "all")
-      params.set("vehicleType", selectedVehicleType);
-
-    const newUrl = params.toString() ? `?${params.toString()}` : "";
-    router.replace(`/view-all-vehicles${newUrl}`, { scroll: false });
-  }, [selectedCity, selectedTown, selectedVehicleType, router]);
-
-  const handleResetFilters = () => {
-    setSelectedCity("all");
-    setSelectedTown("all");
-    setSelectedVehicleType("all");
-    setSearchQuery("");
-  };
-
-  const hasActiveFilters = !!(
-    (selectedCity && selectedCity !== "all") ||
-    (selectedTown && selectedTown !== "all") ||
-    (selectedVehicleType && selectedVehicleType !== "all") ||
-    searchQuery
-  );
-
+  // Store filtered vehicles in a way that can be accessed by results component
+  // We'll use a custom hook pattern or just render results separately
   return (
-    <div className="min-h-screen bg-foreground/5 pt-16">
-      <div className="container mx-auto px-4">
-        {/* Header Section */}
-        <div className="mb-4">
-          <h1 className="text-3xl font-bold text-foreground mb-1">
-            Find Your Perfect Ride
-          </h1>
-          <p className="text-muted-foreground">
-            Browse our wide selection of verified vehicles for any journey.
-          </p>
-        </div>
-
-        <div className="pb-4 pt-2 mb-8 border-b border-border">
+    <>
+      {/* Filters Section - Positioned at bottom of hero */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/90 border-t border-border">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search Input */}
             <div className="w-full lg:w-1/3 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by vehicle, city, or town..."
-                value={searchQuery}
+                value={filters.searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 bg-background border-border rounded-none h-10 focus-visible:ring-1 focus-visible:ring-primary"
               />
@@ -284,7 +128,7 @@ export function SearchPageInner({
             <div className="w-full lg:w-2/3 flex flex-col sm:flex-row gap-3 overflow-x-auto pb-1 sm:pb-0 items-center">
               {/* City Combobox */}
               <Combobox
-                value={selectedCity}
+                value={filters.selectedCity}
                 onValueChange={(value) => {
                   setSelectedCity(value || "all");
                   setCitySearch("");
@@ -317,13 +161,13 @@ export function SearchPageInner({
 
               {/* Town Combobox */}
               <Combobox
-                value={selectedTown}
+                value={filters.selectedTown}
                 onValueChange={(value) => {
                   setSelectedTown(value || "all");
                   setTownSearch("");
                 }}
                 disabled={
-                  !selectedCity || selectedCity === "all" || towns.length === 0
+                  !filters.selectedCity || filters.selectedCity === "all" || towns.length === 0
                 }
               >
                 <ComboboxInput
@@ -333,7 +177,7 @@ export function SearchPageInner({
                   className="w-full sm:w-[180px] h-10 rounded-none border-border"
                   showClear={townSearch.length > 0}
                   disabled={
-                    !selectedCity || selectedCity === "all" || towns.length === 0
+                    !filters.selectedCity || filters.selectedCity === "all" || towns.length === 0
                   }
                 />
                 <ComboboxContent className="w-[--anchor-width] rounded-none">
@@ -356,7 +200,7 @@ export function SearchPageInner({
 
               {/* Vehicle Type Combobox */}
               <Combobox
-                value={selectedVehicleType}
+                value={filters.selectedVehicleType}
                 onValueChange={(value) => {
                   setSelectedVehicleType(value || "all");
                   setVehicleTypeSearch("");
@@ -402,7 +246,7 @@ export function SearchPageInner({
               {hasActiveFilters && (
                 <Button
                   variant="ghost"
-                  onClick={handleResetFilters}
+                  onClick={resetFilters}
                   size="icon"
                   className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-transparent"
                 >
@@ -413,14 +257,23 @@ export function SearchPageInner({
             </div>
           </div>
         </div>
+      </div>
+    </>
+  );
+}
 
+// Results component
+export function HeroResults({ filteredVehicles }: { filteredVehicles: Vehicle[] }) {
+  return (
+    <section className="bg-foreground/10 pt-8 pb-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Results Info */}
-        <div className="mb-6 flex items-center justify-between">
+        {/* <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">
             {filteredVehicles.length}{" "}
             {filteredVehicles.length === 1 ? "Result" : "Results"}
           </h2>
-        </div>
+        </div> */}
 
         {/* Grid */}
         <div className="min-h-[400px]">
@@ -435,6 +288,6 @@ export function SearchPageInner({
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

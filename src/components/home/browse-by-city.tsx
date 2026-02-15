@@ -83,7 +83,7 @@ export async function BrowseByCity() {
               <Link
                 key={city.id}
                 href={`/rent-a-car/${city.slug}`}
-                className="group relative bg-green-100 p-5 transition-all duration-300 border border-foreground/10 aspect-square flex flex-col justify-between"
+                className="group relative bg-background p-5 transition-all duration-300 border border-foreground/10 aspect-video flex flex-col justify-between"
               >
                 {/* City Icon */}
                 <div className="flex mb-2">
@@ -96,22 +96,23 @@ export async function BrowseByCity() {
                     {city.name}
                   </h3>
                   <p className="font-semibold uppercase tracking-wide">
-                    {vehicleCount}+ <span className="text-xs">Verified Vehicles Available</span>
+                    {vehicleCount}+{" "}
+                    <span className="text-xs">Verified Vehicles Available</span>
                   </p>
                 </div>
               </Link>
             );
           })}
+        </div>
           <Link
             href="/cities"
-            className="inline-flex group relative bg-green-100 px-4 py-2 transition-all duration-300 border border-foreground/10 items-center justify-center gap-2 text-lg font-bold aspect-square"
+            className="mt-8 inline-flex group relative bg-foreground/10 px-8 hover:px-10 py-3 transition-all duration-300 border border-foreground/10 items-center justify-center gap-2 text-sm font-bold"
           >
-            <span className="flex flex-col items-center gap-2">
+            <span className="flex items-center gap-3">
               View all cities
-              <ArrowRight className="h-6 w-6" />
+              <ArrowRight className="h-4 w-4" />
             </span>
           </Link>
-        </div>
       </div>
     </section>
   );
