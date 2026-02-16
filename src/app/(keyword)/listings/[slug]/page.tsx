@@ -88,7 +88,13 @@ async function RelatedListings({
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {related.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
+            <VehicleCard
+              key={v.id}
+              vehicle={{
+                ...v,
+                images: Array.isArray(v.images) ? (v.images as string[]) : [],
+              }}
+            />
           ))}
         </div>
       </div>
