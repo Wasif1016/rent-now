@@ -13,6 +13,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Store,
   User,
   MapPin,
@@ -35,6 +42,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Update Vendor interface to be more flexible if needed, or just keep it and use null for prop
 interface Vendor {
   id: string;
   name: string;
@@ -74,6 +82,12 @@ const AVAILABLE_FEATURES = [
   "Leather Seats",
 ];
 
+interface City {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface VehicleFormData {
   title: string;
   brand: string;
@@ -85,9 +99,10 @@ interface VehicleFormData {
 }
 
 interface VendorOnboardingFormProps {
-  vendor: Vendor;
+  vendor?: Vendor | null;
   brands: VehicleBrand[];
   types: VehicleType[];
+  cities: City[];
 }
 
 // Available vehicle types with branded icons
@@ -104,6 +119,7 @@ export function VendorOnboardingForm({
   vendor,
   brands,
   types,
+  cities,
 }: VendorOnboardingFormProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -112,11 +128,12 @@ export function VendorOnboardingForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [vendorData, setVendorData] = useState({
-    name: vendor.name || "",
-    phone: vendor.phone || "",
-    whatsappPhone: vendor.whatsappPhone || "",
-    email: vendor.email || "",
-    address: vendor.address || "",
+    name: vendor?.name || "",
+    phone: vendor?.phone || "",
+    whatsappPhone: vendor?.whatsappPhone || "",
+    email: vendor?.email || "",
+    address: vendor?.address || "",
+    cityId: vendor?.cityId || "",
   });
 
   const [vehicles, setVehicles] = useState<VehicleFormData[]>([]);
@@ -139,6 +156,10 @@ export function VendorOnboardingForm({
   ) => {
     const { name, value } = e.target;
     setVendorData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectVendorCity = (value: string) => {
+    setVendorData((prev) => ({ ...prev, cityId: value }));
   };
 
   const handleVehicleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,7 +212,10 @@ export function VendorOnboardingForm({
     setErrorMessage(null);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("folder", `vendor-${vendor.id}`);
+    formData.append(
+      "folder",
+      vendor ? `vendor-${vendor.id}` : "public-uploads"
+    );
 
     try {
       const response = await fetch("/api/upload/image", {
@@ -269,11 +293,20 @@ export function VendorOnboardingForm({
         vehicles: vehicles,
       };
 
-      const response = await fetch(`/api/vendor-onboarding/${vendor.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let response;
+      if (vendor?.id) {
+        response = await fetch(`/api/vendor-onboarding/${vendor.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        response = await fetch(`/api/public/list-car`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -366,10 +399,17 @@ export function VendorOnboardingForm({
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 font-serif">
                   Let&apos;s get your business set up.
                 </h1>
-                <p className="text-slate-500">
-                  Review your details below. We&apos;ve pre-filled this from
-                  your registration data.
-                </p>
+                {vendor ? (
+                  <p className="text-slate-500">
+                    Review your details below. We&apos;ve pre-filled this from
+                    your registration data.
+                  </p>
+                ) : (
+                  <p className="text-slate-500">
+                    Enter your business details to get started. No account
+                    needed.
+                  </p>
+                )}
               </div>
               <hr className="border-slate-100 mx-6 md:mx-8" />
 
@@ -442,6 +482,28 @@ export function VendorOnboardingForm({
                       Used for urgent booking notifications.
                     </p>
                   </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="cityId" className="text-slate-700">
+                    City
+                  </Label>
+                  <Select
+                    value={vendorData.cityId || ""}
+                    onValueChange={handleSelectVendorCity}
+                  >
+                    <SelectTrigger className="h-12 bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]">
+                      <SelectValue placeholder="Select a city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities &&
+                        cities.map((city) => (
+                          <SelectItem key={city.id} value={city.id}>
+                            {city.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-1.5">

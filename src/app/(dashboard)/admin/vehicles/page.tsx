@@ -16,6 +16,8 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
   const vehicleTypeId = params.type as string | undefined;
   const status = params.status as string | undefined;
   const search = params.search as string | undefined;
+  const startDate = params.startDate as string | undefined;
+  const endDate = params.endDate as string | undefined;
 
   const where: any = {};
 
@@ -33,6 +35,15 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
 
   if (status) {
     where.status = status;
+  }
+
+  if (startDate || endDate) {
+    where.createdAt = {};
+    if (startDate) where.createdAt.gte = new Date(startDate);
+    if (endDate)
+      where.createdAt.lte = new Date(
+        new Date(endDate).setHours(23, 59, 59, 999)
+      );
   }
 
   if (search) {
@@ -132,6 +143,8 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
           vehicleTypeId,
           status,
           search,
+          startDate,
+          endDate,
         }}
       />
     </div>

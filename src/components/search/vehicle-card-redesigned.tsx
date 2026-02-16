@@ -68,11 +68,7 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
 
   // Get WhatsApp number (prefer vendor's WhatsApp, fallback to phone, then default)
   // Note: The generateWhatsAppLink uses a default number, but we can override it
-  const whatsappNumber =
-    vehicle.vendor.whatsappPhone ||
-    vehicle.vendor.phone ||
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
-    "923001234567";
+  const whatsappNumber = "923144174625";
 
   // Override WhatsApp URL with vendor's number if available
   const cleanWhatsAppNumber = whatsappNumber.replace(/\D/g, "");
@@ -86,7 +82,7 @@ export function VehicleCard({ vehicle }: VehicleCardRedesignedProps) {
   const finalWhatsAppUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodedMessage}`;
 
   // Get phone number for call
-  const phoneNumber = vehicle.vendor.phone || whatsappNumber;
+  const phoneNumber = "923144174625";
   const cleanPhoneNumber = phoneNumber.replace(/\D/g, "");
   const telHref = `tel:+${cleanPhoneNumber}`;
 

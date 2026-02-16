@@ -94,13 +94,15 @@ export function HeroFiltersSection({
   const getVehicleTypeIcon = (typeName: string) => {
     const normalizedName = typeName.toLowerCase();
     const iconMap: Record<string, string> = {
-      sedan: "/icons/car.svg",
-      suv: "/icons/car.svg",
-      hatchback: "/icons/car.svg",
-      van: "/icons/car.svg",
-      coupe: "/icons/car.svg",
-      wagon: "/icons/car.svg",
-      default: "/icons/car.svg",
+      sedan: "/vehicle-types/sedan.png",
+      suv: "/vehicle-types/suv.png",
+      hatchback: "/vehicle-types/hatchback.png",
+      van: "/vehicle-types/van.png",
+      bus: "/vehicle-types/bus.png",
+      motorcycle: "/vehicle-types/motorcycle.png",
+      coupe: "/vehicle-types/car.png",
+      wagon: "/vehicle-types/car.png",
+      default: "/vehicle-types/car.png",
     };
     return iconMap[normalizedName] || iconMap.default;
   };
@@ -159,7 +161,8 @@ export function HeroFiltersSection({
                 </ComboboxContent>
               </Combobox>
 
-              {/* Town Combobox */}
+              {/* Town Combobox - HIDDEN as per request */}
+              {/* 
               <Combobox
                 value={filters.selectedTown}
                 onValueChange={(value) => {
@@ -197,6 +200,7 @@ export function HeroFiltersSection({
                   </ComboboxList>
                 </ComboboxContent>
               </Combobox>
+              */}
 
               {/* Vehicle Type Combobox */}
               <Combobox
@@ -233,7 +237,7 @@ export function HeroFiltersSection({
                             alt={type.name}
                             width={16}
                             height={16}
-                            className="h-4 w-4"
+                            className="h-4 w-4 object-contain"
                           />
                           <span>{type.name}</span>
                         </div>
@@ -263,7 +267,11 @@ export function HeroFiltersSection({
 }
 
 // Results component
-export function HeroResults({ filteredVehicles }: { filteredVehicles: Vehicle[] }) {
+export function HeroResults({
+  filteredVehicles,
+}: {
+  filteredVehicles: Vehicle[];
+}) {
   return (
     <section className="bg-foreground/10 pt-8 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">

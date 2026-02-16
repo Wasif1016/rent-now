@@ -46,5 +46,18 @@ export default async function VendorOnboardingPage({
     orderBy: { name: "asc" },
   });
 
-  return <VendorOnboardingForm vendor={vendor} brands={brands} types={types} />;
+  const cities = await prisma.city.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: "asc" },
+  });
+
+  return (
+    <VendorOnboardingForm
+      vendor={vendor}
+      brands={brands}
+      types={types}
+      cities={cities}
+    />
+  );
 }

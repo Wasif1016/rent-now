@@ -8,7 +8,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteVehicleModal } from "./delete-vehicle-modal";
@@ -68,6 +74,8 @@ interface VehicleTableProps {
     vehicleTypeId?: string;
     status?: string;
     search?: string;
+    startDate?: string;
+    endDate?: string;
   };
 }
 
@@ -146,6 +154,8 @@ export function VehicleTable({
     if (newFilters.vehicleTypeId) params.set("type", newFilters.vehicleTypeId);
     if (newFilters.status) params.set("status", newFilters.status);
     if (newFilters.search) params.set("search", newFilters.search);
+    if (newFilters.startDate) params.set("startDate", newFilters.startDate);
+    if (newFilters.endDate) params.set("endDate", newFilters.endDate);
     if (currentPage > 1) params.set("page", currentPage.toString());
 
     router.push(`/admin/vehicles?${params.toString()}`);
@@ -214,7 +224,10 @@ export function VehicleTable({
 
       {/* Filters */}
       <div className="bg-card rounded-lg border border-border p-4">
-        <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-wrap gap-4 items-end"
+        >
           <div className="flex-1 min-w-[200px]">
             {/* Search */}
             <div className="relative">
@@ -226,6 +239,35 @@ export function VehicleTable({
                 className="pl-10"
               />
             </div>
+          </div>
+
+          {/* Date Filters */}
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={filters.startDate || ""}
+              onChange={(e) =>
+                updateFilters({
+                  ...filters,
+                  startDate: e.target.value || undefined,
+                })
+              }
+              className="w-[140px]"
+              aria-label="Start Date"
+            />
+            <span className="text-muted-foreground">-</span>
+            <Input
+              type="date"
+              value={filters.endDate || ""}
+              onChange={(e) =>
+                updateFilters({
+                  ...filters,
+                  endDate: e.target.value || undefined,
+                })
+              }
+              className="w-[140px]"
+              aria-label="End Date"
+            />
           </div>
 
           {/* Filter dropdowns - same as before */}
