@@ -49,7 +49,7 @@ export function HeroSectionClient({
         </div>
 
         <div className="absolute top-[60%] w-full z-10">
-          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-background max-w-4xl leading-[120%] w-full text-center mx-auto">
+          <h1 className="text-2xl lg:text-5xl xl:text-6xl font-bold text-background max-w-4xl leading-[120%] w-full text-center mx-auto">
             Car Rental Services in 100+ Cities Across Pakistan
           </h1>
         </div>
