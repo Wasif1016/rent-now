@@ -87,6 +87,35 @@ export async function POST(req: Request) {
         vCounter++;
       }
 
+      // Resolve VehicleTypeId safely
+      let vehicleTypeId: string | null = null;
+      if (v.type) {
+        // 1. Try treating as ID (if UUID format)
+        const isUuid =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            v.type
+          );
+        if (isUuid) {
+          const typeExists = await prisma.vehicleType.findUnique({
+            where: { id: v.type },
+          });
+          if (typeExists) vehicleTypeId = typeExists.id;
+        }
+
+        // 2. If not found by ID, try by name/slug
+        if (!vehicleTypeId) {
+          const typeByName = await prisma.vehicleType.findFirst({
+            where: {
+              OR: [
+                { name: { equals: v.type, mode: "insensitive" } },
+                { slug: { equals: v.type.toLowerCase() } },
+              ],
+            },
+          });
+          if (typeByName) vehicleTypeId = typeByName.id;
+        }
+      }
+
       // Handle Vehicle Model
       let vehicleModelId: string | null = null;
       if (v.brand) {
@@ -154,7 +183,7 @@ export async function POST(req: Request) {
               name: v.title,
               slug: finalModelSlug,
               vehicleBrandId: v.brand,
-              vehicleTypeId: v.type, // Associate type if available
+              vehicleTypeId: vehicleTypeId, // Use resolved safe ID
               isActive: true,
             },
           });
@@ -170,7 +199,7 @@ export async function POST(req: Request) {
           townId: vendor.townId || null, // Link vehicle to town
           title: v.title,
           slug: vSlug,
-          vehicleTypeId: v.type, // assuming type ID from form
+          vehicleTypeId: vehicleTypeId, // Use resolved safe ID
           images: v.images, // Stored as Json array
           priceWithinCity: parseInt(v.priceWithinCity) || 0,
           priceOutOfCity: parseInt(v.priceOutOfCity) || 0,

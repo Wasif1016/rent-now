@@ -59,6 +59,35 @@ export async function POST(
     const createdVehicles = [];
 
     for (const vehicleData of vehicles) {
+      // Resolve VehicleTypeId safely
+      let resolvedVehicleTypeId: string | null = null;
+      if (vehicleData.type) {
+        // 1. Try treating as ID (if UUID format)
+        const isUuid =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            vehicleData.type
+          );
+        if (isUuid) {
+          const typeExists = await prisma.vehicleType.findUnique({
+            where: { id: vehicleData.type },
+          });
+          if (typeExists) resolvedVehicleTypeId = typeExists.id;
+        }
+
+        // 2. If not found by ID, try by name/slug
+        if (!resolvedVehicleTypeId) {
+          const typeByName = await prisma.vehicleType.findFirst({
+            where: {
+              OR: [
+                { name: { equals: vehicleData.type, mode: "insensitive" } },
+                { slug: { equals: vehicleData.type.toLowerCase() } },
+              ],
+            },
+          });
+          if (typeByName) resolvedVehicleTypeId = typeByName.id;
+        }
+      }
+
       // Logic to handle Vehicle Model linkage
       let vehicleModelId: string | null = null;
 
@@ -84,7 +113,7 @@ export async function POST(
               name: vehicleData.title, // Use title as model name
               slug: modelSlug,
               vehicleBrandId: vehicleData.brand,
-              vehicleTypeId: vehicleData.type ? vehicleData.type : undefined,
+              vehicleTypeId: resolvedVehicleTypeId,
             },
           });
         }
@@ -102,7 +131,7 @@ export async function POST(
           // User said "Business details step... Only these car fields in its step."
           // So we MUST use Vendor's city.
           vehicleModelId: vehicleModelId,
-          vehicleTypeId: vehicleData.type || null,
+          vehicleTypeId: resolvedVehicleTypeId,
           // Map prices
           priceWithinCity: vehicleData.priceWithinCity
             ? parseInt(vehicleData.priceWithinCity)
