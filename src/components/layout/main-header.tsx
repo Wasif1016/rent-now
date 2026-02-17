@@ -83,7 +83,15 @@ export function MainHeader() {
             height={100}
             className="h-8 w-auto"
           />
-          <span className="text-2xl font-bold tracking-tight text-background">
+          <span
+            className={cn(
+              "text-2xl font-bold tracking-tight",
+              pathname === "/view-all-vehicles" ||
+                pathname.startsWith("/listings/")
+                ? "text-black"
+                : "text-background"
+            )}
+          >
             RentNow
           </span>
         </Link>
@@ -112,54 +120,69 @@ export function MainHeader() {
                 List Your Vehicles
               </Link>
               <div className="hidden md:block">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors">
-                    <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold overflow-hidden">
-                      {vendorLogo ? (
-                        <Image src={vendorLogo} alt="Vendor logo" fill className="object-cover" />
-                      ) : (
-                        user.email?.charAt(0).toUpperCase() || 'U'
-                      )}
-                    </div>
-                    <span className="hidden sm:inline text-sm text-gray-700">
-                      {user.email?.split('@')[0] || 'User'}
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">My Account</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/vendor" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors">
+                      <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold overflow-hidden">
+                        {vendorLogo ? (
+                          <Image
+                            src={vendorLogo}
+                            alt="Vendor logo"
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          user.email?.charAt(0).toUpperCase() || "U"
+                        )}
+                      </div>
+                      <span className="hidden sm:inline text-sm text-gray-700">
+                        {user.email?.split("@")[0] || "User"}
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">My Account</p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/vendor" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="cursor-pointer text-red-600"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </>
           ) : (
             <>
               <Link
-                href="/auth/signup"
+                href="/list-a-car"
                 className="hidden md:flex text-primary-foreground/90 bg-primary px-4 py-1 font-semibold hover:text-primary-foreground transition-colors items-center gap-2 text-sm"
               >
-                <Image src="/icons/car.svg" alt="Car" width={20} height={20} className="w-auto h-7"
+                <Image
+                  src="/icons/car.svg"
+                  alt="Car"
+                  width={20}
+                  height={20}
+                  className="w-auto h-7"
                   style={{
                     // x flip
-                    transform: 'scaleX(-1)',
+                    transform: "scaleX(-1)",
                   }}
                 />
                 List a vehicle
@@ -172,7 +195,11 @@ export function MainHeader() {
             className="md:hidden p-2 rounded-md text-white hover:bg-slate-800 transition-colors"
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>
@@ -259,7 +286,7 @@ export function MainHeader() {
             © {new Date().getFullYear()} RentNow. All rights reserved.
           </div>
         </div>
-      </div> */}  
+      </div> */}
     </header>
   );
 }

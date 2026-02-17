@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
         hostname: "idealrentacar.pk",
         pathname: "/**",
       },
+      {
+        protocol: "http",
+        hostname: "example.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "example.com",
+        pathname: "/**",
+      },
     ],
   },
 };

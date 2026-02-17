@@ -255,7 +255,7 @@ export function SearchPageInner({
   );
 
   return (
-    <div className="min-h-screen bg-foreground/5 pt-16">
+    <div className="min-h-screen bg-foreground/5 pt-32">
       <div className="container mx-auto px-4">
         {/* Header Section */}
         <div className="mb-4">

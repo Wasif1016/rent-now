@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { RegistrationStatus } from "@prisma/client";
@@ -43,8 +44,14 @@ export async function POST(
         whatsappPhone: vendorData.whatsappPhone,
         email: vendorData.email,
         address: vendorData.address,
+        personName: vendorData.ownerName,
+        cityId: vendorData.cityId,
+        town: vendorData.townId
+          ? (
+              await prisma.town.findUnique({ where: { id: vendorData.townId } })
+            )?.name
+          : null,
         ...statusUpdate,
-        // cityId: vendorData.cityId // Assuming we might update this too if passed, but typically business city is fixed or requires more logic
       },
     });
 
@@ -89,7 +96,8 @@ export async function POST(
           vendorId: vendorId,
           title: vehicleData.title, // User provided title
           slug: slugify(`${vehicleData.title}-${Date.now()}`), // Unique slug
-          cityId: updatedVendor.cityId!, // Inherit city from vendor (or should we ask for it? Form didn't ask for city)
+          cityId: updatedVendor.cityId!, // Inherit city from vendor
+          townId: vendorData.townId || null,
           // The form didn't ask for City per vehicle, but Vehicle requires City.
           // User said "Business details step... Only these car fields in its step."
           // So we MUST use Vendor's city.
@@ -116,6 +124,9 @@ export async function POST(
       });
       createdVehicles.push(newVehicle);
     }
+
+    revalidatePath("/");
+    revalidatePath("/view-all-vehicles");
 
     return NextResponse.json({
       success: true,

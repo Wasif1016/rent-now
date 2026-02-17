@@ -41,6 +41,14 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+} from "@/components/ui/combobox";
+import { useTownsLoader } from "@/hooks/use-towns-loader";
 
 // Update Vendor interface to be more flexible if needed, or just keep it and use null for prop
 interface Vendor {
@@ -49,9 +57,9 @@ interface Vendor {
   phone: string | null;
   whatsappPhone: string | null;
   email: string | null;
-  address: string | null;
   cityId: string | null;
-  town?: string | null;
+  townId?: string | null;
+  personName?: string | null;
 }
 
 interface VehicleBrand {
@@ -132,9 +140,67 @@ export function VendorOnboardingForm({
     phone: vendor?.phone || "",
     whatsappPhone: vendor?.whatsappPhone || "",
     email: vendor?.email || "",
-    address: vendor?.address || "",
+    ownerName: vendor?.personName || "",
     cityId: vendor?.cityId || "",
+    townId: vendor?.townId || "",
   });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateStep1 = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!vendorData.name.trim()) newErrors.name = "Business Name is required";
+    if (!vendorData.ownerName.trim())
+      newErrors.ownerName = "Owner Name is required";
+    if (!vendorData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vendorData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+    if (!vendorData.whatsappPhone.trim())
+      newErrors.whatsappPhone = "WhatsApp Number is required";
+    if (!vendorData.cityId) newErrors.cityId = "City is required";
+    if (towns.length > 0 && !vendorData.townId)
+      newErrors.townId = "Town / Area is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep1()) {
+      setStep(2);
+    } else {
+      // Scroll to top or first error could be good, but simple validation first
+    }
+  };
+
+  const { towns } = useTownsLoader({
+    cityId: vendorData.cityId,
+    enabled: !!vendorData.cityId,
+  });
+
+  const [citySearch, setCitySearch] = useState("");
+  const [townSearch, setTownSearch] = useState("");
+
+  const filteredCities = cities.filter((city) =>
+    city.name.toLowerCase().includes(citySearch.toLowerCase())
+  );
+
+  const filteredTowns = towns.filter((town) =>
+    town.name.toLowerCase().includes(townSearch.toLowerCase())
+  );
+
+  const getCityDisplayValue = () => {
+    return (
+      cities.find((c) => c.id === vendorData.cityId)?.name || "Select City"
+    );
+  };
+
+  const getTownDisplayValue = () => {
+    return towns.find((t) => t.id === vendorData.townId)?.name || "Select Town";
+  };
 
   const [vehicles, setVehicles] = useState<VehicleFormData[]>([]);
   const [currentVehicle, setCurrentVehicle] = useState<VehicleFormData>({
@@ -156,10 +222,35 @@ export function VendorOnboardingForm({
   ) => {
     const { name, value } = e.target;
     setVendorData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSelectVendorCity = (value: string) => {
-    setVendorData((prev) => ({ ...prev, cityId: value }));
+    setVendorData((prev) => ({ ...prev, cityId: value, townId: "" })); // Reset town when city changes
+    if (errors.cityId) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.cityId;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSelectVendorTown = (value: string) => {
+    setVendorData((prev) => ({ ...prev, townId: value }));
+    if (errors.townId) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.townId;
+        return newErrors;
+      });
+    }
   };
 
   const handleVehicleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -436,6 +527,33 @@ export function VendorOnboardingForm({
                       </div>
                     )}
                   </div>
+                  {errors.name && (
+                    <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="ownerName" className="text-slate-700">
+                    Business Owner Name
+                  </Label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="w-5 h-5 text-slate-400 group-hover:text-[#C0F11C] transition-colors" />
+                    </div>
+                    <Input
+                      id="ownerName"
+                      name="ownerName"
+                      value={vendorData.ownerName}
+                      onChange={handleVendorChange}
+                      className="pl-10 h-12 bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]"
+                      placeholder="Enter owner's name"
+                    />
+                  </div>
+                  {errors.ownerName && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.ownerName}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -453,9 +571,14 @@ export function VendorOnboardingForm({
                         value={vendorData.email || ""}
                         onChange={handleVendorChange}
                         className="pl-10 h-12 bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]"
-                        placeholder="Full Name"
+                        placeholder="Email"
                       />
                     </div>
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -481,49 +604,98 @@ export function VendorOnboardingForm({
                       </span>{" "}
                       Used for urgent booking notifications.
                     </p>
+                    {errors.whatsappPhone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.whatsappPhone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="cityId" className="text-slate-700">
-                    City
-                  </Label>
-                  <Select
-                    value={vendorData.cityId || ""}
-                    onValueChange={handleSelectVendorCity}
-                  >
-                    <SelectTrigger className="h-12 bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]">
-                      <SelectValue placeholder="Select a city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cities &&
-                        cities.map((city) => (
-                          <SelectItem key={city.id} value={city.id}>
-                            {city.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cityId" className="text-slate-700">
+                      City
+                    </Label>
+                    <Combobox
+                      value={vendorData.cityId}
+                      onValueChange={(value) => {
+                        handleSelectVendorCity(value || "");
+                        setCitySearch("");
+                      }}
+                    >
+                      <ComboboxInput
+                        placeholder={getCityDisplayValue()}
+                        value={citySearch}
+                        onChange={(e) => setCitySearch(e.target.value)}
+                        className="w-full h-12 bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]"
+                        showClear={citySearch.length > 0}
+                      />
+                      <ComboboxContent className="w-[--anchor-width] p-0">
+                        <ComboboxList>
+                          {filteredCities.map((city) => (
+                            <ComboboxItem key={city.id} value={city.id}>
+                              {city.name}
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    {errors.cityId && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.cityId}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="address" className="text-slate-700">
-                    Business Address
-                  </Label>
-                  <div className="relative group">
-                    <div className="absolute top-3 left-3 flex items-start pointer-events-none">
-                      <MapPin className="w-5 h-5 text-slate-400 group-hover:text-[#C0F11C] transition-colors" />
-                    </div>
-                    <Textarea
-                      id="address"
-                      name="address"
-                      value={vendorData.address || ""}
-                      onChange={handleVendorChange}
-                      className="pl-10 pt-3 h-28 resize-none bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]"
-                      placeholder="Street Address, City..."
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="townId" className="text-slate-700">
+                      Town / Area
+                    </Label>
+                    <Combobox
+                      value={vendorData.townId}
+                      onValueChange={(value) => {
+                        handleSelectVendorTown(value || "");
+                        setTownSearch("");
+                      }}
+                      disabled={!vendorData.cityId}
+                    >
+                      <ComboboxInput
+                        placeholder={getTownDisplayValue()}
+                        value={townSearch}
+                        onChange={(e) => setTownSearch(e.target.value)}
+                        className="w-full h-12 bg-slate-50 border-slate-300 focus:border-[#C0F11C] focus:ring-[#C0F11C]"
+                        showClear={townSearch.length > 0}
+                        disabled={!vendorData.cityId}
+                      />
+                      <ComboboxContent className="w-[--anchor-width] p-0">
+                        <ComboboxList>
+                          {filteredTowns.map((town) => (
+                            <ComboboxItem key={town.id} value={town.id}>
+                              {town.name}
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    {errors.townId && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.townId}
+                      </p>
+                    )}
                   </div>
                 </div>
+
+                {errorMessage && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm mb-4 border border-red-100">
+                    {errorMessage}
+                  </div>
+                )}
+                {successMessage && (
+                  <div className="bg-green-50 text-green-600 p-3 rounded-md text-sm mb-4 border border-green-100">
+                    {successMessage}
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="pt-6 flex flex-col-reverse sm:flex-row items-center justify-between border-t border-slate-100 mt-8 gap-4">
@@ -534,7 +706,7 @@ export function VendorOnboardingForm({
                     Cancel
                   </Button>
                   <Button
-                    onClick={() => setStep(2)}
+                    onClick={handleNextStep}
                     className="bg-[#1a2332] hover:bg-[#1a2332]/90 text-white shadow-lg shadow-[#1a2332]/20 h-12 px-8 w-full sm:w-auto"
                   >
                     Next: Add Vehicles <ArrowRight className="w-4 h-4 ml-2" />
@@ -546,7 +718,9 @@ export function VendorOnboardingForm({
             <div className="text-center text-xs text-slate-400 mt-8 mb-8">
               Need help?{" "}
               <a
-                href="#"
+                href="https://wa.me/923144174625?text=I%20need%20help%20regarding..."
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[#1a2332] hover:underline font-medium"
               >
                 Contact Support
@@ -907,6 +1081,18 @@ export function VendorOnboardingForm({
 
                   {/* Form Buttons */}
                   {/* Back, Add, Complete */}
+                  {/* Messages */}
+                  {errorMessage && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm mb-4 border border-red-100">
+                      {errorMessage}
+                    </div>
+                  )}
+                  {successMessage && (
+                    <div className="bg-green-50 text-green-600 p-3 rounded-md text-sm mb-4 border border-green-100">
+                      {successMessage}
+                    </div>
+                  )}
+
                   <div className="pt-6 flex flex-col sm:flex-row gap-4 items-center">
                     <Button
                       variant="ghost"

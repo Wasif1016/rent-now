@@ -4,6 +4,7 @@ import { Oranienbaum, Schibsted_Grotesk } from "next/font/google";
 import { MainHeader } from "@/components/layout/main-header";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FooterWrapper } from "@/components/layout/footer-wrapper";
+import { FloatingWhatsApp } from "@/components/whatsapp-float";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 
@@ -98,6 +99,7 @@ export default function RootLayout({
           <MainHeader />
           {children}
           <FooterWrapper />
+          <FloatingWhatsApp />
         </AuthProvider>
         <Analytics />
         <Script

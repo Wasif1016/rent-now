@@ -25,6 +25,7 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-slot": "^1.2.4",
     "@supabase/supabase-js": "^2.90.1",
     "@types/pg": "^8.16.0",
     "@vercel/analytics": "^1.6.1",
