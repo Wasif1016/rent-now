@@ -26,6 +26,52 @@ export async function POST(req: Request) {
       });
     }
 
+    // Resolve Town Logic - Do this regardless of vendor existence
+    let resolvedTownName: string | null = null;
+    let resolvedTownId: string | null = null;
+    if (vendor.townId) {
+      const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          vendor.townId
+        );
+      if (isUuid) {
+        const t = await prisma.town.findUnique({
+          where: { id: vendor.townId },
+        });
+        if (t) {
+          resolvedTownName = t.name;
+          resolvedTownId = t.id;
+        }
+      } else {
+        // It's a custom name
+        const customName = vendor.townId;
+        const slug = customName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+
+        // Find or Create
+        let t = await prisma.town.findFirst({
+          where: {
+            cityId: vendor.cityId,
+            slug: slug,
+          },
+        });
+
+        if (!t) {
+          t = await prisma.town.create({
+            data: {
+              name: customName,
+              slug: slug,
+              cityId: vendor.cityId,
+            },
+          });
+        }
+        resolvedTownName = t.name;
+        resolvedTownId = t.id;
+      }
+    }
+
     let targetVendor;
 
     let slug;
@@ -57,11 +103,7 @@ export async function POST(req: Request) {
           address: vendor.address,
           personName: vendor.ownerName, // Map ownerName to personName
           cityId: vendor.cityId,
-          town: vendor.townId
-            ? (
-                await prisma.town.findUnique({ where: { id: vendor.townId } })
-              )?.name
-            : null, // Store town name
+          town: resolvedTownName, // Store resolved town name
           slug,
           isActive: true,
           verificationStatus: "PENDING",
@@ -196,7 +238,7 @@ export async function POST(req: Request) {
           vendorId: targetVendor.id,
           vehicleModelId: vehicleModelId, // Linked!
           cityId: vendor.cityId,
-          townId: vendor.townId || null, // Link vehicle to town
+          townId: resolvedTownId, // Link vehicle to resolved town ID
           title: v.title,
           slug: vSlug,
           vehicleTypeId: vehicleTypeId, // Use resolved safe ID

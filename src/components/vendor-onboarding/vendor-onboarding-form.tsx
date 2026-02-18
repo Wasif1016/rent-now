@@ -199,7 +199,13 @@ export function VendorOnboardingForm({
   };
 
   const getTownDisplayValue = () => {
-    return towns.find((t) => t.id === vendorData.townId)?.name || "Select Town";
+    // If townId is a valid UUID (mock check or just check list), find name.
+    // If not in list but has value, assume it's a custom town name.
+    const foundTown = towns.find((t) => t.id === vendorData.townId);
+    if (foundTown) return foundTown.name;
+    if (vendorData.townId && vendorData.townId.length > 0)
+      return vendorData.townId; // Custom name
+    return "Select Town";
   };
 
   const [vehicles, setVehicles] = useState<VehicleFormData[]>([]);
@@ -675,6 +681,16 @@ export function VendorOnboardingForm({
                               {town.name}
                             </ComboboxItem>
                           ))}
+                          {filteredTowns.length === 0 &&
+                            townSearch.trim().length > 0 && (
+                              <ComboboxItem
+                                value={townSearch}
+                                className="italic text-slate-500"
+                              >
+                                <span className="mr-2">+</span> Add "
+                                {townSearch}"
+                              </ComboboxItem>
+                            )}
                         </ComboboxList>
                       </ComboboxContent>
                     </Combobox>
