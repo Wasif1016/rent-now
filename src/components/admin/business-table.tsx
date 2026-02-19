@@ -23,6 +23,7 @@ import {
   CheckCircle,
   Trash2,
   Link as LinkIcon,
+  RefreshCw,
 } from "lucide-react";
 import { CreateAccountModal } from "./create-account-modal";
 import { SendEmailModal } from "./send-email-modal";
@@ -100,6 +101,8 @@ export function BusinessTable({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDelete, setIsBulkDelete] = useState(false);
   const [whatsappPreFillMessage, setWhatsappPreFillMessage] = useState("");
+  const [createdPassword, setCreatedPassword] = useState<string | undefined>();
+  const [autoOpenWhatsApp, setAutoOpenWhatsApp] = useState(false);
 
   const selectedBusinesses = useMemo(
     () => businesses.filter((b) => selectedIds.has(b.id)),
@@ -170,8 +173,66 @@ export function BusinessTable({
       setSelectedIds(new Set());
       setIsBulkDelete(false);
     }
-    setSelectedBusiness(null);
+    // Only clear selected business if we weren't chaining
+    if (!autoOpenWhatsApp) {
+      setSelectedBusiness(null);
+    }
+    if (modalType === "whatsapp") {
+      setCreatedPassword(undefined);
+    }
     router.refresh();
+  };
+
+  const handleCreateAndSendWhatsApp = (business: Business) => {
+    setSelectedBusiness(business);
+    setAutoOpenWhatsApp(true);
+    setCreateAccountModalOpen(true);
+  };
+
+  const handleAccountCreated = (newPassword: string) => {
+    setCreatedPassword(newPassword);
+    if (autoOpenWhatsApp) {
+      setCreateAccountModalOpen(false);
+      setTimeout(() => {
+        setSendWhatsAppModalOpen(true);
+        setAutoOpenWhatsApp(false); // Reset
+      }, 500);
+    }
+  };
+
+  const handleResetPassword = async (business: Business) => {
+    if (
+      !confirm(
+        "Are you sure you want to reset the password for " +
+          business.name +
+          "? A new password will be generated."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/admin/businesses/${business.id}/reset-password`,
+        {
+          method: "POST",
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Password reset successfully. Opening WhatsApp...");
+        setCreatedPassword(data.password);
+        setSelectedBusiness(business);
+        setWhatsappPreFillMessage("");
+        setSendWhatsAppModalOpen(true);
+      } else {
+        alert(data.error || "Failed to reset password");
+      }
+    } catch (error) {
+      alert("Error resetting password");
+    }
   };
 
   return (
@@ -286,8 +347,36 @@ export function BusinessTable({
                       {business._count.vehicles}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <div className="flex justify-end">
+                  <td className="p-4 text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      {business.registrationStatus === "NOT_REGISTERED" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="Create & Send WhatsApp"
+                          onClick={() => handleCreateAndSendWhatsApp(business)}
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        (business.phone || business.whatsappPhone) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="Send WhatsApp"
+                            onClick={() => {
+                              setSelectedBusiness(business);
+                              setWhatsappPreFillMessage("");
+                              setSendWhatsAppModalOpen(true);
+                            }}
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        )
+                      )}
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -339,6 +428,14 @@ export function BusinessTable({
                             <MessageCircle className="h-4 w-4 mr-2" />
                             Send WhatsApp
                           </DropdownMenuItem>
+                          {business.registrationStatus !== "NOT_REGISTERED" && (
+                            <DropdownMenuItem
+                              onClick={() => handleResetPassword(business)}
+                            >
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Reset Password
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => handleSendVehicleLink(business)}
                           >
@@ -426,6 +523,7 @@ export function BusinessTable({
             ? selectedBusinesses.map((b) => b.name)
             : undefined
         }
+        onAccountCreated={handleAccountCreated}
       />
 
       {selectedBusiness && (
@@ -461,6 +559,7 @@ export function BusinessTable({
             businessEmail={selectedBusiness.email}
             registrationStatus={selectedBusiness.registrationStatus}
             initialMessage={whatsappPreFillMessage}
+            password={createdPassword}
           />
         </>
       )}

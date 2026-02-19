@@ -227,6 +227,10 @@ Is that available ?`;
                             {vehicle.title}
                           </p>
                         )}
+                      <div className="flex items-center gap-2 text-muted-foreground mt-2">
+                        <MapPin className="h-5 w-5 shrink-0" />
+                        <span className="text-sm">{location}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -323,11 +327,6 @@ Is that available ?`;
                         </div>
                       </div>
                     )}
-
-                  <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-5 w-5 shrink-0" />
-                    <span className="text-sm">{location}</span>
-                  </div>
                 </Card>
               </div>
 

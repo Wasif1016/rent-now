@@ -8,6 +8,7 @@ export interface VehicleFilterState {
   searchQuery: string;
   selectedCity: string; // slug or "all"
   selectedTown: string; // slug or "all"
+  selectedBrand: string; // slug or "all"
   selectedVehicleType: string; // slug or "all"
 }
 

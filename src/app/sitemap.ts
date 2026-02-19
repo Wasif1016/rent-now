@@ -43,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemap.push({
       url: `${siteUrl}/${slug}`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 0.7,
     });
   }
@@ -65,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemap.push({
       url: `${siteUrl}/vehicles/${slug}`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 0.7,
     });
   }
@@ -75,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemap.push({
       url: `${siteUrl}/vehicles/${slug}`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 0.7,
     });
   }
@@ -85,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemap.push({
       url: `${siteUrl}/routes/${r.slug}`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 0.8,
     });
   }
@@ -98,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemap.push({
       url: `${siteUrl}/${rentACarSlug}/${r.slug}`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 0.8,
     });
   }

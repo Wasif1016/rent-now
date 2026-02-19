@@ -1,5 +1,6 @@
 import { Prisma, FuelType, Transmission } from "@prisma/client";
 import { prisma, cache } from "./prisma";
+import { unstable_noStore as noStore } from "next/cache";
 
 /** All active cities (for hero dropdown, cities page, API). */
 export const getCities = cache(async () => {
@@ -465,7 +466,7 @@ export const searchVehicles = cache(
     seatingCapacity?: number;
     fuelType?: string;
     transmission?: string;
-    sortBy?: "date" | "popularity";
+    sortBy?: "date" | "popularity" | "random";
     page?: number;
     limit?: number;
   }) => {
@@ -483,7 +484,7 @@ export const searchVehicles = cache(
       seatingCapacity,
       fuelType,
       transmission,
-      sortBy = "popularity",
+      sortBy = "random",
       page = 1,
       limit = 12,
     } = filters;
@@ -571,8 +572,127 @@ export const searchVehicles = cache(
     let orderBy: Prisma.VehicleOrderByWithRelationInput = {};
     if (sortBy === "date") {
       orderBy = { createdAt: "desc" };
-    } else {
+    } else if (sortBy === "popularity") {
       orderBy = { views: "desc" };
+    } else if (sortBy === "random") {
+      // Random sorting logic
+      noStore(); // Opt out of static caching for random results
+
+      // 1. Get ALL matching IDs first
+      const allMatchingIds = await prisma.vehicle.findMany({
+        where,
+        select: { id: true },
+      });
+
+      // 2. Shuffle IDs
+      const shuffledIds = allMatchingIds
+        .map((v) => v.id)
+        .sort(() => Math.random() - 0.5);
+
+      // 3. Paginate IDs
+      const pagedIds = shuffledIds.slice(skip, skip + limit);
+
+      // 4. Fetch details for these IDs
+      // We must fetch them and then re-order in memory because "IN" clause doesn't preserve order
+      const [vehiclesUnordered, total] = await Promise.all([
+        prisma.vehicle.findMany({
+          where: {
+            id: { in: pagedIds },
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            year: true,
+            mileage: true,
+            fuelType: true,
+            transmission: true,
+            seats: true,
+            color: true,
+            features: true,
+            images: true,
+            views: true,
+            featured: true,
+            city: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            town: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                verificationStatus: true,
+                phone: true,
+                whatsappPhone: true,
+              },
+            },
+            priceWithinCity: true,
+            priceOutOfCity: true,
+            priceDaily: true,
+            priceHourly: true,
+            priceMonthly: true,
+            priceWithDriver: true,
+            priceSelfDrive: true,
+            seatingCapacity: true,
+            driverOption: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            vehicleType: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            vehicleModel: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                vehicleBrand: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.vehicle.count({ where }),
+      ]);
+
+      // 5. Re-order vehicles to match pagedIds
+      const vehiclesMap = new Map(vehiclesUnordered.map((v) => [v.id, v]));
+      const vehicles = pagedIds
+        .map((id) => vehiclesMap.get(id))
+        .filter((v) => v != null) as typeof vehiclesUnordered;
+
+      return {
+        vehicles,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
     }
 
     const [vehicles, total] = await Promise.all([
@@ -1410,4 +1530,20 @@ export const getAllListingSlugs = cache(async () => {
     orderBy: { updatedAt: "desc" },
   });
   return rows;
+});
+
+export const getAllActiveVehicleTypes = cache(async () => {
+  return await prisma.vehicleType.findMany({
+    where: {
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 });

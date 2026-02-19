@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import type { Vehicle, VehicleFilterState } from "@/types";
+import { ALLOWED_BRANDS } from "@/constants/allowed-brands";
 
 interface UseVehicleFilteringOptions {
   vehicles: Vehicle[];
@@ -15,10 +16,15 @@ interface UseVehicleFilteringOptions {
 interface UseVehicleFilteringResult {
   filteredVehicles: Vehicle[];
   filters: VehicleFilterState;
-  setFilters: (filters: Partial<VehicleFilterState> | ((prev: VehicleFilterState) => VehicleFilterState)) => void;
+  setFilters: (
+    filters:
+      | Partial<VehicleFilterState>
+      | ((prev: VehicleFilterState) => VehicleFilterState)
+  ) => void;
   setSearchQuery: (query: string) => void;
   setSelectedCity: (city: string) => void;
   setSelectedTown: (town: string) => void;
+  setSelectedBrand: (brand: string) => void;
   setSelectedVehicleType: (type: string) => void;
   resetFilters: () => void;
   hasActiveFilters: boolean;
@@ -28,6 +34,7 @@ const DEFAULT_FILTERS: VehicleFilterState = {
   searchQuery: "",
   selectedCity: "all",
   selectedTown: "all",
+  selectedBrand: "all",
   selectedVehicleType: "all",
 };
 
@@ -48,7 +55,14 @@ export function useVehicleFiltering(
 
   // Filter vehicles based on current filter state
   const filteredVehicles = useMemo(() => {
-    let filtered = [...vehicles];
+    // First, filter by ALLOWED_BRANDS
+    let filtered = vehicles.filter((v) => {
+      const brandName = v.vehicleModel?.vehicleBrand.name;
+      return (
+        brandName &&
+        ALLOWED_BRANDS.some((b) => b.toLowerCase() === brandName.toLowerCase())
+      );
+    });
 
     // Filter by search query
     if (filters.searchQuery.trim()) {
@@ -80,6 +94,15 @@ export function useVehicleFiltering(
       );
     }
 
+    // Filter by brand
+    if (filters.selectedBrand && filters.selectedBrand !== "all") {
+      filtered = filtered.filter((v) => {
+        const brandName = v.vehicleModel?.vehicleBrand.name; // Use optional chaining to be safe
+        const brandSlug = brandName?.toLowerCase().replace(/\s+/g, "-");
+        return brandSlug === filters.selectedBrand;
+      });
+    }
+
     return filtered;
   }, [vehicles, filters]);
 
@@ -96,11 +119,19 @@ export function useVehicleFiltering(
   };
 
   const setSelectedCity = (city: string) => {
-    setFilters((prev) => ({ ...prev, selectedCity: city, selectedTown: "all" }));
+    setFilters((prev) => ({
+      ...prev,
+      selectedCity: city,
+      selectedTown: "all",
+    }));
   };
 
   const setSelectedTown = (town: string) => {
     setFilters((prev) => ({ ...prev, selectedTown: town }));
+  };
+
+  const setSelectedBrand = (brand: string) => {
+    setFilters((prev) => ({ ...prev, selectedBrand: brand }));
   };
 
   const setSelectedVehicleType = (type: string) => {
@@ -113,7 +144,9 @@ export function useVehicleFiltering(
 
   // Wrapper function to handle Partial<VehicleFilterState>
   const handleSetFilters = (
-    newFilters: Partial<VehicleFilterState> | ((prev: VehicleFilterState) => VehicleFilterState)
+    newFilters:
+      | Partial<VehicleFilterState>
+      | ((prev: VehicleFilterState) => VehicleFilterState)
   ) => {
     if (typeof newFilters === "function") {
       setFilters(newFilters);
@@ -126,6 +159,7 @@ export function useVehicleFiltering(
     (filters.selectedCity && filters.selectedCity !== "all") ||
     (filters.selectedTown && filters.selectedTown !== "all") ||
     (filters.selectedVehicleType && filters.selectedVehicleType !== "all") ||
+    (filters.selectedBrand && filters.selectedBrand !== "all") ||
     filters.searchQuery.trim()
   );
 
@@ -136,6 +170,7 @@ export function useVehicleFiltering(
     setSearchQuery,
     setSelectedCity,
     setSelectedTown,
+    setSelectedBrand,
     setSelectedVehicleType,
     resetFilters,
     hasActiveFilters,

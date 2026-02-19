@@ -37,6 +37,7 @@ interface SendWhatsAppModalProps {
   businessEmail?: string | null;
   registrationStatus?: string | null;
   initialMessage?: string;
+  password?: string;
 }
 
 export function SendWhatsAppModal({
@@ -48,6 +49,7 @@ export function SendWhatsAppModal({
   businessEmail,
   registrationStatus,
   initialMessage = "",
+  password,
 }: SendWhatsAppModalProps) {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -114,6 +116,11 @@ export function SendWhatsAppModal({
       body.whatsappTemplateId = selectedTemplateId;
     } else if (customMessage.trim()) {
       body.customMessage = customMessage.trim();
+    }
+
+    // Pass password if available (for new accounts)
+    if (password) {
+      (body as any).password = password;
     }
     const response = await fetch(
       `/api/admin/businesses/${businessId}/whatsapp/preview`,

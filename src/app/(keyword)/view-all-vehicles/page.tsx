@@ -3,6 +3,7 @@ import {
   getAllCitiesWithCounts,
   getTownsByCity,
   getVehicleTypesWithVehicles,
+  getAllActiveVehicleTypes,
   searchVehicles,
 } from "@/lib/data";
 import { SearchPageInner } from "./search-page-inner";
@@ -40,7 +41,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   // Fetch all data needed for client-side filtering
   const [citiesData, vehicleTypesData, vehiclesData] = await Promise.all([
     getAllCitiesWithCounts(),
-    getVehicleTypesWithVehicles(),
+    getAllActiveVehicleTypes(),
     searchVehicles({
       citySlug,
       townSlug,

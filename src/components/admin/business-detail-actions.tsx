@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,10 +33,12 @@ interface Business {
 
 interface BusinessDetailActionsProps {
   business: Business;
+  password?: string;
 }
 
 export function BusinessDetailActions({
   business,
+  password,
 }: BusinessDetailActionsProps) {
   const router = useRouter();
   const { session } = useAuth();
@@ -44,6 +46,33 @@ export function BusinessDetailActions({
   const [createAccountModalOpen, setCreateAccountModalOpen] = useState(false);
   const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false);
   const [sendWhatsAppModalOpen, setSendWhatsAppModalOpen] = useState(false);
+
+  const [createdPassword, setCreatedPassword] = useState<string | undefined>(
+    password
+  );
+  const [autoOpenWhatsApp, setAutoOpenWhatsApp] = useState(false);
+
+  // Update local state if prop changes
+  useEffect(() => {
+    if (password) setCreatedPassword(password);
+  }, [password]);
+
+  const handleCreateAndSendWhatsApp = () => {
+    setAutoOpenWhatsApp(true);
+    setCreateAccountModalOpen(true);
+  };
+
+  const onAccountCreated = (newPassword: string) => {
+    setCreatedPassword(newPassword);
+    if (autoOpenWhatsApp) {
+      // Close create modal and open whatsapp modal
+      setCreateAccountModalOpen(false);
+      setTimeout(() => {
+        setSendWhatsAppModalOpen(true);
+        setAutoOpenWhatsApp(false); // Reset
+      }, 500);
+    }
+  };
 
   const handleSuspend = async () => {
     if (!session?.access_token) {
@@ -138,13 +167,22 @@ export function BusinessDetailActions({
         </CardHeader>
         <CardContent className="space-y-2">
           {business.registrationStatus === "NOT_REGISTERED" && (
-            <Button
-              className="w-full justify-start"
-              onClick={() => setCreateAccountModalOpen(true)}
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Create Account
-            </Button>
+            <div className="space-y-2">
+              <Button
+                className="w-full justify-start"
+                onClick={() => setCreateAccountModalOpen(true)}
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Create Account Only
+              </Button>
+              <Button
+                className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleCreateAndSendWhatsApp}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Create & Send WhatsApp
+              </Button>
+            </div>
           )}
 
           {business.email && (
@@ -169,6 +207,7 @@ export function BusinessDetailActions({
             </Button>
           )}
 
+          {/* ... reset pass and login ... */}
           {business.supabaseUserId && (
             <>
               <Button
@@ -241,6 +280,8 @@ export function BusinessDetailActions({
         businessId={business.id}
         businessName={business.name}
         businessEmail={business.email || ""}
+        businessPhone={business.phone || business.whatsappPhone || ""}
+        onAccountCreated={onAccountCreated}
       />
       <SendEmailModal
         open={sendEmailModalOpen}
@@ -258,6 +299,7 @@ export function BusinessDetailActions({
         businessPhone={business.whatsappPhone || business.phone}
         businessEmail={business.email}
         registrationStatus={business.registrationStatus}
+        password={createdPassword}
       />
     </>
   );

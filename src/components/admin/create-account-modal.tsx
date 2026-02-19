@@ -22,6 +22,7 @@ interface CreateAccountModalProps {
   businessPhone?: string;
   businessIds?: string[];
   businessNames?: string[];
+  onAccountCreated?: (password: string) => void;
 }
 
 export function CreateAccountModal({
@@ -33,6 +34,7 @@ export function CreateAccountModal({
   businessPhone,
   businessIds,
   businessNames,
+  onAccountCreated,
 }: CreateAccountModalProps) {
   const { session } = useAuth();
   const router = useRouter();
@@ -108,6 +110,9 @@ export function CreateAccountModal({
           throw new Error(data.error || "Failed to create account");
         }
 
+        if (onAccountCreated) {
+          onAccountCreated(data.password);
+        }
         setPassword(data.password);
         router.refresh();
       }

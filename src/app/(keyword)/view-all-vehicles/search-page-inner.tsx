@@ -14,8 +14,9 @@ import {
   ComboboxItem,
   ComboboxEmpty,
 } from "@/components/ui/combobox";
-import { Search, X, MapPin, Car } from "lucide-react";
+import { Search, X, MapPin, Car, Tag } from "lucide-react";
 import Image from "next/image";
+import { ALLOWED_BRANDS } from "@/constants/allowed-brands";
 
 interface Vehicle {
   id: string;
@@ -57,9 +58,24 @@ export function SearchPageInner({
 }: SearchPageInnerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
-  const [filteredVehicles, setFilteredVehicles] =
-    useState<Vehicle[]>(initialVehicles);
+
+  // Filter only allowed brands
+  const filterAllowedVehicles = (vehs: Vehicle[]) => {
+    return vehs.filter((v) => {
+      const brandName = v.vehicleModel?.vehicleBrand.name;
+      return (
+        brandName &&
+        ALLOWED_BRANDS.some((b) => b.toLowerCase() === brandName.toLowerCase())
+      );
+    });
+  };
+
+  const allowedInitialVehicles = filterAllowedVehicles(initialVehicles);
+
+  const [vehicles, setVehicles] = useState<Vehicle[]>(allowedInitialVehicles);
+  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>(
+    allowedInitialVehicles
+  );
   const [towns, setTowns] =
     useState<Array<{ id: string; name: string; slug: string; cityId: string }>>(
       initialTowns
@@ -73,14 +89,19 @@ export function SearchPageInner({
   const [selectedTown, setSelectedTown] = useState<string>(
     searchParams.get("town") || "all"
   );
+
   const [selectedVehicleType, setSelectedVehicleType] = useState<string>(
     searchParams.get("vehicleType") || "all"
+  );
+  const [selectedBrand, setSelectedBrand] = useState<string>(
+    searchParams.get("brand") || "all"
   );
 
   // Combobox search states
   const [citySearch, setCitySearch] = useState("");
   const [townSearch, setTownSearch] = useState("");
   const [vehicleTypeSearch, setVehicleTypeSearch] = useState("");
+  const [brandSearch, setBrandSearch] = useState("");
 
   // Filtered options for comboboxes
   const filteredCities = cities.filter((city) =>
@@ -91,8 +112,37 @@ export function SearchPageInner({
     town.name.toLowerCase().includes(townSearch.toLowerCase())
   );
 
-  const filteredVehicleTypes = vehicleTypes.filter((type) =>
-    type.name.toLowerCase().includes(vehicleTypeSearch.toLowerCase())
+  const ALLOWED_VEHICLE_TYPES = [
+    "sedan",
+    "suv",
+    "hatchback",
+    "van",
+    "bus",
+    "motorcycle",
+  ];
+
+  const filteredVehicleTypes = vehicleTypes
+    .filter((type) => ALLOWED_VEHICLE_TYPES.includes(type.slug.toLowerCase()))
+    .filter((type) =>
+      type.name.toLowerCase().includes(vehicleTypeSearch.toLowerCase())
+    );
+
+  // Derive available brands from vehicles
+  const availableBrands = Array.from(
+    new Set(
+      vehicles
+        .map((v) => v.vehicleModel?.vehicleBrand.name)
+        .filter((name): name is string => !!name)
+    )
+  )
+    .sort()
+    .map((name) => ({
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-"),
+    }));
+
+  const filteredBrands = availableBrands.filter((brand) =>
+    brand.name.toLowerCase().includes(brandSearch.toLowerCase())
   );
 
   // Get display values
@@ -114,18 +164,27 @@ export function SearchPageInner({
     );
   };
 
+  const getBrandDisplayValue = () => {
+    if (selectedBrand === "all") return "All Brands";
+    return (
+      availableBrands.find((b) => b.slug === selectedBrand)?.name || "Brand"
+    );
+  };
+
   // Vehicle type icon mapper
   const getVehicleTypeIcon = (typeName: string) => {
     const normalizedName = typeName.toLowerCase();
     // Map vehicle types to icons - you can add more mappings as needed
     const iconMap: Record<string, string> = {
-      sedan: "/icons/car.svg",
-      suv: "/icons/car.svg",
-      hatchback: "/icons/car.svg",
-      van: "/icons/car.svg",
-      coupe: "/icons/car.svg",
-      wagon: "/icons/car.svg",
-      default: "/icons/car.svg",
+      sedan: "/vehicle-types/sedan.png",
+      suv: "/vehicle-types/suv.png",
+      hatchback: "/vehicle-types/hatchback.png",
+      van: "/vehicle-types/van.png",
+      bus: "/vehicle-types/bus.png",
+      motorcycle: "/vehicle-types/motorcycle.png",
+      coupe: "/vehicle-types/car.png",
+      wagon: "/vehicle-types/car.png",
+      default: "/vehicle-types/car.png",
     };
 
     return iconMap[normalizedName] || iconMap.default;
@@ -133,8 +192,9 @@ export function SearchPageInner({
 
   // Sync state when URL or server data changes
   useEffect(() => {
-    setVehicles(initialVehicles);
-    setFilteredVehicles(initialVehicles);
+    const allowed = filterAllowedVehicles(initialVehicles);
+    setVehicles(allowed);
+    setFilteredVehicles(allowed);
   }, [initialVehicles]);
 
   // Sync filter state from URL
@@ -143,6 +203,7 @@ export function SearchPageInner({
     setSelectedCity(searchParams.get("city") || "all");
     setSelectedTown(searchParams.get("town") || "all");
     setSelectedVehicleType(searchParams.get("vehicleType") || "all");
+    setSelectedBrand(searchParams.get("brand") || "all");
   }, [paramsString, searchParams]);
 
   // Load towns when city changes via API
@@ -223,8 +284,26 @@ export function SearchPageInner({
       );
     }
 
+    // Filter by brand
+    if (selectedBrand && selectedBrand !== "all") {
+      filtered = filtered.filter((v) => {
+        const brandName = v.vehicleModel?.vehicleBrand.name;
+        if (!brandName) return false;
+        // Compare slugs (lowercase, replace spaces with hyphens)
+        const brandSlug = brandName.toLowerCase().replace(/\s+/g, "-");
+        return brandSlug === selectedBrand;
+      });
+    }
+
     setFilteredVehicles(filtered);
-  }, [selectedCity, selectedTown, selectedVehicleType, searchQuery, vehicles]);
+  }, [
+    selectedCity,
+    selectedTown,
+    selectedVehicleType,
+    selectedBrand,
+    searchQuery,
+    vehicles,
+  ]);
 
   // Update URL params when filters change
   useEffect(() => {
@@ -233,17 +312,22 @@ export function SearchPageInner({
       params.set("city", selectedCity);
     if (selectedTown && selectedTown !== "all")
       params.set("town", selectedTown);
+    if (selectedTown && selectedTown !== "all")
+      params.set("town", selectedTown);
     if (selectedVehicleType && selectedVehicleType !== "all")
       params.set("vehicleType", selectedVehicleType);
+    if (selectedBrand && selectedBrand !== "all")
+      params.set("brand", selectedBrand);
 
     const newUrl = params.toString() ? `?${params.toString()}` : "";
     router.replace(`/view-all-vehicles${newUrl}`, { scroll: false });
-  }, [selectedCity, selectedTown, selectedVehicleType, router]);
+  }, [selectedCity, selectedTown, selectedVehicleType, selectedBrand, router]);
 
   const handleResetFilters = () => {
     setSelectedCity("all");
     setSelectedTown("all");
     setSelectedVehicleType("all");
+    setSelectedBrand("all");
     setSearchQuery("");
   };
 
@@ -251,6 +335,7 @@ export function SearchPageInner({
     (selectedCity && selectedCity !== "all") ||
     (selectedTown && selectedTown !== "all") ||
     (selectedVehicleType && selectedVehicleType !== "all") ||
+    (selectedBrand && selectedBrand !== "all") ||
     searchQuery
   );
 
@@ -267,7 +352,7 @@ export function SearchPageInner({
           </p>
         </div>
 
-        <div className="pb-4 pt-2 mb-8 border-b border-border">
+        <div className="pb-4 pt-4 mb-8 border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-md">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search Input */}
             <div className="w-full lg:w-1/3 relative">
@@ -333,7 +418,9 @@ export function SearchPageInner({
                   className="w-full sm:w-[180px] h-10 rounded-none border-border"
                   showClear={townSearch.length > 0}
                   disabled={
-                    !selectedCity || selectedCity === "all" || towns.length === 0
+                    !selectedCity ||
+                    selectedCity === "all" ||
+                    towns.length === 0
                   }
                 />
                 <ComboboxContent className="w-[--anchor-width] rounded-none">
@@ -392,6 +479,44 @@ export function SearchPageInner({
                             className="h-4 w-4"
                           />
                           <span>{type.name}</span>
+                        </div>
+                      </ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+
+              {/* Brand Combobox */}
+              <Combobox
+                value={selectedBrand}
+                onValueChange={(value) => {
+                  setSelectedBrand(value || "all");
+                  setBrandSearch("");
+                }}
+              >
+                <ComboboxInput
+                  placeholder={getBrandDisplayValue()}
+                  value={brandSearch}
+                  onChange={(e) => setBrandSearch(e.target.value)}
+                  className="w-full sm:w-[180px] h-10 rounded-none border-border"
+                  showClear={brandSearch.length > 0}
+                />
+                <ComboboxContent className="w-[--anchor-width] rounded-none">
+                  <ComboboxList>
+                    <ComboboxItem value="all" className="rounded-none">
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-muted-foreground" />
+                        <span>All Brands</span>
+                      </div>
+                    </ComboboxItem>
+                    {filteredBrands.map((brand) => (
+                      <ComboboxItem
+                        key={brand.slug}
+                        value={brand.slug}
+                        className="rounded-none"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{brand.name}</span>
                         </div>
                       </ComboboxItem>
                     ))}

@@ -1,6 +1,6 @@
 import {
   getAllCitiesWithCounts,
-  getVehicleTypesWithVehicles,
+  getAllActiveVehicleTypes,
   searchVehicles,
 } from "@/lib/data";
 import type { Vehicle } from "@/types";
@@ -14,7 +14,7 @@ export async function HeroSection({ heading }: HeroSectionProps) {
   // Fetch all data needed for filtering
   const [citiesData, vehicleTypesData, vehiclesData] = await Promise.all([
     getAllCitiesWithCounts(),
-    getVehicleTypesWithVehicles(),
+    getAllActiveVehicleTypes(),
     searchVehicles({
       limit: 1000, // Get all vehicles for client-side filtering
     }),

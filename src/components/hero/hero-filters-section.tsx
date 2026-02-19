@@ -67,9 +67,20 @@ export function HeroFiltersSection({
     town.name.toLowerCase().includes(townSearch.toLowerCase())
   );
 
-  const filteredVehicleTypes = vehicleTypes.filter((type) =>
-    type.name.toLowerCase().includes(vehicleTypeSearch.toLowerCase())
-  );
+  const ALLOWED_VEHICLE_TYPES = [
+    "sedan",
+    "suv",
+    "hatchback",
+    "van",
+    "bus",
+    "motorcycle",
+  ];
+
+  const filteredVehicleTypes = vehicleTypes
+    .filter((type) => ALLOWED_VEHICLE_TYPES.includes(type.slug.toLowerCase()))
+    .filter((type) =>
+      type.name.toLowerCase().includes(vehicleTypeSearch.toLowerCase())
+    );
 
   // Get display values
   const getCityDisplayValue = () => {
@@ -111,8 +122,8 @@ export function HeroFiltersSection({
   // We'll use a custom hook pattern or just render results separately
   return (
     <>
-      {/* Filters Section - Positioned at bottom of hero */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/90 border-t border-border">
+      {/* Filters Section */}
+      <div className="bg-background/90 border-t border-border backdrop-blur-md">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search Input */}

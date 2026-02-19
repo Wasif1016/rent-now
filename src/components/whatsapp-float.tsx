@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export function FloatingWhatsApp() {
   const whatsappNumber = "923144174625";
-  const message = "Hi, I need help finding a car in {your city}.";
+  const message = "Hi, I need help for renting a car.";
 
   const handleClick = () => {
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(

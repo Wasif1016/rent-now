@@ -25,6 +25,8 @@ import { BusinessDetailActions } from "@/components/admin/business-detail-action
 import { BusinessVehiclesList } from "@/components/admin/business-vehicles-list";
 import { ActivityLogViewer } from "@/components/admin/activity-log-viewer";
 import { buildWhatsAppChatLink } from "@/lib/whatsapp";
+import { decryptPassword } from "@/lib/services/crypto.service";
+import { CredentialViewer } from "@/components/admin/credential-viewer";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -55,6 +57,18 @@ export default async function BusinessDetailPage({ params }: PageProps) {
   if (!business) {
     notFound();
   }
+
+  let decryptedPassword = "";
+  if (business.temporaryPasswordEncrypted) {
+    try {
+      decryptedPassword = decryptPassword(business.temporaryPasswordEncrypted);
+    } catch (error) {
+      console.error("Failed to decrypt password:", error);
+      decryptedPassword = "Error decrypting password";
+    }
+  }
+
+  const username = business.email || business.phone || "N/A";
 
   return (
     <div className="space-y-6">
@@ -293,7 +307,10 @@ export default async function BusinessDetailPage({ params }: PageProps) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Management Actions */}
-          <BusinessDetailActions business={business} />
+          <BusinessDetailActions
+            business={business}
+            password={decryptedPassword}
+          />
 
           {/* Account Status */}
           <Card>
@@ -353,66 +370,53 @@ export default async function BusinessDetailPage({ params }: PageProps) {
           {business.supabaseUserId && (
             <Card>
               <CardHeader>
-                <CardTitle>Login Details</CardTitle>
+                <CardTitle>Login Credentials</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Login Email/Phone
+                  <label className="text-sm font-medium text-muted-foreground mb-1 block">
+                    Username (Email/Phone)
                   </label>
-                  <div className="mt-1 flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md border font-mono text-sm">
                     {business.email ? (
-                      <>
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-mono">{business.email}</p>
-                      </>
-                    ) : business.phone ? (
-                      <>
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-mono">{business.phone}</p>
-                      </>
+                      <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     ) : (
-                      <p>N/A</p>
+                      <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     )}
+                    <span className="truncate">{username}</span>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
+
+                {decryptedPassword && (
+                  <div>
+                    <CredentialViewer
+                      value={decryptedPassword}
+                      label="Password"
+                      isPassword={true}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      This is the auto-generated password. If the user changes
+                      it, this will no longer be valid.
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t">
+                  <label className="text-xs font-medium text-muted-foreground">
                     Supabase User ID
                   </label>
-                  <p className="mt-1 text-xs font-mono bg-muted p-2 rounded break-all">
+                  <p className="mt-1 text-[10px] font-mono text-muted-foreground break-all">
                     {business.supabaseUserId}
                   </p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Password Status
-                  </label>
-                  <div className="mt-1">
-                    {business.temporaryPasswordEncrypted ? (
-                      <Badge className="bg-green-500">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Encrypted & Stored
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Not Stored
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+
                 {business.accountCreatedAt && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Last Password Update
-                    </label>
-                    <div className="mt-1 flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <p>
-                        {new Date(business.accountCreatedAt).toLocaleString()}
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>
+                      Created:
+                      {new Date(business.accountCreatedAt).toLocaleString()}
+                    </span>
                   </div>
                 )}
               </CardContent>
