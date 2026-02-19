@@ -7,6 +7,7 @@ import { FooterWrapper } from "@/components/layout/footer-wrapper";
 import { FloatingWhatsApp } from "@/components/whatsapp-float";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
+import { SiteSchema } from "@/components/seo/site-schema";
 
 const oranienbaum = Oranienbaum({
   variable: "--font-oranienbaum",
@@ -106,6 +107,7 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=G-S8T1R71NDE"
           strategy="afterInteractive"
         />
+        <SiteSchema />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];

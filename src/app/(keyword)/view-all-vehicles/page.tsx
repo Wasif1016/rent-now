@@ -1,10 +1,13 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import {
   getAllCitiesWithCounts,
   getTownsByCity,
   getVehicleTypesWithVehicles,
   getAllActiveVehicleTypes,
   searchVehicles,
+  getCityBySlug,
+  getVehicleModelBySlug,
 } from "@/lib/data";
 import { SearchPageInner } from "./search-page-inner";
 
@@ -30,6 +33,48 @@ interface Vehicle {
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const citySlug = params.city as string | undefined;
+  const modelSlug = params.model as string | undefined;
+
+  let title = "Rent a Car in Pakistan | View All Vehicles";
+  let description =
+    "Explore our wide range of vehicles for rent in Pakistan. Cheap rates, verified vendors.";
+
+  if (citySlug) {
+    const city = await getCityBySlug(citySlug);
+    if (city) {
+      if (modelSlug) {
+        const model = await getVehicleModelBySlug(modelSlug);
+        if (model) {
+          title = `Rent ${model.name} in ${city.name} | RentNowPK`;
+          description = `Find best deals for ${model.name} in ${city.name}. Compare prices and book online.`;
+        } else {
+          title = `Rent a Car in ${city.name} | View All Vehicles`;
+          description = `Browse available cars for rent in ${city.name}. Best prices guaranteed.`;
+        }
+      } else {
+        title = `Rent a Car in ${city.name} | View All Vehicles`;
+        description = `Browse available cars for rent in ${city.name}. Best prices guaranteed.`;
+      }
+    }
+  } else if (modelSlug) {
+    const model = await getVehicleModelBySlug(modelSlug);
+    if (model) {
+      title = `Rent ${model.name} in Pakistan | RentNowPK`;
+      description = `Find ${model.name} for rent across Pakistan. Reliable service and competitive rates.`;
+    }
+  }
+
+  return {
+    title,
+    description,
+  };
 }
 
 export default async function SearchPage({ searchParams }: PageProps) {

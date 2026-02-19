@@ -4,6 +4,8 @@ import { resolveVehiclesSegments } from "@/lib/seo-resolver";
 import { CategoryLandingPage } from "@/components/city/category-landing-page";
 import { ModelLandingPage } from "@/components/city/model-landing-page";
 import { TownVehicleLandingPage } from "@/components/city/town-vehicle-landing-page";
+import { getMinPriceForConfig } from "@/lib/data";
+import { Prisma } from "@prisma/client";
 
 interface PageProps {
   params: Promise<{ segments: string[] }>;
@@ -84,23 +86,34 @@ export async function generateMetadata({
   const path = segments.join("/");
   const canonical = `${baseUrl}/vehicles/${path}`;
 
+  // Helper to fetch min price
+  const getPriceText = async (where: Prisma.VehicleWhereInput) => {
+    const minPrice = await getMinPriceForConfig(where);
+    if (minPrice) {
+      return ` - From Rs. ${minPrice.toLocaleString()}`;
+    }
+    return "";
+  };
+
   if (resolved.pageType === "vehicle_category" && resolved.category) {
+    const priceText = await getPriceText({ categoryId: resolved.category.id });
     const name = resolved.category.name.replace(/-/g, " ");
     const title = `${
       name.charAt(0).toUpperCase() + name.slice(1)
-    } Rental | RentNowPk`;
+    } Rental${priceText} | RentNowPk`;
     return {
       title,
-      description: `Rent ${resolved.category.name} vehicles. Compare prices and book with trusted vendors across Pakistan.`,
+      description: `Rent ${resolved.category.name} vehicles${priceText}. Compare prices and book with trusted vendors across Pakistan.`,
       alternates: { canonical },
     };
   }
 
   if (resolved.pageType === "vehicle_model" && resolved.model) {
+    const priceText = await getPriceText({ vehicleModelId: resolved.model.id });
     const displayName = `${resolved.model.vehicleBrand.name} ${resolved.model.name}`;
     return {
-      title: `Rent ${displayName} | Compare Prices | RentNowPk`,
-      description: `Find ${displayName} rental listings. Compare vendors and book with a small advance.`,
+      title: `Rent ${displayName}${priceText} | Compare Prices | RentNowPk`,
+      description: `Find ${displayName} rental listings${priceText}. Compare vendors and book with a small advance.`,
       alternates: { canonical },
     };
   }
@@ -111,10 +124,14 @@ export async function generateMetadata({
     resolved.city &&
     resolved.town
   ) {
+    const priceText = await getPriceText({
+      vehicleModelId: resolved.model.id,
+      townId: resolved.town.id,
+    });
     const displayName = `${resolved.model.vehicleBrand.name} ${resolved.model.name}`;
     return {
-      title: `${displayName} for Rent in ${resolved.town.name}, ${resolved.city.name} | RentNowPk`,
-      description: `Book ${displayName} in ${resolved.town.name}, ${resolved.city.name}. Reliable local rental businesses. Pay a small advance to confirm.`,
+      title: `${displayName} for Rent in ${resolved.town.name}, ${resolved.city.name}${priceText} | RentNowPk`,
+      description: `Book ${displayName} in ${resolved.town.name}, ${resolved.city.name}${priceText}. Reliable local rental businesses. Pay a small advance to confirm.`,
       alternates: { canonical },
     };
   }
@@ -124,10 +141,14 @@ export async function generateMetadata({
     resolved.model &&
     resolved.city
   ) {
+    const priceText = await getPriceText({
+      vehicleModelId: resolved.model.id,
+      cityId: resolved.city.id,
+    });
     const displayName = `${resolved.model.vehicleBrand.name} ${resolved.model.name}`;
     return {
-      title: `${displayName} for Rent in ${resolved.city.name} | Best Deals | RentNowPk`,
-      description: `Find ${displayName} for rent in ${resolved.city.name}. verified vendors and transparent pricing.`,
+      title: `${displayName} for Rent in ${resolved.city.name}${priceText} | Best Deals | RentNowPk`,
+      description: `Find ${displayName} for rent in ${resolved.city.name}${priceText}. verified vendors and transparent pricing.`,
       alternates: { canonical },
     };
   }

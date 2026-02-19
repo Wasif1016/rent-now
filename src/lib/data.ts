@@ -1547,3 +1547,41 @@ export const getAllActiveVehicleTypes = cache(async () => {
     },
   });
 });
+
+export const getMinPriceForConfig = cache(
+  async (where: Prisma.VehicleWhereInput) => {
+    // Check priceDaily, priceWithinCity, priceSelfDrive
+    const [daily, within, self, out] = await Promise.all([
+      prisma.vehicle.findFirst({
+        where: { ...where, isAvailable: true, priceDaily: { not: null } },
+        select: { priceDaily: true },
+        orderBy: { priceDaily: "asc" },
+      }),
+      prisma.vehicle.findFirst({
+        where: { ...where, isAvailable: true, priceWithinCity: { not: null } },
+        select: { priceWithinCity: true },
+        orderBy: { priceWithinCity: "asc" },
+      }),
+      prisma.vehicle.findFirst({
+        where: { ...where, isAvailable: true, priceSelfDrive: { not: null } },
+        select: { priceSelfDrive: true },
+        orderBy: { priceSelfDrive: "asc" },
+      }),
+      prisma.vehicle.findFirst({
+        where: { ...where, isAvailable: true, priceOutOfCity: { not: null } },
+        select: { priceOutOfCity: true },
+        orderBy: { priceOutOfCity: "asc" },
+      }),
+    ]);
+
+    const prices = [
+      daily?.priceDaily,
+      within?.priceWithinCity,
+      self?.priceSelfDrive,
+      out?.priceOutOfCity,
+    ].filter((p): p is number => p != null);
+
+    if (prices.length === 0) return null;
+    return Math.min(...prices);
+  }
+);

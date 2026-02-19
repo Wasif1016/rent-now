@@ -17,6 +17,7 @@ import {
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import Link from "next/link";
 import { VehicleCard } from "@/components/search/vehicle-card-redesigned";
+import { ListingSchema } from "@/components/seo/listing-schema";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -172,6 +173,7 @@ Is that available ?`;
       <div className="min-h-screen bg-foreground/5">
         {/* Top padding so content is not hidden under fixed header */}
         <div className="pb-8 pt-30 md:pb-12">
+          <ListingSchema vehicle={vehicle} />
           <div className="container mx-auto px-4 sm:px-6">
             <Breadcrumbs items={breadcrumbs} />
 
