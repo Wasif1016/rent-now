@@ -14,5 +14,6 @@ export default async function EditBusinessPage({ params }: PageProps) {
     notFound();
   }
 
+  // Pass necessary fields including supabaseUserId
   return <EditBusinessForm business={business} />;
 }

@@ -128,6 +128,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     title: v.title,
     slug: v.slug,
     seats: v.seats,
+    seatingCapacity: v.seatingCapacity,
     images: Array.isArray(v.images) ? (v.images as string[]) : null,
     city: v.city,
     town: v.town,

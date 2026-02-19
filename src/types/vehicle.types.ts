@@ -13,6 +13,7 @@ export interface VehicleBase {
 // Vehicle with full details for display/search
 export interface Vehicle extends VehicleBase {
   seats?: number | null;
+  seatingCapacity?: number | null;
   images: string[] | null;
   city: {
     id?: string;

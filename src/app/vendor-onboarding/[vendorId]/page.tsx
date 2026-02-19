@@ -4,7 +4,7 @@ import { VendorOnboardingForm } from "@/components/vendor-onboarding/vendor-onbo
 
 export const metadata = {
   title: "Vendor Onboarding | RentNowPK",
-  description: "Complete your vendor profile and list your vehicles.",
+  description: "Complete your vendor profile and Rent My Vehicle.",
 };
 
 export default async function VendorOnboardingPage({

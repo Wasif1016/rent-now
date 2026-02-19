@@ -151,7 +151,7 @@ export function BusinessTable({
 
   const handleSendVehicleLink = (business: Business) => {
     const link = `${window.location.origin}/vendor-onboarding/${business.id}`;
-    const message = `Hello ${business.name}, please use this link to list your vehicles:\n${link}`;
+    const message = `Hello ${business.name}, please use this link to Rent My Vehicle:\n${link}`;
     setSelectedBusiness(business);
     setWhatsappPreFillMessage(message);
     setSendWhatsAppModalOpen(true);

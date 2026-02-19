@@ -38,6 +38,7 @@ export async function HeroSection({ heading }: HeroSectionProps) {
     title: v.title,
     slug: v.slug,
     seats: v.seats,
+    seatingCapacity: v.seatingCapacity,
     images: Array.isArray(v.images) ? (v.images as string[]) : null,
     city: v.city,
     town: v.town,

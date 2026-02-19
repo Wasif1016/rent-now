@@ -17,6 +17,7 @@ import Image from "next/image";
 import type { Vehicle, LocationOption, Town } from "@/types";
 import { useVehicleFiltering } from "@/hooks/use-vehicle-filtering";
 import { useTownsLoader } from "@/hooks/use-towns-loader";
+import { ALLOWED_BRANDS } from "@/constants/allowed-brands";
 
 interface HeroFiltersSectionProps {
   initialVehicles: Vehicle[];
@@ -39,6 +40,7 @@ export function HeroFiltersSection({
     setSelectedCity,
     setSelectedTown,
     setSelectedVehicleType,
+    setSelectedSeats,
     resetFilters,
     hasActiveFilters,
   } = useVehicleFiltering({
@@ -118,8 +120,26 @@ export function HeroFiltersSection({
     return iconMap[normalizedName] || iconMap.default;
   };
 
-  // Store filtered vehicles in a way that can be accessed by results component
-  // We'll use a custom hook pattern or just render results separately
+  // Derive available seat options
+  const availableSeats = Array.from(
+    new Set(
+      initialVehicles
+        .filter((v) => {
+          const brandName = v.vehicleModel?.vehicleBrand.name;
+          return (
+            brandName &&
+            ALLOWED_BRANDS.some(
+              (b) => b.toLowerCase() === brandName.toLowerCase()
+            )
+          );
+        })
+        .map((v) => v.seats || v.seatingCapacity)
+        .filter(
+          (seats): seats is number => typeof seats === "number" && seats > 0
+        )
+    )
+  ).sort((a, b) => a - b);
+
   return (
     <>
       {/* Filters Section */}
@@ -252,6 +272,42 @@ export function HeroFiltersSection({
                           />
                           <span>{type.name}</span>
                         </div>
+                      </ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+
+              {/* Seats Filter */}
+              <Combobox
+                value={filters.selectedSeats}
+                onValueChange={(value) => {
+                  setSelectedSeats(value || "all");
+                }}
+              >
+                <ComboboxInput
+                  placeholder={
+                    filters.selectedSeats && filters.selectedSeats !== "all"
+                      ? `${filters.selectedSeats} Seats`
+                      : "Seats"
+                  }
+                  value=""
+                  onChange={() => {}}
+                  className="w-full sm:w-[120px] h-10 rounded-none border-border"
+                  readOnly
+                />
+                <ComboboxContent className="w-[--anchor-width] rounded-none">
+                  <ComboboxList>
+                    <ComboboxItem value="all" className="rounded-none">
+                      Any
+                    </ComboboxItem>
+                    {availableSeats.map((num) => (
+                      <ComboboxItem
+                        key={num}
+                        value={num.toString()}
+                        className="rounded-none"
+                      >
+                        {num} Seats
                       </ComboboxItem>
                     ))}
                   </ComboboxList>

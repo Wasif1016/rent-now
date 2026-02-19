@@ -120,12 +120,20 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
             • Nationwide fleet oversight • Live marketplace control
           </p>
         </div>
-        <Link href="/admin/vehicles/import">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Import Vehicles
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/vehicles/add">
+            <Button variant="outline">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Vehicle
+            </Button>
+          </Link>
+          <Link href="/admin/vehicles/import">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Import Vehicles
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Vehicle Table */}

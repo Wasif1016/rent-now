@@ -17,6 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 
+import { ResetPasswordModal } from "@/components/admin/reset-password-modal";
+import { CreateAccountModal } from "@/components/admin/create-account-modal";
+
 interface City {
   id: string;
   name: string;
@@ -37,6 +40,7 @@ interface Business {
   address: string | null;
   description: string | null;
   googleMapsUrl: string | null;
+  supabaseUserId: string | null;
 }
 
 interface EditBusinessFormProps {
@@ -49,6 +53,8 @@ export function EditBusinessForm({ business }: EditBusinessFormProps) {
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [createAccountOpen, setCreateAccountOpen] = useState(false);
 
   const [name, setName] = useState(business.name || "");
   const [email, setEmail] = useState(business.email || "");
@@ -311,6 +317,57 @@ export function EditBusinessForm({ business }: EditBusinessFormProps) {
           </form>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Security & Access</CardTitle>
+          <CardDescription>Manage password and account access.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            <div>
+              <h3 className="font-medium">
+                {business.supabaseUserId ? "Reset Password" : "Create Account"}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {business.supabaseUserId
+                  ? "Generate a new password for this vendor."
+                  : "This vendor does not have an account yet. Create one now."}
+              </p>
+            </div>
+            {business.supabaseUserId ? (
+              <Button
+                variant="destructive"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setResetModalOpen(true);
+                }}
+              >
+                Reset Password
+              </Button>
+            ) : (
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCreateAccountOpen(true);
+                }}
+              >
+                Create Account
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <ResetPasswordModal
+        open={resetModalOpen}
+        onOpenChange={setResetModalOpen}
+        businessId={business.id}
+        businessName={business.name}
+        businessEmail={business.email || undefined}
+        businessPhone={business.phone || undefined}
+        whatsappPhone={business.whatsappPhone || undefined}
+      />
     </div>
   );
 }

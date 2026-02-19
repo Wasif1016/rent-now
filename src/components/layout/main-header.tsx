@@ -117,7 +117,7 @@ export function MainHeader() {
                 href="/vendor"
                 className="hidden md:flex text-black/90 bg-primary px-4 py-1 font-semibold hover:text-primary-foreground transition-colors"
               >
-                List Your Vehicles
+                Rent My Vehicle
               </Link>
               <div className="hidden md:block">
                 <DropdownMenu>

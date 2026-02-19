@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowRight } from 'lucide-react'
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export function ListYourCar() {
   return (
@@ -11,7 +11,8 @@ export function ListYourCar() {
             Own a Car Rental Business?
           </h2>
           <p className="text-lg lg:text-xl text-foreground/90 mb-8 max-w-2xl mx-auto">
-            Get customers from your city without spending on ads. List your vehicles and receive confirmed bookings.
+            Get customers from your city without spending on ads. Rent My
+            Vehicle and receive confirmed bookings.
           </p>
           <Link href="/auth/signup">
             <Button
@@ -25,6 +26,5 @@ export function ListYourCar() {
         </div>
       </div>
     </section>
-  )
+  );
 }
-

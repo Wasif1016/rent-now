@@ -10,6 +10,7 @@ export interface VehicleFilterState {
   selectedTown: string; // slug or "all"
   selectedBrand: string; // slug or "all"
   selectedVehicleType: string; // slug or "all"
+  selectedSeats: string; // number as string or "all"
 }
 
 // Filter options (available choices)

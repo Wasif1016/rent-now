@@ -26,6 +26,7 @@ interface UseVehicleFilteringResult {
   setSelectedTown: (town: string) => void;
   setSelectedBrand: (brand: string) => void;
   setSelectedVehicleType: (type: string) => void;
+  setSelectedSeats: (seats: string) => void;
   resetFilters: () => void;
   hasActiveFilters: boolean;
 }
@@ -36,6 +37,7 @@ const DEFAULT_FILTERS: VehicleFilterState = {
   selectedTown: "all",
   selectedBrand: "all",
   selectedVehicleType: "all",
+  selectedSeats: "all",
 };
 
 /**
@@ -100,7 +102,18 @@ export function useVehicleFiltering(
         const brandName = v.vehicleModel?.vehicleBrand.name; // Use optional chaining to be safe
         const brandSlug = brandName?.toLowerCase().replace(/\s+/g, "-");
         return brandSlug === filters.selectedBrand;
+        return brandSlug === filters.selectedBrand;
       });
+    }
+
+    // Filter by seats
+    if (filters.selectedSeats && filters.selectedSeats !== "all") {
+      const seats = parseInt(filters.selectedSeats);
+      if (!isNaN(seats)) {
+        filtered = filtered.filter(
+          (v) => v.seats === seats || v.seatingCapacity === seats
+        );
+      }
     }
 
     return filtered;
@@ -159,7 +172,9 @@ export function useVehicleFiltering(
     (filters.selectedCity && filters.selectedCity !== "all") ||
     (filters.selectedTown && filters.selectedTown !== "all") ||
     (filters.selectedVehicleType && filters.selectedVehicleType !== "all") ||
+    (filters.selectedVehicleType && filters.selectedVehicleType !== "all") ||
     (filters.selectedBrand && filters.selectedBrand !== "all") ||
+    (filters.selectedSeats && filters.selectedSeats !== "all") ||
     filters.searchQuery.trim()
   );
 
@@ -172,6 +187,8 @@ export function useVehicleFiltering(
     setSelectedTown,
     setSelectedBrand,
     setSelectedVehicleType,
+    setSelectedSeats: (seats: string) =>
+      setFilters((prev) => ({ ...prev, selectedSeats: seats })),
     resetFilters,
     hasActiveFilters,
   };

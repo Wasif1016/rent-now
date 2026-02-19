@@ -23,6 +23,7 @@ interface Vehicle {
   title: string;
   slug: string;
   seats?: number | null;
+  seatingCapacity?: number | null;
   images: string[] | null;
   city: { name: string; slug: string };
   town?: { name: string; slug: string } | null;
@@ -96,6 +97,9 @@ export function SearchPageInner({
   const [selectedBrand, setSelectedBrand] = useState<string>(
     searchParams.get("brand") || "all"
   );
+  const [selectedSeats, setSelectedSeats] = useState<string>(
+    searchParams.get("seats") || "all"
+  );
 
   // Combobox search states
   const [citySearch, setCitySearch] = useState("");
@@ -140,6 +144,17 @@ export function SearchPageInner({
       name,
       slug: name.toLowerCase().replace(/\s+/g, "-"),
     }));
+
+  // Derive available seat options
+  const availableSeats = Array.from(
+    new Set(
+      vehicles
+        .map((v) => v.seats || v.seatingCapacity)
+        .filter(
+          (seats): seats is number => typeof seats === "number" && seats > 0
+        )
+    )
+  ).sort((a, b) => a - b);
 
   const filteredBrands = availableBrands.filter((brand) =>
     brand.name.toLowerCase().includes(brandSearch.toLowerCase())
@@ -204,6 +219,7 @@ export function SearchPageInner({
     setSelectedTown(searchParams.get("town") || "all");
     setSelectedVehicleType(searchParams.get("vehicleType") || "all");
     setSelectedBrand(searchParams.get("brand") || "all");
+    setSelectedSeats(searchParams.get("seats") || "all");
   }, [paramsString, searchParams]);
 
   // Load towns when city changes via API
@@ -295,12 +311,23 @@ export function SearchPageInner({
       });
     }
 
+    // Filter by seats
+    if (selectedSeats && selectedSeats !== "all") {
+      const seats = parseInt(selectedSeats);
+      if (!isNaN(seats)) {
+        filtered = filtered.filter(
+          (v) => v.seats === seats || v.seatingCapacity === seats
+        );
+      }
+    }
+
     setFilteredVehicles(filtered);
   }, [
     selectedCity,
     selectedTown,
     selectedVehicleType,
     selectedBrand,
+    selectedSeats,
     searchQuery,
     vehicles,
   ]);
@@ -318,16 +345,26 @@ export function SearchPageInner({
       params.set("vehicleType", selectedVehicleType);
     if (selectedBrand && selectedBrand !== "all")
       params.set("brand", selectedBrand);
+    if (selectedSeats && selectedSeats !== "all")
+      params.set("seats", selectedSeats);
 
     const newUrl = params.toString() ? `?${params.toString()}` : "";
     router.replace(`/view-all-vehicles${newUrl}`, { scroll: false });
-  }, [selectedCity, selectedTown, selectedVehicleType, selectedBrand, router]);
+  }, [
+    selectedCity,
+    selectedTown,
+    selectedVehicleType,
+    selectedBrand,
+    selectedSeats,
+    router,
+  ]);
 
   const handleResetFilters = () => {
     setSelectedCity("all");
     setSelectedTown("all");
     setSelectedVehicleType("all");
     setSelectedBrand("all");
+    setSelectedSeats("all");
     setSearchQuery("");
   };
 
@@ -336,6 +373,7 @@ export function SearchPageInner({
     (selectedTown && selectedTown !== "all") ||
     (selectedVehicleType && selectedVehicleType !== "all") ||
     (selectedBrand && selectedBrand !== "all") ||
+    (selectedSeats && selectedSeats !== "all") ||
     searchQuery
   );
 
@@ -517,6 +555,46 @@ export function SearchPageInner({
                       >
                         <div className="flex items-center gap-2">
                           <span>{brand.name}</span>
+                        </div>
+                      </ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+
+              {/* Seats Combobox */}
+              <Combobox
+                value={selectedSeats}
+                onValueChange={(value) => {
+                  setSelectedSeats(value || "all");
+                }}
+              >
+                <ComboboxInput
+                  placeholder={
+                    selectedSeats && selectedSeats !== "all"
+                      ? `${selectedSeats} Seats`
+                      : "Seats"
+                  }
+                  value=""
+                  onChange={() => {}}
+                  className="w-full sm:w-[120px] h-10 rounded-none border-border"
+                  readOnly
+                />
+                <ComboboxContent className="w-[--anchor-width] rounded-none">
+                  <ComboboxList>
+                    <ComboboxItem value="all" className="rounded-none">
+                      <div className="flex items-center gap-2">
+                        <span>Any Seats</span>
+                      </div>
+                    </ComboboxItem>
+                    {availableSeats.map((num) => (
+                      <ComboboxItem
+                        key={num}
+                        value={num.toString()}
+                        className="rounded-none"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{num} Seats</span>
                         </div>
                       </ComboboxItem>
                     ))}
